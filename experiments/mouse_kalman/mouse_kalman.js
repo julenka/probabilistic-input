@@ -1,4 +1,14 @@
 // Utilities 
+Math.nrand = function() {
+    var x1, x2, rad, y1;
+    do {
+        x1 = 2 * this.random() - 1;
+        x2 = 2 * this.random() - 1;
+        rad = x1 * x1 + x2 * x2;
+    } while(rad >= 1 || rad == 0);
+    var c = this.sqrt(-2 * Math.log(rad) / rad);
+    return x1 * c;
+};
 function rgb(r,g,b) {
     var result = {
         'r': r,
@@ -76,7 +86,7 @@ var currentFilter = 0;
 // the fit will be resposive and will do a nice job
 // of smoothing out the function noise.
 
-var decay = 0.1;
+var decay = 0.08;
 
 // I use the uncertainty matrix, R to add random noise
 // to the known position of the mouse.  The higher the
@@ -90,7 +100,7 @@ var decay = 0.1;
 // choice between slower tracking (due to uncertainty)
 // and unrealistic tracking because the data is too noisy.
 
-var R = Matrix.Diagonal([25, 25]);
+var R = Matrix.Diagonal([20, 20]);
 
 // initial state (location and velocity)
 // I haven't found much reason to play with these
@@ -186,10 +196,44 @@ function drawDot3(x, P) {
     ctx.fillRect(x.e(1, 1), x.e(2, 1), pSize, pSize); // x, y, width, height 
 }
 
+function drawCov(x, P, c) {
+    var cov = P.minor(1,1,2,2); // covariance matrix for location
+    var ctx = get2DContext();
+
+    // printMatrix(P);
+    // log("p:");
+    // printMatrix(cov);
+    // log("cov:");
+    // right now there are no correleations, so no need to do eigenvector decomposition
+    var a = cov.e(1,1);
+    var b = cov.e(2,2);
+    
+    ctx.save();
+    ctx.translate(x.e(1,1), x.e(2,1));
+
+    ctx.beginPath();
+    for(var t = 0; t < 2 * Math.PI; t += 0.01) {
+        if(t == 0) {
+            ctx.moveTo(0,0);
+        } else {
+            ctx.lineTo(
+                a * Math.cos(t),
+                b * Math.sin(t));
+        }
+    }
+    ctx.closePath();
+    c.a = 0.5;
+    ctx.fillStyle  = getFillStyle(c);
+
+    ctx.fill();
+    ctx.restore();
+
+}
+
 function printMatrix(m) {
 
     for (var i = m.rows(); i > 0; i--) {
-        log("[" + m.row(i).map(function(x){return Math.round(x * 100)/100;}).elements + "]");
+        log("[" + m.row(i).map(function(x){return Math.round(x * 1000)/1000;}).elements + "]");
     }
 
 }
@@ -253,8 +297,9 @@ $(window).mousemove(function (e) {
     // Measure
     // Fake uncertaintity in our measurements
 
-    xMeasure = e.pageX + R.e(1, 1) * 2 * (Math.random() - 0.5);
-    yMeasure = e.pageY + R.e(2, 2) * 2 * (Math.random() - 0.5);
+    xMeasure = e.pageX + Math.nrand() * R.e(1,1);
+    yMeasure = e.pageY + Math.nrand() * R.e(2,2);
+
     Z = $M([
         [xMeasure, yMeasure]
         ]);
@@ -281,6 +326,10 @@ $(window).mousemove(function (e) {
         drawDot2(x, P, rgb(0,0,255));    
     } else if (currentVisualizationMode == 2) { // resized dots with color
         drawDot3(x,P);
+    } else if (currentVisualizationMode == 3) { // dots with covariance
+        drawCov(x, P, rgb(100,100,100));
+        drawDot(x, rgb(0,0,255));
+
     }
 
     if(showMeasurements) {
