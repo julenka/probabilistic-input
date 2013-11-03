@@ -13,7 +13,7 @@
 #description {
     float:left;
 }
-#log {
+#log, #debug {
     clear:both;
     margin-left:40px;
     font-family:monospace;
