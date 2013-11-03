@@ -86,7 +86,7 @@ var currentFilter = 0;
 // the fit will be resposive and will do a nice job
 // of smoothing out the function noise.
 
-var decay = 0.08;
+var decay = 0.1;
 
 // I use the uncertainty matrix, R to add random noise
 // to the known position of the mouse.  The higher the
