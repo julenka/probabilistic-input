@@ -76,7 +76,7 @@ var currentFilter = 0;
 // the fit will be resposive and will do a nice job
 // of smoothing out the function noise.
 
-var decay = 0.005;
+var decay = 0.1;
 
 // I use the uncertainty matrix, R to add random noise
 // to the known position of the mouse.  The higher the
@@ -134,6 +134,8 @@ var I = Matrix.I(4);
 // To determine dt
 var time = $.now();
 
+var lastX = 0;
+var lastY = 0;
 
 // Draws dot at location
 // x: 4 x 1 matrix containint state
@@ -184,6 +186,13 @@ function drawDot3(x, P) {
     ctx.fillRect(x.e(1, 1), x.e(2, 1), pSize, pSize); // x, y, width, height 
 }
 
+function printMatrix(m) {
+
+    for (var i = m.rows(); i > 0; i--) {
+        log("[" + m.row(i).map(function(x){return Math.round(x * 100)/100;}).elements + "]");
+    }
+
+}
 
 // Update state estimate based on observation
 // Z: observed measurements
@@ -201,14 +210,16 @@ function filterKalman(Z) {
         [0, 0, 0, 1]
         ]);
 
-    // decay confidence
+    var v = $V([x.e(1,1) - Z.e(1,1), x.e(2,1) - Z.e(1,2)]).distanceFrom(Vector.Zero(2)) / dt;
+    //decay confidence
     // to account for change in velocity
     P = P.map(function (x) {
-        return x * (1 + decay * dt);
+        return x * (1 + decay * v);
     });
 
     // prediction
     x = F.x(x).add(u);
+
     P = F.x(P).x(F.transpose());
 
     // measurement update
@@ -241,6 +252,7 @@ $(window).keydown(function(e) {
 $(window).mousemove(function (e) {
     // Measure
     // Fake uncertaintity in our measurements
+
     xMeasure = e.pageX + R.e(1, 1) * 2 * (Math.random() - 0.5);
     yMeasure = e.pageY + R.e(2, 2) * 2 * (Math.random() - 0.5);
     Z = $M([
@@ -264,14 +276,12 @@ $(window).mousemove(function (e) {
 
     if(currentVisualizationMode == 0) { // dots
         // Draw our predicted point
-        drawDot(x, rgb(0,0,255));    
+        drawDot(x, rgb(0,0,255));
     } else if (currentVisualizationMode == 1) { // resized dots with opacity
         drawDot2(x, P, rgb(0,0,255));    
     } else if (currentVisualizationMode == 2) { // resized dots with color
         drawDot3(x,P);
     }
-        //  "dots with opacity", "dots with contours"
-    
 
     if(showMeasurements) {
         // Draw our measured points
