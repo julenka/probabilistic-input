@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <link rel="stylesheet" type="text/css" href="mouse_kalman.css">
+    <!-- sylvester matrix library -->
+    <script type="text/javascript" src="http://cdnjs.cloudflare.com/ajax/libs/sylvester/0.1.3/sylvester.js"></script>
+    <!-- JQuery -->
+    <script type="text/javascript"  src="http://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js">
+    </script>
+    <script type="text/javascript" src="mouse_kalman.js"></script>
+</head>
+<body>
+<div>
+    <canvas id="canvas" width="1000" height="1000" />
+</div>
+<pre id="description">
+
+  Decaying Kalman filter
+
+    Move the mouse around the screen, the code will measure the position of the 
+    mouse and add artificial uncertainty represented by the <span id="measure">red</span> points.  
+    The code will use a kalman filter to predict the true position represented 
+    by the <span id="predict">blue</span> points.
+
+    Unlike an ordinary kalman filter, I've added a decay constant to this code
+    which errodes confidence with time by multiplying the P matrix.  This allows
+    the filter to adjust to changes in velocity over time.
+
+    A riff off of code by <a href='http://www.udacity-forums.com/cs373/users/1410/ben-haley' title='for authoring this'>ben</a>. Matrix library provided by <a href="http://sylvester.jcoglan.com/">sylvester.js</a>
+    
+    'a' - Show/hide measurements.
+    's' - Toggle between visualization modes.
+    'd' - Turn kalman filter on/off
+    'f' - Clear canvas
+</pre>
+<div id="log">
+</div>
+</body>
+</html>

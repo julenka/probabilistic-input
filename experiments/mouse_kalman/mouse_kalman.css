@@ -1,0 +1,20 @@
+#canvas {
+    position:fixed;
+    border-style:solid;
+    border-width:1px;
+    z-index: -1;
+}
+#predict {
+    color:rgb(0, 0, 255);
+}
+#measure {
+    color:rgb(255, 0, 0);
+}
+#description {
+    float:left;
+}
+#log {
+    clear:both;
+    margin-left:40px;
+    font-family:monospace;
+}
