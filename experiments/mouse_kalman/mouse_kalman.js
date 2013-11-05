@@ -68,10 +68,18 @@ function log(msg) {
 // Settings //////////////////////////////////////
 var showMeasurements = false;
 
-var visualizationModes = ["dots", "resized dots with opacity", "resized dots with color", "dots with contours"];
+var visualizationModes = [
+    "dots", 
+    "resized dots with opacity", 
+    "resized dots with color", 
+    "dots with contours"];
 var currentVisualizationMode = 0;
 
-var filters = ["kalman", "none"];
+var filters = [
+    "kalman", 
+    "ewma",
+    "none"];
+    
 var currentFilter = 0;
 
 // The decay errodes the assumption that velocity 
@@ -296,7 +304,6 @@ $(window).keydown(function(e) {
 $(window).mousemove(function (e) {
     // Measure
     // Fake uncertaintity in our measurements
-
     xMeasure = e.pageX + Math.nrand() * R.e(1,1);
     yMeasure = e.pageY + Math.nrand() * R.e(2,2);
 
@@ -338,3 +345,8 @@ $(window).mousemove(function (e) {
     }
     
 });
+
+$(window).load(function() {
+    updateState();
+});
+
