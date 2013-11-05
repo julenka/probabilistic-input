@@ -60,6 +60,10 @@ function get2DContext(id) {
     return document.getElementById('canvas').getContext('2d');
 }
 
+function round(n, sig) {
+    return Math.round(n * Math.pow(10, sig)) / Math.pow(10,sig);
+}
+
 // Logging
 function log(msg) {
     $("#log").prepend("<div>"+msg+"</div>");
@@ -170,6 +174,9 @@ function updateState() {
     $("#debug").append("<div> showMeasurements: " + showMeasurements + "</div>");
     $("#debug").append("<div> visualization mode: " + visualizationModes[currentVisualizationMode] + "</div>");
     $("#debug").append("<div> filter: " + filters[currentFilter] + "</div>");
+    for(var i = 0; i < filters.length; i++) {
+        $("#debug").append("<div> " + filters[i] + " error: " + round(errors[i].error, 2) + " count: " + errors[i].count);
+    }
 }
 
 // Draws dot at observed location, change size and alpha to reflect uncertainty
@@ -239,6 +246,18 @@ function drawCov(x, P, c) {
     ctx.fill();
     ctx.restore();
 
+}
+
+var errorSmoothing = 0.9;
+var errors = [
+    {error:0, count: 0},
+    {error: 0, count: 0},
+    {error: 0, count: 0}]; // errors [i] = errors for that particular filter
+
+function updateError(x, xActual, yActual) {
+    var err = Math.sqrt( Math.pow((x.e(1,1) - xActual), 2) + Math.pow((x.e(2,1) - yActual), 2));
+    errors[currentFilter].count++;
+    errors[currentFilter].error = errorSmoothing * errors[currentFilter].error + (1 - errorSmoothing) * err;
 }
 
 function printMatrix(m) {
@@ -325,7 +344,7 @@ $(window).mousemove(function (e) {
         ]);
         P = Matrix.Diagonal([R.e(1,1), R.e(2,2), 0, 0]); 
     }
-
+    updateError(x, e.pageX, e.pageY);
 
     if(currentVisualizationMode == 0) { // dots
         // Draw our predicted point
@@ -337,14 +356,13 @@ $(window).mousemove(function (e) {
     } else if (currentVisualizationMode == 3) { // dots with covariance
         drawCov(x, P, rgb(100,100,100));
         drawDot(x, rgb(0,0,255));
-
     }
 
     if(showMeasurements) {
         // Draw our measured points
         drawDot(Z.transpose(), rgb(255,0,0) );    
     }
-    
+    updateState();
 });
 
 $(window).keydown(function(e) {
