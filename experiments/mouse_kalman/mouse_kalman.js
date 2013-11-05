@@ -286,23 +286,19 @@ function filterKalman(Z) {
     P = I.subtract(K.x(H)).x(P);
 }
 
-
-$(window).keydown(function(e) {
-    // log("key pressed: " + e.which);
-    var keyCode = e.which;
-    if(keyCode == 65) { // 'a'
-        showMeasurements = !showMeasurements;
-    } else if (keyCode == 83) { // 's'
-        currentVisualizationMode++;
-        currentVisualizationMode %= visualizationModes.length;
-    } else if (keyCode == 68) { // 'd'
-        currentFilter++;
-        currentFilter %= filters.length;
-    } else if (keyCode == 70) { // 'f'
-        get2DContext().clearRect(0,0, 1000, 1000);
-    }
-    updateState();
-});
+var ewmaFactor = 0.9;
+function filterEWMA(Z) {
+    var currentX = x.e(1,1);
+    var currentY = x.e(2,1);
+    var newX = currentX * ewmaFactor + (1 - ewmaFactor) * Z.e(1,1);
+    var newY = currentY * ewmaFactor + (1 - ewmaFactor) * Z.e(1,2);
+    x = x.setElements([
+        [newX],
+        [newY],
+        [0],
+        [0]
+        ]);
+}
 
 $(window).mousemove(function (e) {
     // Measure
@@ -315,17 +311,19 @@ $(window).mousemove(function (e) {
         ]);
 
     // filter
-    var filterMode = filters[currentFilter];
-    if(filterMode == "none") {
-        x = x.setElements([
-            [xMeasure],
-            [yMeasure],
-            [0],
-            [0]
-            ]);
-        P = Matrix.Diagonal([R.e(1,1), R.e(2,2), 0, 0]);
-    } else if (filterMode == "kalman") {
+    if(currentFilter == 0) { // kalman
         filterKalman(Z);
+    } else if (currentFilter == 1) { // ewma
+        filterEWMA(Z);
+        P = Matrix.Diagonal([R.e(1,1), R.e(2,2), 0, 0]); 
+    } else  if(currentFilter == 2) { // none
+        x = x.setElements([
+        [xMeasure],
+        [yMeasure],
+        [0],
+        [0]
+        ]);
+        P = Matrix.Diagonal([R.e(1,1), R.e(2,2), 0, 0]); 
     }
 
 
@@ -347,6 +345,23 @@ $(window).mousemove(function (e) {
         drawDot(Z.transpose(), rgb(255,0,0) );    
     }
     
+});
+
+$(window).keydown(function(e) {
+    // log("key pressed: " + e.which);
+    var keyCode = e.which;
+    if(keyCode == 65) { // 'a'
+        showMeasurements = !showMeasurements;
+    } else if (keyCode == 83) { // 's'
+        currentVisualizationMode++;
+        currentVisualizationMode %= visualizationModes.length;
+    } else if (keyCode == 68) { // 'd'
+        currentFilter++;
+        currentFilter %= filters.length;
+    } else if (keyCode == 70) { // 'f'
+        get2DContext().clearRect(0,0, 1000, 1000);
+    }
+    updateState();
 });
 
 $(window).load(function() {
