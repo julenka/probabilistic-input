@@ -385,6 +385,9 @@ $(window).keydown(function(e) {
     } else if (keyCode == 68) { // 'd'
         currentFilter++;
         currentFilter %= filters.length;
+        if(currentFilter == 0) { // kalman
+            P = Matrix.Random(4, 4);
+        }
     } else if (keyCode == 70) { // 'f'
         get2DContext().clearRect(0,0, 1000, 1000);
     } else if (keyCode == 74) { // 'j'
