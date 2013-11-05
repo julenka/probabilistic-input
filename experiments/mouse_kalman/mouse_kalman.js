@@ -79,7 +79,7 @@ var filters = [
     "kalman", 
     "ewma",
     "none"];
-    
+
 var currentFilter = 0;
 
 // The decay errodes the assumption that velocity 
@@ -204,6 +204,9 @@ function drawDot3(x, P) {
     ctx.fillRect(x.e(1, 1), x.e(2, 1), pSize, pSize); // x, y, width, height 
 }
 
+// Draws the error ellipse given by uncertainty of state, P
+// x: 4 x 1 matrix containing state
+// P: 4.4 uncertainty matrix
 function drawCov(x, P, c) {
     var cov = P.minor(1,1,2,2); // covariance matrix for location
     var ctx = get2DContext();
