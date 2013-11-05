@@ -70,7 +70,7 @@ function log(msg) {
 }
 
 // Settings //////////////////////////////////////
-var showMeasurements = false;
+var showMeasurements = true;
 var showActual = true;
 
 var visualizationModes = [
