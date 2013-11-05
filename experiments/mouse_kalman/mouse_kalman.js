@@ -99,7 +99,7 @@ var currentFilter = 0;
 // the fit will be resposive and will do a nice job
 // of smoothing out the function noise.
 
-var decay = 0.1;
+var decay = 1;
 
 // I use the uncertainty matrix, R to add random noise
 // to the known position of the mouse.  The higher the
@@ -269,6 +269,8 @@ function printMatrix(m) {
 
 }
 
+var lastV = $V([0,0]);
+
 // Update state estimate based on observation
 // Z: observed measurements
 function filterKalman(Z) {
@@ -285,11 +287,13 @@ function filterKalman(Z) {
         [0, 0, 0, 1]
         ]);
 
-    var v = $V([x.e(1,1) - Z.e(1,1), x.e(2,1) - Z.e(1,2)]).distanceFrom(Vector.Zero(2)) / dt;
+    var v = $V([x.e(1,1) - Z.e(1,1), x.e(2,1) - Z.e(1,2)]).x(1 / dt);
+    var acceleration = v.subtract(lastV).distanceFrom(Vector.Zero(2)) / dt;
+    lastV = v;
     //decay confidence
     // to account for change in velocity
     P = P.map(function (x) {
-        return x * (1 + decay * v);
+        return x * (1 + decay * Math.abs(acceleration));
     });
 
     // prediction
@@ -304,6 +308,7 @@ function filterKalman(Z) {
     K = P.x(H.transpose()).x(S.inverse());
     x = x.add(K.x(y));
     P = I.subtract(K.x(H)).x(P);
+
 }
 
 var ewmaFactor = 0.9;
