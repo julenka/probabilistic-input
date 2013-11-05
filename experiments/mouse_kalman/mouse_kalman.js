@@ -71,6 +71,7 @@ function log(msg) {
 
 // Settings //////////////////////////////////////
 var showMeasurements = false;
+var showActual = true;
 
 var visualizationModes = [
     "dots", 
@@ -362,6 +363,9 @@ $(window).mousemove(function (e) {
         // Draw our measured points
         drawDot(Z.transpose(), rgb(255,0,0) );    
     }
+    if(showActual) {
+        drawDot($M([[e.pageX], [e.pageY]]), rgb(0,255,0));
+    }
     updateState();
 });
 
@@ -378,6 +382,8 @@ $(window).keydown(function(e) {
         currentFilter %= filters.length;
     } else if (keyCode == 70) { // 'f'
         get2DContext().clearRect(0,0, 1000, 1000);
+    } else if (keyCode == 74) { // 'j'
+        showActual = !showActual;
     }
     updateState();
 });

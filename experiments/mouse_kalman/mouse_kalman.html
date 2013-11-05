@@ -20,20 +20,18 @@
   Decaying Kalman filter
 
     Move the mouse around the screen, the code will measure the position of the 
-    mouse and add artificial uncertainty represented by the <span id="measure">red</span> points.  
-    The code will use a kalman filter to predict the true position represented 
-    by the <span id="predict">blue</span> points.
+    mouse and add artificial uncertainty. The code will use variety of filters
+    (kalman, EWMA) to predict the true position represented. The demo also
+    contains several methods of visualizing the uncertainty about the estimation
+    for points filtered using a kalman filter.
 
-    Unlike an ordinary kalman filter, I've added a decay constant to this code
-    which errodes confidence with time by multiplying the P matrix.  This allows
-    the filter to adjust to changes in velocity over time.
-
-    A riff off of code by <a href='http://www.udacity-forums.com/cs373/users/1410/ben-haley' title='for authoring this'>ben</a>. Matrix library provided by <a href="http://sylvester.jcoglan.com/">sylvester.js</a>
+    Based off of code by <a href='http://www.udacity-forums.com/cs373/users/1410/ben-haley' title='for authoring this'>ben</a>. Matrix library provided by <a href="http://sylvester.jcoglan.com/">sylvester.js</a>
     
     'a' - Show/hide measurements.
     's' - Toggle between visualization modes.
     'd' - Change filter [kalman, ewma, none]
     'f' - Clear canvas
+    'j' - Show/hide actual mouse position (green).
 </pre>
 <div id="debug"></div>
 <div id="log">
