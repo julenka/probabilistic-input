@@ -215,15 +215,15 @@ function drawDot3(x, P) {
 // Draws the error ellipse given by uncertainty of state, P
 // x: 4 x 1 matrix containing state
 // P: 4.4 uncertainty matrix
-function drawCov(x, P, c) {
+function drawCov(x, P) {
     var cov = P.minor(1,1,2,2); // covariance matrix for location
     var ctx = get2DContext();
-
-    // printMatrix(P);
-    // log("p:");
-    // printMatrix(cov);
-    // log("cov:");
-    // right now there are no correleations, so no need to do eigenvector decomposition
+    var maxUncertainty = cov.max();
+    var pSize = maxUncertainty;
+    var hue = remap(maxUncertainty, 3, 7, 0.66, 0.0);
+    var c = hsvToRgb(hue, 1, 1);
+    c.a = 0.5;
+    
     var a = cov.e(1,1);
     var b = cov.e(2,2);
     
@@ -360,7 +360,7 @@ $(window).mousemove(function (e) {
     } else if (currentVisualizationMode == 2) { // resized dots with color
         drawDot3(x,P);
     } else if (currentVisualizationMode == 3) { // dots with covariance
-        drawCov(x, P, rgb(100,100,100));
+        drawCov(x, P);
         drawDot(x, rgb(0,0,255));
     }
 
