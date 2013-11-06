@@ -5,7 +5,7 @@ Math.nrand = function() {
         x1 = 2 * this.random() - 1;
         x2 = 2 * this.random() - 1;
         rad = x1 * x1 + x2 * x2;
-    } while(rad >= 1 || rad == 0);
+    } while(rad >= 1 || rad === 0);
     var c = this.sqrt(-2 * Math.log(rad) / rad);
     return x1 * c;
 };
@@ -22,7 +22,9 @@ function rgb(r,g,b) {
 function hsvToRgb(h,s,v) {
     var r, g, b, i, f, p, q, t;
     if (h && s === undefined && v === undefined) {
-        s = h.s, v = h.v, h = h.h;
+        s = h.s; 
+        v = h.v;
+        h = h.h;
     }
     i = Math.floor(h * 6);
     f = h * 6 - i;
@@ -30,12 +32,12 @@ function hsvToRgb(h,s,v) {
     q = v * (1 - f * s);
     t = v * (1 - (1 - f) * s);
     switch (i % 6) {
-        case 0: r = v, g = t, b = p; break;
-        case 1: r = q, g = v, b = p; break;
-        case 2: r = p, g = v, b = t; break;
-        case 3: r = p, g = q, b = v; break;
-        case 4: r = t, g = p, b = v; break;
-        case 5: r = v, g = p, b = q; break;
+        case 0: r = v; g = t; b = p; break;
+        case 1: r = q; g = v; b = p; break;
+        case 2: r = p; g = v; b = t; break;
+        case 3: r = p; g = q; b = v; break;
+        case 4: r = t; g = p; b = v; break;
+        case 5: r = v; g = p; b = q; break;
     }
     return {
         r: Math.floor(r * 255),
@@ -86,73 +88,6 @@ var filters = [
     "none"];
 
 var currentFilter = 0;
-
-// The decay errodes the assumption that velocity 
-// never changes.  This is the only unique addition
-// I made to the proceedure.  If you set it to zero, 
-// the filter will act just like the one we designed
-// in class which means it strives to find a consitent
-// velocitiy.  Over time this will cause it to assume
-// the mouse is moving very slowly with lots of noise.
-// Set too high and the predicted fit will mirror the 
-// noisy data it recieves.  When at a nice setting, 
-// the fit will be resposive and will do a nice job
-// of smoothing out the function noise.
-
-var decay = 1;
-
-// I use the uncertainty matrix, R to add random noise
-// to the known position of the mouse.  The higher the
-// values, the more noise, which can be seen by the 
-// spread of the orange points on the canvas.
-//
-// If you adjust this number you will often need to 
-// compensate by changing the decay so that the prediction
-// function remains smooth and reasonable.  However, as
-// these measurements get noisier we are left with a 
-// choice between slower tracking (due to uncertainty)
-// and unrealistic tracking because the data is too noisy.
-
-var R = Matrix.Diagonal([20, 20]);
-
-// initial state (location and velocity)
-// I haven't found much reason to play with these
-// in general the model will update pretty quickly 
-// to any entry point.
-
-var x = $M([
-    [0],
-    [0],
-    [0],
-    [0]
-    ]);
-
-// external motion
-// I have not played with this at all, just
-// added like a udacity zombie.
-
-var u = $M([
-    [0],
-    [0],
-    [0],
-    [0]
-    ]);
-
-// initial uncertainty 
-// I don't see any reason to play with this
-// like the entry point it quickly adjusts 
-// itself to the behavior of the mouse
-var P = Matrix.Random(4, 4);
-
-// measurement function (4D -> 2D)
-// This one has to be this way to make things run
-var H = $M([
-    [1, 0, 0, 0],
-    [0, 1, 0, 0]
-    ]);
-
-// identity matrix
-var I = Matrix.I(4);
 
 // To determine dt
 var time = $.now();
@@ -232,7 +167,7 @@ function drawCov(x, P) {
 
     ctx.beginPath();
     for(var t = 0; t < 2 * Math.PI; t += 0.01) {
-        if(t == 0) {
+        if(t === 0) {
             ctx.moveTo(0,0);
         } else {
             ctx.lineTo(
@@ -262,12 +197,66 @@ function updateError(x, xActual, yActual) {
 }
 
 function printMatrix(m) {
-
+    var round1000 = function(x){return Math.round(x * 1000)/1000;};
     for (var i = m.rows(); i > 0; i--) {
-        log("[" + m.row(i).map(function(x){return Math.round(x * 1000)/1000;}).elements + "]");
+        log("[" + m.row(i).map(round1000).elements + "]");
     }
 
 }
+
+var kf4d = new KalmanFilter(
+    4, 
+    $M([[0],[0],[0],[0]]), // x
+    Matrix.Random(4, 4),   // P
+    $M([ [1, 0, 0, 0],     // H
+         [0, 1, 0, 0]]) );
+
+var measurement_noise =  Matrix.Diagonal([20, 20]);
+
+// Kalman Filter constructor
+// dimentions: number of dimensions, n
+// initial_state: n x 1 matrix
+// initial_uncertainty: n x n covariance matrix
+// measurement_matrix: measure_n x n matrix
+function KalmanFilter(dimensions, initial_state, initial_uncertainty, measurement_matrix) {
+    this.n = dimensions;
+    this.x = initial_state;
+    this.P = initial_uncertainty;
+    this.H = measurement_matrix;
+    this.I = Matrix.I(this.n);
+}
+
+// Increase the state uncertainty by amount
+// amount: new_uncertainty = old_uncertainty * (1 + amount)
+KalmanFilter.prototype.decay = function(amount) {
+    this.P = this.P.map(function (x) {
+        return x * (1 + amount);
+    });
+};
+
+// Execute prediction step of Kalman Filter
+// next_state_matrix: n x n, describes predicted next state given current
+// external_motion_matrix: n x 1, describes external motion to add
+KalmanFilter.prototype.predict = function(next_state_matrix, external_motion_matrix) {
+    var F = next_state_matrix;
+    var u = external_motion_matrix;
+    // this.x = F.x(this.x).add(u);
+    this.P = F.x(this.P).x(F.transpose());
+};
+
+// Execute measure step of Kalman Filter
+// observation: n x 1, observed value
+// measurement_uncertainty: measure_n x measure_n, uncertainty of measurement
+KalmanFilter.prototype.measure = function(observation, measurement_uncertainty) {
+    var R = measurement_uncertainty;
+    var Z = observation;
+    var y = Z.transpose().subtract(this.H.x(this.x));
+    var S = this.H.x(this.P).x(this.H.transpose()).add(R);
+
+    var K = this.P.x(this.H.transpose()).x(S.inverse());
+    this.x = this.x.add(K.x(y));
+    this.P = this.I.subtract(K.x(this.H)).x(this.P);
+};
 
 var lastV = $V([0,0]);
 
@@ -280,35 +269,21 @@ function filterKalman(Z) {
     time = now;
 
     // Derive the next state
-    F = $M([
+    var F = $M([
         [1, 0, dt, 0],
         [0, 1, 0, dt],
         [0, 0, 1, 0],
         [0, 0, 0, 1]
         ]);
-
-    var v = $V([x.e(1,1) - Z.e(1,1), x.e(2,1) - Z.e(1,2)]).x(1 / dt);
+    
+    var v = $V([kf4d.x.e(1,1) - Z.e(1,1), kf4d.x.e(2,1) - Z.e(1,2)]).x(1 / dt);
     var acceleration = v.subtract(lastV).distanceFrom(Vector.Zero(2)) / dt;
     lastV = v;
-    //decay confidence
-    // to account for change in velocity
-    P = P.map(function (x) {
-        return x * (1 + decay * Math.abs(acceleration));
-    });
+    kf4d.decay(Math.abs(acceleration));
 
-    // prediction
-    x = F.x(x).add(u);
+    kf4d.predict(F, $M([[0],[0],[0],[0] ]));
 
-    P = F.x(P).x(F.transpose());
-
-    // measurement update
-    y = Z.transpose().subtract(H.x(x));
-    S = H.x(P).x(H.transpose()).add(R);
-
-    K = P.x(H.transpose()).x(S.inverse());
-    x = x.add(K.x(y));
-    P = I.subtract(K.x(H)).x(P);
-
+    kf4d.measure(Z, measurement_noise);
 }
 
 var ewmaFactor = 0.9;
@@ -317,7 +292,7 @@ function filterEWMA(Z) {
     var currentY = x.e(2,1);
     var newX = currentX * ewmaFactor + (1 - ewmaFactor) * Z.e(1,1);
     var newY = currentY * ewmaFactor + (1 - ewmaFactor) * Z.e(1,2);
-    x = x.setElements([
+    return $M([
         [newX],
         [newY],
         [0],
@@ -328,40 +303,45 @@ function filterEWMA(Z) {
 $(window).mousemove(function (e) {
     // Measure
     // Fake uncertaintity in our measurements
-    xMeasure = e.pageX + Math.nrand() * R.e(1,1);
-    yMeasure = e.pageY + Math.nrand() * R.e(2,2);
+    xMeasure = e.pageX + Math.nrand() * measurement_noise.e(1,1);
+    yMeasure = e.pageY + Math.nrand() * measurement_noise.e(2,2);
 
     Z = $M([
         [xMeasure, yMeasure]
         ]);
 
     // filter
-    if(currentFilter == 0) { // kalman
+    var filtered_result = kf4d;
+    if(currentFilter === 0) { // kalman
         filterKalman(Z);
     } else if (currentFilter == 1) { // ewma
-        filterEWMA(Z);
-        P = Matrix.Diagonal([R.e(1,1), R.e(2,2), 0, 0]); 
+        filtered_result = {
+            x: filterEWMA(Z),
+            P : Matrix.Diagonal([measurement_noise.e(1,1), Rmeasurement_noisee(2,2), 0, 0])
+        };
     } else  if(currentFilter == 2) { // none
-        x = x.setElements([
-        [xMeasure],
-        [yMeasure],
-        [0],
-        [0]
-        ]);
-        P = Matrix.Diagonal([R.e(1,1), R.e(2,2), 0, 0]); 
+        filtered_result = {
+            x: $M([
+            [xMeasure],
+            [yMeasure],
+            [0],
+            [0]
+            ]),
+            P: Matrix.Diagonal([measurement_noise.e(1,1), Rmeasurement_noisee(2,2), 0, 0])
+        };
     }
-    updateError(x, e.pageX, e.pageY);
+    updateError(filtered_result.x, e.pageX, e.pageY);
 
-    if(currentVisualizationMode == 0) { // dots
+    if(currentVisualizationMode === 0) { // dots
         // Draw our predicted point
-        drawDot(x, rgb(0,0,255));
+        drawDot(filtered_result.x, rgb(0,0,255));
     } else if (currentVisualizationMode == 1) { // resized dots with opacity
         drawDot2(x, P, rgb(0,0,255));    
     } else if (currentVisualizationMode == 2) { // resized dots with color
-        drawDot3(x,P);
+        drawDot3(filtered_result.x,P);
     } else if (currentVisualizationMode == 3) { // dots with covariance
-        drawCov(x, P);
-        drawDot(x, rgb(0,0,255));
+        drawCov(filtered_result.x, P);
+        drawDot(filtered_result.x, rgb(0,0,255));
     }
 
     if(showMeasurements) {
@@ -385,7 +365,7 @@ $(window).keydown(function(e) {
     } else if (keyCode == 68) { // 'd'
         currentFilter++;
         currentFilter %= filters.length;
-        if(currentFilter == 0) { // kalman
+        if(currentFilter === 0) { // kalman
             P = Matrix.Random(4, 4);
         }
     } else if (keyCode == 70) { // 'f'
