@@ -327,7 +327,7 @@ $(window).mousemove(function (e) {
             [0],
             [0]
             ]),
-            P: Matrix.Diagonal([measurement_noise.e(1,1), Rmeasurement_noisee(2,2), 0, 0])
+            P: Matrix.Diagonal([measurement_noise.e(1,1), measurement_noise(2,2), 0, 0])
         };
     }
     updateError(filtered_result.x, e.pageX, e.pageY);
