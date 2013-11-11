@@ -190,10 +190,14 @@ var errors = [
     {error: 0, count: 0},
     {error: 0, count: 0}]; // errors [i] = errors for that particular filter
 
-function updateError(x, xActual, yActual) {
-    var err = Math.sqrt( Math.pow((x.e(1,1) - xActual), 2) + Math.pow((x.e(2,1) - yActual), 2));
-    errors[currentFilter].count++;
-    errors[currentFilter].error = errorSmoothing * errors[currentFilter].error + (1 - errorSmoothing) * err;
+function updateError(xActual, yActual) {
+    for(var i = 0; i < filters.length; i++) {
+        var x = filter_values[i].x;
+        var err = Math.sqrt( Math.pow((x.e(1,1) - xActual), 2) + Math.pow((x.e(2,1) - yActual), 2));
+        errors[i].count++;
+        errors[i].error = errorSmoothing * errors[currentFilter].error + (1 - errorSmoothing) * err;    
+    }
+    
 }
 
 function printMatrix(m) {
@@ -210,11 +214,15 @@ var kf4d = new KalmanFilter(
     Matrix.Random(4, 4),   // P
     $M([ [1, 0, 0, 0],     // H
          [0, 1, 0, 0]]) );
+var ewma = new EWMAFilter(2, 0.9, $M([[0],[0]]) );
+var nofilter = new NoFilter(2, $M([[0],[0]]) );
+
+var filter_values = [kf4d, ewma, nofilter];
 
 var measurement_noise =  Matrix.Diagonal([20, 20]);
 
 // Kalman Filter constructor
-// dimentions: number of dimensions, n
+// dimensions: number of dimensions, n
 // initial_state: n x 1 matrix
 // initial_uncertainty: n x n covariance matrix
 // measurement_matrix: measure_n x n matrix
@@ -250,13 +258,40 @@ KalmanFilter.prototype.predict = function(next_state_matrix, external_motion_mat
 KalmanFilter.prototype.measure = function(observation, measurement_uncertainty) {
     var R = measurement_uncertainty;
     var Z = observation;
-    var y = Z.transpose().subtract(this.H.x(this.x));
+    var y = Z.subtract(this.H.x(this.x));
     var S = this.H.x(this.P).x(this.H.transpose()).add(R);
 
     var K = this.P.x(this.H.transpose()).x(S.inverse());
     this.x = this.x.add(K.x(y));
     this.P = this.I.subtract(K.x(this.H)).x(this.P);
 };
+
+// EWMA filter constructor
+// dimensions: number of variables to track
+// smoothing_factor: smoothing factor to use for all variables
+// initial_state: initial value, matrix dimensions are n_dimensions x 1.
+function EWMAFilter(dimensions, smoothing_factor, initial_state) {
+    this.n = dimensions;
+    this.x = initial_state;
+    this.a = smoothing_factor;
+
+}
+
+EWMAFilter.prototype.update = function(observation) {
+    var z = observation.minor(1,1,this.n, 1);
+    this.x = this.x.multiply(this.a).add(z.multiply(1 - this.a) );
+    
+}
+
+function NoFilter(dimensions, initial_state) {
+    this.n = dimensions;
+    this.x = initial_state;
+}
+
+NoFilter.prototype.update = function(observation) {
+    var z = observation.minor(1,1,this.n, 1);
+    this.x = z;
+}
 
 var lastV = $V([0,0]);
 
@@ -288,16 +323,7 @@ function filterKalman(Z) {
 
 var ewmaFactor = 0.9;
 function filterEWMA(Z) {
-    var currentX = x.e(1,1);
-    var currentY = x.e(2,1);
-    var newX = currentX * ewmaFactor + (1 - ewmaFactor) * Z.e(1,1);
-    var newY = currentY * ewmaFactor + (1 - ewmaFactor) * Z.e(1,2);
-    return $M([
-        [newX],
-        [newY],
-        [0],
-        [0]
-        ]);
+    ewma.update(Z.elements);
 }
 
 $(window).mousemove(function (e) {
@@ -307,46 +333,45 @@ $(window).mousemove(function (e) {
     yMeasure = e.pageY + Math.nrand() * measurement_noise.e(2,2);
 
     Z = $M([
-        [xMeasure, yMeasure]
+        [xMeasure], [yMeasure]
         ]);
 
     // filter
-    var filtered_result = kf4d;
+    filterKalman(Z);
+    ewma.update(Z);
+    nofilter.update(Z);
+    updateError(e.pageX, e.pageY);
+
+    var to_draw = {};
     if(currentFilter === 0) { // kalman
-        filterKalman(Z);
+        to_draw = kf4d;
     } else if (currentFilter == 1) { // ewma
-        filtered_result = {
-            x: filterEWMA(Z),
-            P : Matrix.Diagonal([measurement_noise.e(1,1), Rmeasurement_noisee(2,2), 0, 0])
+        to_draw = {
+            x: ewma.x,
+            P : Matrix.Diagonal([measurement_noise.e(1,1), measurement_noise.e(2,2), 0, 0])
         };
     } else  if(currentFilter == 2) { // none
-        filtered_result = {
-            x: $M([
-            [xMeasure],
-            [yMeasure],
-            [0],
-            [0]
-            ]),
-            P: Matrix.Diagonal([measurement_noise.e(1,1), measurement_noise(2,2), 0, 0])
+        to_draw = {
+            x: nofilter.x,
+            P: Matrix.Diagonal([measurement_noise.e(1,1), measurement_noise.e(2,2), 0, 0])
         };
     }
-    updateError(filtered_result.x, e.pageX, e.pageY);
 
     if(currentVisualizationMode === 0) { // dots
         // Draw our predicted point
-        drawDot(filtered_result.x, rgb(0,0,255));
+        drawDot(to_draw.x, rgb(0,0,255));
     } else if (currentVisualizationMode == 1) { // resized dots with opacity
-        drawDot2(x, P, rgb(0,0,255));    
+        drawDot2(to_draw.x, to_draw.P, rgb(0,0,255));    
     } else if (currentVisualizationMode == 2) { // resized dots with color
-        drawDot3(filtered_result.x,P);
+        drawDot3(to_draw.x,to_draw.P);
     } else if (currentVisualizationMode == 3) { // dots with covariance
-        drawCov(filtered_result.x, P);
-        drawDot(filtered_result.x, rgb(0,0,255));
+        drawCov(to_draw.x, to_draw.P);
+        drawDot(to_draw.x, rgb(0,0,255));
     }
 
     if(showMeasurements) {
         // Draw our measured points
-        drawDot(Z.transpose(), rgb(255,0,0) );    
+        drawDot(Z, rgb(255,0,0) );    
     }
     if(showActual) {
         drawDot($M([[e.pageX], [e.pageY]]), rgb(0,255,0));
