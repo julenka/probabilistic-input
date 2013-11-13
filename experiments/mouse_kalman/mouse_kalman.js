@@ -57,14 +57,10 @@ function getFillStyle(c) {
     return "rgba("+c.r+","+c.g+","+c.b+","+c.a+")";
 }
 
-
-function get2DContext(id) {
-    return document.getElementById('canvas').getContext('2d');
+function get2DContext() {
+    return get2DContextForId("canvas");
 }
 
-function round(n, sig) {
-    return Math.round(n * Math.pow(10, sig)) / Math.pow(10,sig);
-}
 
 // Logging
 function log(msg) {
@@ -93,6 +89,7 @@ var time = $.now();
 
 var lastX = 0;
 var lastY = 0;
+var logger;
 
 // Draws dot at location
 // x: 4 x 1 matrix containint state
@@ -201,7 +198,7 @@ function updateError(xActual, yActual) {
 function printMatrix(m) {
     var round1000 = function(x){return Math.round(x * 1000)/1000;};
     for (var i = m.rows(); i > 0; i--) {
-        log("[" + m.row(i).map(round1000).elements + "]");
+        logger.log(LOG_LEVEL_DEBUG, "[" + m.row(i).map(round1000).elements + "]");
     }
 
 }
@@ -373,7 +370,7 @@ $(window).mousemove(function (e) {
 });
 
 $(window).keydown(function(e) {
-    // log("key pressed: " + e.which);
+    logger.log(LOG_LEVEL_VERBOSE, "key pressed: " + e.which);
     var keyCode = e.which;
     if(keyCode == 65) { // 'a'
         showActual = !showActual;
@@ -392,7 +389,8 @@ $(window).keydown(function(e) {
     updateState();
 });
 
-$(window).load(function() {
+$((function() {
     updateState();
-});
+    logger = new Logger($("#log"), LOG_LEVEL_VERBOSE);
+}));
 
