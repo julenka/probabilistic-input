@@ -1,6 +1,9 @@
 body {
     cursor: none;
 }
+em {
+    font-weight:bold;
+}
 #cursor {
     position: absolute;
     left: 0;

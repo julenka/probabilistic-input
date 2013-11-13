@@ -72,7 +72,7 @@ function log(msg) {
 }
 
 // Settings //////////////////////////////////////
-var showActual = true;
+var showActual = false;
 
 var visualizationModes = [
     "dots", 
@@ -106,9 +106,8 @@ function drawDot(x, c) {
 
 function updateState() {
     $("#debug").empty();
-    $("#debug").append("<div> showMeasurements: " + showMeasurements + "</div>");
-    $("#debug").append("<div> visualization mode: " + visualizationModes[currentVisualizationMode] + "</div>");
-    $("#debug").append("<div> filter: " + filters[currentFilter] + "</div>");
+    $("#debug").append("<div> visualization mode: <em>" + visualizationModes[currentVisualizationMode] + "</em></div>");
+    $("#debug").append("<div> filter: <em>" + filters[currentFilter] + "</em></div>");
     for(var i = 0; i < filters.length; i++) {
         $("#debug").append("<div> " + filters[i] + " error: " + round(errors[i].error, 2) + " count: " + errors[i].count);
     }
