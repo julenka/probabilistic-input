@@ -1,8 +1,20 @@
+body {
+    cursor: none;
+}
+#cursor {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 12px;
+    height: 19px;
+    background-image: url('imgs/cursor.png');
+}
 #canvas {
     position:fixed;
     border-style:solid;
     border-width:1px;
     z-index: -1;
+
 }
 #predict {
     color:rgb(0, 0, 255);

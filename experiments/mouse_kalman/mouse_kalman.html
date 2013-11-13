@@ -13,7 +13,8 @@
 </head>
 <body>
 <div>
-    <canvas id="canvas" width="1000" height="1000" />
+    <canvas id="canvas" width="1000" height="1000" ></canvas>
+    <div id="cursor"> </div>
 </div>
 <pre id="description">
 
@@ -27,11 +28,10 @@
 
     Based off of code by <a href='http://www.udacity-forums.com/cs373/users/1410/ben-haley' title='for authoring this'>ben</a>. Matrix library provided by <a href="http://sylvester.jcoglan.com/">sylvester.js</a>
     
-    'a' - Show/hide measurements.
+    'a' - Show/hide ground truth (<span id="actual">green</span>)
     's' - Toggle between visualization modes.
     'd' - Change filter [kalman, ewma, none]
     'f' - Clear canvas
-    'j' - Show/hide actual mouse position (green).
 </pre>
 <div id="debug"></div>
 <div id="log">

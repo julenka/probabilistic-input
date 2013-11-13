@@ -72,7 +72,6 @@ function log(msg) {
 }
 
 // Settings //////////////////////////////////////
-var showMeasurements = true;
 var showActual = true;
 
 var visualizationModes = [
@@ -280,8 +279,7 @@ function EWMAFilter(dimensions, smoothing_factor, initial_state) {
 EWMAFilter.prototype.update = function(observation) {
     var z = observation.minor(1,1,this.n, 1);
     this.x = this.x.multiply(this.a).add(z.multiply(1 - this.a) );
-    
-}
+};
 
 function NoFilter(dimensions, initial_state) {
     this.n = dimensions;
@@ -291,7 +289,7 @@ function NoFilter(dimensions, initial_state) {
 NoFilter.prototype.update = function(observation) {
     var z = observation.minor(1,1,this.n, 1);
     this.x = z;
-}
+};
 
 var lastV = $V([0,0]);
 
@@ -332,6 +330,7 @@ $(window).mousemove(function (e) {
     xMeasure = e.pageX + Math.nrand() * measurement_noise.e(1,1);
     yMeasure = e.pageY + Math.nrand() * measurement_noise.e(2,2);
 
+    $("#cursor").offset({top:yMeasure,left:xMeasure});
     Z = $M([
         [xMeasure], [yMeasure]
         ]);
@@ -368,10 +367,6 @@ $(window).mousemove(function (e) {
         drawCov(to_draw.x, to_draw.P);
     }
 
-    if(showMeasurements) {
-        // Draw our measured points
-        drawDot(Z, rgb(255,0,0) );    
-    }
     if(showActual) {
         drawDot($M([[e.pageX], [e.pageY]]), rgb(0,255,0));
     }
@@ -382,7 +377,7 @@ $(window).keydown(function(e) {
     // log("key pressed: " + e.which);
     var keyCode = e.which;
     if(keyCode == 65) { // 'a'
-        showMeasurements = !showMeasurements;
+        showActual = !showActual;
     } else if (keyCode == 83) { // 's'
         currentVisualizationMode++;
         currentVisualizationMode %= visualizationModes.length;
@@ -394,8 +389,6 @@ $(window).keydown(function(e) {
         }
     } else if (keyCode == 70) { // 'f'
         get2DContext().clearRect(0,0, 1000, 1000);
-    } else if (keyCode == 74) { // 'j'
-        showActual = !showActual;
     }
     updateState();
 });
