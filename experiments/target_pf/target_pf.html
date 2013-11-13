@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <link rel="icon" href="../favicon.ico" type="image/x-icon" /> 
+    <link rel="stylesheet" type="text/css" href="target_pf.css">
+    <!-- sylvester matrix library -->
+    <script type="text/javascript" src="../libs/sylvester.js"></script>
+    <!-- JQuery -->
+    <script type="text/javascript"  src="../libs/jquery.min.js">
+    </script>
+    <!-- Numeric librar -->
+    <script type="text/javascript" src="../libs/numeric-1.2.6.min.js"></script>
+    <script type="text/javascript" src="target_pf.js"></script>
+</head>
+<body>
+    <table id="main-frame">
+        <tr>
+            <td id="left-frame">
+                <div id="description">
+                     <h1> Target Estimation With Particle Filter </h1>
+                    keyboard info goes here.
+                    
+                </div> 
+                <div id="log"> logging stuff goes here</div>
+                <canvas id="canvas"></canvas>
+            </td>
+            <td id="right-frame">
+                <div id="debug">
+                    debug info goes here
+                </div>
+                <h3>Particles</h3>
+                <table id="particles-table">
+                    <tr>
+                        <th> i </th>
+                        <th> w </th>
+                        <th> rendered </th>
+                    </tr>
+                    <tr>
+                        <td> 0 </td>
+                        <td> 1 </td>
+                        <td> 
+                            <canvas id="particle-0-canvas"></canvas>
+                        </td>
+                    </tr>
+
+                </table>
+            </td>
+
+        </tr>
+    </table>
+
+
+</div>
+</body>
+</html>
