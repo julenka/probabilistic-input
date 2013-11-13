@@ -1,70 +1,6 @@
 // Utilities 
-Math.nrand = function() {
-    var x1, x2, rad, y1;
-    do {
-        x1 = 2 * this.random() - 1;
-        x2 = 2 * this.random() - 1;
-        rad = x1 * x1 + x2 * x2;
-    } while(rad >= 1 || rad === 0);
-    var c = this.sqrt(-2 * Math.log(rad) / rad);
-    return x1 * c;
-};
-function rgb(r,g,b) {
-    var result = {
-        'r': r,
-        'g': g,
-        'b': b,
-        'a': 1.0
-    };
-    return result;
-}
-
-function hsvToRgb(h,s,v) {
-    var r, g, b, i, f, p, q, t;
-    if (h && s === undefined && v === undefined) {
-        s = h.s; 
-        v = h.v;
-        h = h.h;
-    }
-    i = Math.floor(h * 6);
-    f = h * 6 - i;
-    p = v * (1 - s);
-    q = v * (1 - f * s);
-    t = v * (1 - (1 - f) * s);
-    switch (i % 6) {
-        case 0: r = v; g = t; b = p; break;
-        case 1: r = q; g = v; b = p; break;
-        case 2: r = p; g = v; b = t; break;
-        case 3: r = p; g = q; b = v; break;
-        case 4: r = t; g = p; b = v; break;
-        case 5: r = v; g = p; b = q; break;
-    }
-    return {
-        r: Math.floor(r * 255),
-        g: Math.floor(g * 255),
-        b: Math.floor(b * 255),
-        a: 1.0
-    };
-}
-
-function remap(v, i_min, i_max, o_min, o_max) {
-    if(v < i_min) v = i_min;
-    if (v > i_max) v = i_max;
-    return (v - i_min) / (i_max - i_min) * (o_max - o_min) + o_min;
-}
-
-function getFillStyle(c) {
-    return "rgba("+c.r+","+c.g+","+c.b+","+c.a+")";
-}
-
 function get2DContext() {
     return get2DContextForId("canvas");
-}
-
-
-// Logging
-function log(msg) {
-    $("#log").prepend("<div>"+msg+"</div>");
 }
 
 // Settings //////////////////////////////////////
@@ -94,7 +30,7 @@ var logger;
 // Draws dot at location
 // x: 4 x 1 matrix containint state
 // c: particle color
-function drawDot(x, c) {
+function drawDot(x, c) {s
     var pSize = 2;
     var ctx = get2DContext();
     ctx.fillStyle = getFillStyle(c);
@@ -391,6 +327,6 @@ $(window).keydown(function(e) {
 
 $((function() {
     updateState();
-    logger = new Logger($("#log"), LOG_LEVEL_VERBOSE);
+    logger = new Logger($("#log"), LOG_LEVEL_DEBUG);
 }));
 
