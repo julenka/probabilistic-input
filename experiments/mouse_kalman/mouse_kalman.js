@@ -195,7 +195,7 @@ function updateError(xActual, yActual) {
         var x = filter_values[i].x;
         var err = Math.sqrt( Math.pow((x.e(1,1) - xActual), 2) + Math.pow((x.e(2,1) - yActual), 2));
         errors[i].count++;
-        errors[i].error = errorSmoothing * errors[currentFilter].error + (1 - errorSmoothing) * err;    
+        errors[i].error = errorSmoothing * errors[i].error + (1 - errorSmoothing) * err;    
     }
     
 }
@@ -366,7 +366,6 @@ $(window).mousemove(function (e) {
         drawDot3(to_draw.x,to_draw.P);
     } else if (currentVisualizationMode == 3) { // dots with covariance
         drawCov(to_draw.x, to_draw.P);
-        drawDot(to_draw.x, rgb(0,0,255));
     }
 
     if(showMeasurements) {
