@@ -314,7 +314,7 @@ function filterKalman(Z) {
     var v = $V([kf4d.x.e(1,1) - Z.e(1,1), kf4d.x.e(2,1) - Z.e(1,2)]).x(1 / dt);
     var acceleration = v.subtract(lastV).distanceFrom(Vector.Zero(2)) / dt;
     lastV = v;
-    kf4d.decay(Math.abs(acceleration));
+    kf4d.decay(Math.abs(0.5 * acceleration));
 
     kf4d.predict(F, $M([[0],[0],[0],[0] ]));
 
