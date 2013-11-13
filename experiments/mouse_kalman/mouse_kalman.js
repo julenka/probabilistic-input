@@ -30,7 +30,7 @@ var logger;
 // Draws dot at location
 // x: 4 x 1 matrix containint state
 // c: particle color
-function drawDot(x, c) {s
+function drawDot(x, c) {
     var pSize = 2;
     var ctx = get2DContext();
     ctx.fillStyle = getFillStyle(c);
