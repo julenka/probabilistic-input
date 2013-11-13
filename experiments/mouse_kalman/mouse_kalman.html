@@ -4,12 +4,12 @@
     <link rel="icon" href="../favicon.ico" type="image/x-icon" /> 
     <link rel="stylesheet" type="text/css" href="mouse_kalman.css">
     <!-- sylvester matrix library -->
-    <script type="text/javascript" src="sylvester.js"></script>
+    <script type="text/javascript" src="../libs/sylvester.js"></script>
     <!-- JQuery -->
-    <script type="text/javascript"  src="jquery.min.js">
+    <script type="text/javascript"  src="../libs/jquery.min.js">
     </script>
     <!-- Numeric librar -->
-    <script type="text/javascript" src="numeric-1.2.6.min.js"></script>
+    <script type="text/javascript" src="../libs/numeric-1.2.6.min.js"></script>
     <script type="text/javascript" src="mouse_kalman.js"></script>
 </head>
 <body>
@@ -22,7 +22,7 @@
   Decaying Kalman filter
 
     Move the mouse around the screen, the code will measure the position of the 
-    mouse, in <span id="actual">green</span>, and add artificial uncertainty, in <span id="measure">red</span>. The code will use variety 
+    mouse, in <span id="actual">green</span>, and adds artificial uncertainty. The code will use variety 
     of filters (kalman, EWMA) to predict the position, <span id="predict">blue</span>. The demo also
     contains several methods of visualizing the uncertainty about the estimation
     for points filtered using a kalman filter.
