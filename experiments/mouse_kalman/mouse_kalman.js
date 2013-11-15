@@ -19,7 +19,7 @@ var filters = [
     "none"];
 
 var currentFilter = 0;
-
+var errorSmoothing = 0.9;
 // To determine dt
 var time = $.now();
 
@@ -115,7 +115,7 @@ function drawCov(x, P) {
 
 }
 
-var errorSmoothing = 0.9;
+
 var errors = [
     {error:0, count: 0},
     {error: 0, count: 0},

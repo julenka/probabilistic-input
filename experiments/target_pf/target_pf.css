@@ -40,8 +40,12 @@ h1 {
     background-color: rgb(255, 0, 255);
 }
 
-#description {
+#demo-state {
     height: 50px;
+    background-color: rgb(255,255,200);
+}
+
+#description {
     background-color: rgb(0, 255, 255);
 }
 

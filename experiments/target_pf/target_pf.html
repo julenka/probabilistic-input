@@ -17,11 +17,18 @@
         <tr>
             <td id="left-frame">
                 <div id="description">
-                     <h1> Target Estimation With Particle Filter </h1>
-                    keyboard info goes here.
-                    
-                </div> 
-                <div id="log"> logging stuff goes here</div>
+                    <h1> Target Estimation With Particle Filter </h1>
+                    <p>
+                    The interface below is a simple grid of buttons, one button from the grid can be selected at a time. Clicking a button selects it.
+                    </p>
+                    <p>
+                    A particle filter is used to estimate the state of the interface (i.e. which button is selected). The <em> update </em> and <em> measure</em> methods for the particle filter are configurable.
+                    </p>
+                </div>
+                <div id="demo-state"> 
+                    <div id="demo-state-measure"> current measure method</div>
+                    <div id="demo-state-update"> current update method</div>
+                </div>
                 <canvas id="canvas"></canvas>
             </td>
             <td id="right-frame">
@@ -44,6 +51,8 @@
                     </tr>
 
                 </table>
+
+                <div id="log">logging info goes here</div>
             </td>
 
         </tr>
