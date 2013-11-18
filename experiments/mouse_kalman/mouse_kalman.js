@@ -69,8 +69,9 @@ function drawDot2(x, P, c) {
 function drawDot3(x, P) {
     var locationUncertainty = P.minor(1,1,2,2);
     var maxUncertainty = locationUncertainty.max();
+    // logger.log(LOG_LEVEL_DEBUG, "" + maxUncertainty);
     var pSize = maxUncertainty;
-    var hue = remap(maxUncertainty, 3, 7, 0.66, 0.0);
+    var hue = remap(maxUncertainty, 2, 4, 0.66, 0.0);
     var c = hsvToRgb(hue, 1, 1);
     c.a = 0.5;
     var ctx = get2DContext();
@@ -86,7 +87,7 @@ function drawCov(x, P) {
     var ctx = get2DContext();
     var maxUncertainty = cov.max();
     var pSize = maxUncertainty;
-    var hue = remap(maxUncertainty, 3, 7, 0.66, 0.0);
+    var hue = remap(maxUncertainty, 2, 4, 0.66, 0.0);
     var c = hsvToRgb(hue, 1, 1);
     c.a = 0.5;
     
@@ -232,6 +233,8 @@ function filterKalman(Z) {
     now = $.now();
     dt = now - time;
     time = now;
+    if(dt == 0)
+        return;
 
     // Derive the next state
     var F = $M([
@@ -241,10 +244,12 @@ function filterKalman(Z) {
         [0, 0, 0, 1]
         ]);
     
-    var v = $V([kf4d.x.e(1,1) - Z.e(1,1), kf4d.x.e(2,1) - Z.e(1,2)]).x(1 / dt);
+    var v = $V([kf4d.x.e(1,1) - Z.e(1,1), kf4d.x.e(2,1) - Z.e(2,1)]).x(1 / dt);
     var acceleration = v.subtract(lastV).distanceFrom(Vector.Zero(2)) / dt;
+    // logger.log(LOG_LEVEL_DEBUG, "acceleration: " + acceleration);
     lastV = v;
     kf4d.decay(Math.abs(0.5 * acceleration));
+    // kf4d.decay(1.0);
 
     kf4d.predict(F, $M([[0],[0],[0],[0] ]));
 
