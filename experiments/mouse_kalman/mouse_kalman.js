@@ -233,7 +233,7 @@ function filterKalman(Z) {
     now = $.now();
     dt = now - time;
     time = now;
-    if(dt == 0)
+    if(dt === 0)
         return;
 
     // Derive the next state
