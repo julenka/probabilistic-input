@@ -4,8 +4,16 @@ function get2DContextForId(id) {
     return document.getElementById(id).getContext('2d');
 }
 
+function get2DContextForJQueryCanvas(canvas) {
+    return canvas[0].getContext('2d');
+}
+
 function round(n, sig) {
     return Math.round(n * Math.pow(10, sig)) / Math.pow(10,sig);
+}
+
+Math.randint = function(min, max) {
+    return Math.round(Math.random() * (max - min) + min);
 }
 
 Math.nrand = function() {
