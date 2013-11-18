@@ -53,7 +53,7 @@ function updateState() {
 function drawDot2(x, P, c) {
     var locationUncertainty = P.minor(1,1,2,2);
     var maxUncertainty = locationUncertainty.max();
-    var alpha = 1 -  remap(maxUncertainty, 3, 7, 0.0, 0.9);
+    var alpha = 1 -  remap(maxUncertainty, 2, 4, 0.0, 0.9);
     var pSize = maxUncertainty;
     c.a = alpha;
     var ctx = get2DContext();
