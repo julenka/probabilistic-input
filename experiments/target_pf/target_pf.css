@@ -26,7 +26,6 @@ ul {
 
 #left-frame {
     width:50%;
-    background-color: rgb(255,0,0);
 }
 
 #middle-frame {
@@ -34,13 +33,11 @@ ul {
 }
 
 #right-frame {
-    background-color: rgb(0,100,0);
 }
 
 
 #log {
     width:500px;
-    background-color: rgb(255, 255, 0);
 }
 
 #debug {

@@ -33,8 +33,12 @@ var eventQueue = [];
 function ParticleFilter(N) {
     this.N= N;
     this.particles = [];
+    this.weights = [];
+    this.weightsNorm = [];
     for(var i = 0; i < N; i++) {
         this.particles.push(new Particle(TARGET_ROWS, TARGET_COLS));
+        this.weights.push(1.0);
+        this.weightsNorm.push(1/N);
     }
 }
 
@@ -50,19 +54,20 @@ ParticleFilter.prototype.step = function(observation) {
     }
 
     // Apply weighted resampling using 'wheel' method covered in Udacity
-    var weights = this.particles.map(function(p) { return p.measure(next); } );
-    var weightSum = weights.reduce(function(a,b) { return a + b; });
-    var weightsNormed = weights.map(function(w) { return w / weightSum; });
-    var weightMax = weightsNormed.max();
+    this.weights = this.particles.map(function(p) { return p.measure(next); } );
+    var weightSum = this.weights.reduce(function(a,b) { return a + b; });
+    this.weightsNorm = this.weights.map(function(w) { return w / weightSum; });
+    var weightMax = this.weightsNorm.max();
 
+    updateParticleTable();
     // resample
     var newParticles = [];
     var index = Math.randint(0, this.N - 1);
     var b = 0;
     for (i = 0; i < this.N; i++) {
         b = b + Math.random() * 2 * weightMax;
-        while(weightsNormed[index] < b) {
-            b = b - weightsNormed[index];
+        while(this.weightsNorm[index] < b) {
+            b = b - this.weightsNorm[index];
             index = index + 1;
             index = index % this.N;
         }
@@ -75,14 +80,14 @@ ParticleFilter.prototype.draw = function() {
     for(var i = 0; i < this.N; i++) {
         this.particles[i].draw($('#canvas'), 1 / this.N);
     }
-}
+};
 
 ParticleFilter.prototype.clear = function() {
     var canvas = $("#canvas")[0]; // equivalent to document.getElementById
     var ctx = canvas.getContext('2d');
     ctx.fillStyle = "rgb(200,200,200)";
     ctx.fillRect(0,0,canvas.width, canvas.height);
-}
+};
 
 // Particle prototype. Your custom particle should extend this
 // num_targets is the total number of targets in the interface
@@ -97,8 +102,8 @@ Particle.prototype.measure = function(e) {
     var cw = $("#canvas").width();
     var ch = $("#canvas").height();
     var itemWidth = Math.floor(cw / this.target_cols);
-    var itemHeight = ch / this.target_rows;
-    var myR = this.target_index / this.target_cols;
+    var itemHeight = Math.floor(ch / this.target_rows);
+    var myR = Math.floor(this.target_index / this.target_cols);
     var myC = this.target_index % this.target_cols;
     var rx = e.offsetX - (myC * itemWidth);
     var ry = e.offsetY - (myR * itemHeight);
@@ -111,8 +116,7 @@ Particle.prototype.measure = function(e) {
 Particle.prototype.update = function() {
     // returns the same thing, by default
     // for now, target index is just 
-    this.target_index = Math.randint(0, this.num_targets);
-    return this;
+    return new Particle(this.target_rows, this.target_cols);
 };
 
 // canvas: jQuery canvas object
@@ -161,6 +165,12 @@ function updateParticleTable() {
                     .text('' + i)
                 )
                 .append($('<td>')
+                    .text('' + particleFilter.weights[i])
+                )
+                .append($('<td>')
+                    .text('' + particleFilter.weightsNorm[i])
+                )
+                .append($('<td>')
                     .append(canvas)
                 )
             );
@@ -171,11 +181,11 @@ function updateParticleTable() {
 
 function logMouseEvent(e) {
     var toLog = {
+        offsetX: e.offsetX,
+        offsetY: e.offsetY,
         type: e.type,
         pageX: e.pageX,
         pageY: e.pageY,
-        offsetX: e.offsetX,
-        offsetY: e.offsetY,
         which: e.which
     };
     logger.log(LOG_LEVEL_VERBOSE, JSON.stringify(toLog));
@@ -218,7 +228,7 @@ $(function() {
         eventQueue.push(e);
         particleFilter.step();
         particleFilter.draw();
-        updateParticleTable();
+        // updateParticleTable();
     });
 });
 
