@@ -41,12 +41,10 @@ ul {
 }
 
 #debug {
-    height: 50px;
     background-color: rgb(255, 0, 255);
 }
 
 #demo-state {
-    height: 50px;
     background-color: rgb(255,255,200);
 }
 

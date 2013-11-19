@@ -15,6 +15,12 @@ var updateMethods = [
     ];
 var currentUpdateMethod = 0;
 
+var updateParticles = 0;
+var updateParticleState = [
+    "NO",
+    "YES",
+];
+
 // TODO: probably doesn't make sense to put these here.
 var TARGET_ROWS = 5;
 var TARGET_COLS = 5;
@@ -59,7 +65,7 @@ ParticleFilter.prototype.step = function(observation) {
     this.weightsNorm = this.weights.map(function(w) { return w / weightSum; });
     var weightMax = this.weightsNorm.max();
 
-    updateParticleTable();
+    
     // resample
     var newParticles = [];
     var index = Math.randint(0, this.N - 1);
@@ -135,10 +141,10 @@ Particle.prototype.gaussianMeasure = function(e) {
     var d = Math.sqrt(Math.pow(cx - rx,2) + Math.pow(cy - ry, 2)); 
 
     var mu = 0;
-    var sigma = 25;
+    var sigma = 50;
     return Math.gaussian(mu, sigma, d);
 
-}
+};
 
 Particle.prototype.distanceMeasure = function(e) {
     //"1 / (1 + d_center)"
@@ -157,7 +163,7 @@ Particle.prototype.distanceMeasure = function(e) {
 
     var d = Math.sqrt(Math.pow(cx - rx,2) + Math.pow(cy - ry, 2));
     return 1 / (1 + d);
-}
+};
 
 Particle.prototype.inRegionMeasure = function(e) {
     var cw = $("#canvas").width();
@@ -208,6 +214,7 @@ function updateState() {
     $("#demo-state-measure").html("current measurement method: " + measureMethods[currentMeasureMethod]);
     $("#demo-state-update").html("current update method:" + updateMethods[currentUpdateMethod]);
     $("#demo-state-num-particles").html("number of particles: " + NUM_PARTICLES);
+    $("#demo-state-particle-update-state").html("update particles: " + updateParticleState[updateParticles]);
 }
 
 function updateParticleTable() {
@@ -266,6 +273,9 @@ $(window).keydown(function(e){
     } else if (keyCode == 83) { // 's'
         currentUpdateMethod++;
         currentUpdateMethod %= updateMethods.length;
+    } else if (keyCode == 68) { // 'd'
+        updateParticles++;
+        updateParticles %= 2;
     }
     updateState();
 });
@@ -290,7 +300,8 @@ $(function() {
         eventQueue.push(e);
         particleFilter.step();
         particleFilter.draw();
-        // updateParticleTable();
+        if(updateParticles)
+            updateParticleTable();
     });
 });
 
