@@ -99,6 +99,67 @@ function Particle(target_rows, target_cols) {
 }
 
 Particle.prototype.measure = function(e) {
+// var measureMethods = [
+//     "1 if in region", 
+//     "1 / (1 + d_center)", 
+//     "gaussian",
+//     "bayesian touch"];
+// var currentMeasureMethod = 0;
+    switch(currentMeasureMethod) {
+        case 0: // "1 if in region"
+        case 3: // beyesian touch
+        return this.inRegionMeasure(e);
+        case 1: //"1 / (1 + d_center)"
+        return this.distanceMeasure(e);
+        case 2: // "gaussian"
+        return this.gaussianMeasure(e);
+    }
+    
+};
+
+Particle.prototype.gaussianMeasure = function(e) {
+    //"1 / (1 + d_center)"
+    // TODO: refactor
+    var cw = $("#canvas").width();
+    var ch = $("#canvas").height();
+    var itemWidth = Math.floor(cw / this.target_cols);
+    var itemHeight = Math.floor(ch / this.target_rows);
+    var myR = Math.floor(this.target_index / this.target_cols);
+    var myC = this.target_index % this.target_cols;
+    var rx = e.offsetX - (myC * itemWidth);
+    var ry = e.offsetY - (myR * itemHeight);
+
+    var cx = itemWidth / 2;
+    var cy = itemHeight / 2;
+
+    var d = Math.sqrt(Math.pow(cx - rx,2) + Math.pow(cy - ry, 2)); 
+
+    var mu = 0;
+    var sigma = 25;
+    return Math.gaussian(mu, sigma, d);
+
+}
+
+Particle.prototype.distanceMeasure = function(e) {
+    //"1 / (1 + d_center)"
+    // TODO: refactor
+    var cw = $("#canvas").width();
+    var ch = $("#canvas").height();
+    var itemWidth = Math.floor(cw / this.target_cols);
+    var itemHeight = Math.floor(ch / this.target_rows);
+    var myR = Math.floor(this.target_index / this.target_cols);
+    var myC = this.target_index % this.target_cols;
+    var rx = e.offsetX - (myC * itemWidth);
+    var ry = e.offsetY - (myR * itemHeight);
+
+    var cx = itemWidth / 2;
+    var cy = itemHeight / 2;
+
+    var d = Math.sqrt(Math.pow(cx - rx,2) + Math.pow(cy - ry, 2));
+    return 1 / (1 + d);
+}
+
+Particle.prototype.inRegionMeasure = function(e) {
     var cw = $("#canvas").width();
     var ch = $("#canvas").height();
     var itemWidth = Math.floor(cw / this.target_cols);
@@ -217,6 +278,7 @@ $(function() {
     particleFilter.clear();
     updateParticleTable();
     updateState();
+    particleFilter.draw();
 
     $("#canvas").mousedown(function(e) {
         logMouseEvent(e);

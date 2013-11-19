@@ -29,6 +29,9 @@ Math.nrand = function() {
     return x1 * c;
 };
 
+Math.gaussian = function(mu, sigma, x) {
+    return this.exp(- this.pow(mu - x, 2) / this.pow(sigma, 2) / 2) / this.sqrt(2 * this.PI * this.pow(sigma, 2));
+};
 
 // Augmenting Array
 
