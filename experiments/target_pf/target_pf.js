@@ -18,7 +18,7 @@ var currentUpdateMethod = 0;
 // TODO: probably doesn't make sense to put these here.
 var TARGET_ROWS = 5;
 var TARGET_COLS = 5;
-var NUM_PARTICLES = 10;
+var NUM_PARTICLES = 100;
 
 // Global Variables argsh
 var particleFilter;
@@ -57,7 +57,7 @@ ParticleFilter.prototype.step = function(observation) {
 
     // resample
     var newParticles = [];
-    var index = Math.randint(0, this.N);
+    var index = Math.randint(0, this.N - 1);
     var b = 0;
     for (i = 0; i < this.N; i++) {
         b = b + Math.random() * 2 * weightMax;
@@ -71,6 +71,19 @@ ParticleFilter.prototype.step = function(observation) {
     this.particles = newParticles;
 };
 
+ParticleFilter.prototype.draw = function() {
+    for(var i = 0; i < this.N; i++) {
+        this.particles[i].draw($('#canvas'), 1 / this.N);
+    }
+}
+
+ParticleFilter.prototype.clear = function() {
+    var canvas = $("#canvas")[0]; // equivalent to document.getElementById
+    var ctx = canvas.getContext('2d');
+    ctx.fillStyle = "rgb(200,200,200)";
+    ctx.fillRect(0,0,canvas.width, canvas.height);
+}
+
 // Particle prototype. Your custom particle should extend this
 // num_targets is the total number of targets in the interface
 function Particle(target_rows, target_cols) {
@@ -80,18 +93,32 @@ function Particle(target_rows, target_cols) {
     this.target_index = Math.randint(0, this.num_targets);
 }
 
-Particle.prototype.measure = function(obj) {
-    return 1.0;
+Particle.prototype.measure = function(e) {
+    var cw = $("#canvas").width();
+    var ch = $("#canvas").height();
+    var itemWidth = Math.floor(cw / this.target_cols);
+    var itemHeight = ch / this.target_rows;
+    var myR = this.target_index / this.target_cols;
+    var myC = this.target_index % this.target_cols;
+    var rx = e.offsetX - (myC * itemWidth);
+    var ry = e.offsetY - (myR * itemHeight);
+    if(rx > 0 && ry > 0 && rx < itemWidth && ry < itemHeight) {
+        return 1.0;
+    }
+    return 0.0;
 };
 
 Particle.prototype.update = function() {
     // returns the same thing, by default
     // for now, target index is just 
+    this.target_index = Math.randint(0, this.num_targets);
     return this;
 };
 
 // canvas: jQuery canvas object
-Particle.prototype.draw = function(canvas) {
+Particle.prototype.draw = function(canvas, alpha) {
+    alpha = typeof alpha !== 'undefined' ? alpha : 1.0;
+
 	var ctx2d = get2DContextForJQueryCanvas(canvas);
     
     var cw = canvas[0].width;
@@ -102,9 +129,9 @@ Particle.prototype.draw = function(canvas) {
         for(var c = 0; c < this.target_cols; c++) {
             var i = r * this.target_cols + c;
             if(i == this.target_index) {
-                ctx2d.fillStyle = 'rgb(10,10,10)';
+                ctx2d.fillStyle = getFillStyle(rgba(10,10,10,alpha));
             } else {
-                ctx2d.fillStyle = 'rgb(200,200,200)';
+                ctx2d.fillStyle = getFillStyle(rgba(200,200,200,alpha));
             }
             ctx2d.fillRect(c * itemWidth, r * itemHeight, itemWidth, itemHeight);
         }
@@ -147,6 +174,8 @@ function logMouseEvent(e) {
         type: e.type,
         pageX: e.pageX,
         pageY: e.pageY,
+        offsetX: e.offsetX,
+        offsetY: e.offsetY,
         which: e.which
     };
     logger.log(LOG_LEVEL_VERBOSE, JSON.stringify(toLog));
@@ -155,15 +184,7 @@ function logMouseEvent(e) {
 // Window Events
 //
 
-$(window).mousedown(function(e) {
-    logMouseEvent(e);
-});
 
-$(window).mouseup(function(e) {
-    logMouseEvent(e);
-    eventQueue.push(e);
-    particleFilter.step();
-});
 
 $(window).keydown(function(e){
     logger.log(LOG_LEVEL_VERBOSE, "key pressed: " + e.which);
@@ -180,16 +201,25 @@ $(window).keydown(function(e){
 
 // On document ready
 $(function() {
-	var canvas = $("#canvas")[0]; // equivalent to document.getElementById
-	var ctx = canvas.getContext('2d');
-	ctx.fillStyle = "rgb(200,200,200)";
-	ctx.fillRect(0,0,canvas.width, canvas.height);
 
-    logger = new Logger($("#log"), LOG_LEVEL_DEBUG);
-
+    logger = new Logger($("#log"), LOG_LEVEL_VERBOSE);
     particleFilter = new ParticleFilter(NUM_PARTICLES);
+    particleFilter.clear();
     updateParticleTable();
     updateState();
+
+    $("#canvas").mousedown(function(e) {
+        logMouseEvent(e);
+    });
+
+    $("#canvas").mouseup(function(e) {
+        logMouseEvent(e);
+        particleFilter.clear();
+        eventQueue.push(e);
+        particleFilter.step();
+        particleFilter.draw();
+        updateParticleTable();
+    });
 });
 
 

@@ -55,6 +55,16 @@ function rgb(r,g,b) {
     return result;
 }
 
+function rgba(r,g,b,a) {
+    var result = {
+        'r': r,
+        'g': g,
+        'b': b,
+        'a': a,
+    };
+    return result;
+}
+
 function hsvToRgb(h,s,v) {
     var r, g, b, i, f, p, q, t;
     if (h && s === undefined && v === undefined) {
