@@ -40,6 +40,7 @@ ul {
     width: 12px;
     height: 19px;
     background-image: url('imgs/cursor.png');
+    pointer-events:none;
 }
 
 #log {

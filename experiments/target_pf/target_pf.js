@@ -21,6 +21,12 @@ var updateParticleState = [
     "YES",
 ];
 
+var noisyMouse = 1;
+var noisyMouseState = [
+    "NO",
+    "YES"
+];
+
 var measurementNoise = [25,25];
 
 // TODO: probably doesn't make sense to put these here.
@@ -217,6 +223,7 @@ function updateState() {
     $("#demo-state-update").html("current update method:" + updateMethods[currentUpdateMethod]);
     $("#demo-state-num-particles").html("number of particles: " + NUM_PARTICLES);
     $("#demo-state-particle-update-state").html("update particles: " + updateParticleState[updateParticles]);
+    $("#demo-state-noisy-mouse").html("noisy mouse: " + noisyMouseState[noisyMouse]);
 }
 
 function updateParticleTable() {
@@ -278,18 +285,23 @@ $(window).keydown(function(e){
     } else if (keyCode == 68) { // 'd'
         updateParticles++;
         updateParticles %= 2;
+    } else if (keyCode == 70) {// 'f'
+        noisyMouse++;
+        noisyMouse %= 2;
     }
     updateState();
 });
 
 
 function addNoise(e) {
-    var dx = Math.nrand() * measurementNoise[0];
-    var dy = Math.nrand() * measurementNoise[1];
-    e.pageX += dx;
-    e.pageY += dy;
-    e.offsetX += dx;
-    e.offsetY += dy;
+    if(noisyMouse) {
+        var dx = Math.nrand() * measurementNoise[0];
+        var dy = Math.nrand() * measurementNoise[1];
+        e.pageX += dx;
+        e.pageY += dy;
+        e.offsetX += dx;
+        e.offsetY += dy;
+    }
     $("#cursor").css({top:e.offsetY,left:e.offsetX});
 }
 
