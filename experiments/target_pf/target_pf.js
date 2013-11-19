@@ -45,7 +45,7 @@ ParticleFilter.prototype.step = function(observation) {
     var i;
     var next = eventQueue.pop_front();
     // update
-    for(i = 0; i < N; i++) {
+    for(i = 0; i < this.N; i++) {
         this.particles[i] = this.particles[i].update();
     }
 
@@ -64,9 +64,9 @@ ParticleFilter.prototype.step = function(observation) {
         while(weightsNormed[index] < b) {
             b = b - weightsNormed[index];
             index = index + 1;
-            index = index % N;
+            index = index % this.N;
         }
-        newParticles.append(this.particles[index]);
+        newParticles.push(this.particles[index]);
     }
     this.particles = newParticles;
 };
