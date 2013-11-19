@@ -1,5 +1,6 @@
 body {
     font-family:monospace;
+    cursor: none;
 }
 em {
     font-weight:bold;
@@ -32,9 +33,14 @@ ul {
     background-color: rgb(0,255,0);
 }
 
-#right-frame {
+#cursor {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 12px;
+    height: 19px;
+    background-image: url('imgs/cursor.png');
 }
-
 
 #log {
     width:500px;

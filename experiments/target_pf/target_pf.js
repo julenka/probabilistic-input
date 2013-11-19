@@ -21,6 +21,8 @@ var updateParticleState = [
     "YES",
 ];
 
+var measurementNoise = [25,25];
+
 // TODO: probably doesn't make sense to put these here.
 var TARGET_ROWS = 5;
 var TARGET_COLS = 5;
@@ -280,9 +282,19 @@ $(window).keydown(function(e){
     updateState();
 });
 
+
+function addNoise(e) {
+    var dx = Math.nrand() * measurementNoise[0];
+    var dy = Math.nrand() * measurementNoise[1];
+    e.pageX += dx;
+    e.pageY += dy;
+    e.offsetX += dx;
+    e.offsetY += dy;
+    $("#cursor").css({top:e.offsetY,left:e.offsetX});
+}
+
 // On document ready
 $(function() {
-
     logger = new Logger($("#log"), LOG_LEVEL_VERBOSE);
     particleFilter = new ParticleFilter(NUM_PARTICLES);
     particleFilter.clear();
@@ -290,11 +302,12 @@ $(function() {
     updateState();
     particleFilter.draw();
 
-    $("#canvas").mousedown(function(e) {
-        logMouseEvent(e);
+    $("#canvas").mousemove(function(e) {
+        addNoise(e);
     });
 
-    $("#canvas").mouseup(function(e) {
+    $("#canvas").mousedown(function(e) {
+        addNoise(e);
         logMouseEvent(e);
         particleFilter.clear();
         eventQueue.push(e);
