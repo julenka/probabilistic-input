@@ -12,9 +12,11 @@ function round(n, sig) {
     return Math.round(n * Math.pow(10, sig)) / Math.pow(10,sig);
 }
 
+// Augemnting Math
+
 Math.randint = function(min, max) {
     return Math.round(Math.random() * (max - min) + min);
-}
+};
 
 Math.nrand = function() {
     var x1, x2, rad, y1;
@@ -26,6 +28,23 @@ Math.nrand = function() {
     var c = this.sqrt(-2 * Math.log(rad) / rad);
     return x1 * c;
 };
+
+
+// Augmenting Array
+
+Array.prototype.pop_front = function() {
+    var rslt = this.splice(0,1);
+    return rslt[0];
+};
+
+Array.prototype.max = function() {
+  return Math.max.apply(null, this);
+};
+
+Array.prototype.min = function() {
+  return Math.min.apply(null, this);
+};
+
 function rgb(r,g,b) {
     var result = {
         'r': r,
@@ -89,4 +108,4 @@ Logger.prototype.log = function(level, msg) {
 	if (this.level >= level) {
 		this.log_element.prepend("<div>"+msg+"</div>");
 	}
-}
+};

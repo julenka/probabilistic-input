@@ -29,13 +29,17 @@ ul {
     background-color: rgb(255,0,0);
 }
 
-#right-frame {
-    width: 50%;
+#middle-frame {
     background-color: rgb(0,255,0);
 }
 
+#right-frame {
+    background-color: rgb(0,100,0);
+}
+
+
 #log {
-    height: 50px;
+    width:500px;
     background-color: rgb(255, 255, 0);
 }
 
