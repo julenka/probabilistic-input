@@ -66,6 +66,8 @@ Particle.prototype.update = function() {
 // canvas: jQuery canvas object
 Particle.prototype.draw = function(canvas) {
 	var ctx2d = get2DContextForJQueryCanvas(canvas);
+    ctx2d.fillStyle = getFillStyle(hsvToRgb(this.weight, 1.0, 1.0));
+    ctx2d.fillRect(0,0, canvas.width(), canvas.height());
 };
 
 
@@ -79,26 +81,26 @@ function draw() {
     // remove all but first rows in partciles-table
     $("#particles-table tr:gt(0)").remove(); // select all rows of index greater than 1, then remove them.
 
-    for(var i = 0; i < 100; i++) {
+    var particles = particleFilter.particles;
+    for(var i = 0; i < particles.length; i++) {
+        var particleWeight = particles[i].weight;
+        var canvas = $('<canvas id="particle-' + i + '-canvas" />');
+        // create a canvas and draw it here
         $("#particles-table").find('tbody')
             .append($('<tr>')
                 .append($('<td>')
                     .text('' + i)
                 )
                 .append($('<td>')
-                    .text('w' + i)
+                    .text('' + particleWeight)
                 )
                 .append($('<td>')
-                    .text('canvas')
+                    .append(canvas)
                 )
             );
+        particles[i].draw(canvas);
 
     }
-    // for each particle
-    // td 1 <=> particle number
-    // td 2 <=> particle weight
-    // td 3 <=> canvas
-    // render particles into this canvas
 }
 
 //
