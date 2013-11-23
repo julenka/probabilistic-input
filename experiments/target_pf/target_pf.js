@@ -38,6 +38,10 @@ var NUM_PARTICLES = 100;
 var particleFilter;
 var logger;
 var eventQueue = [];
+
+var letters = 'abcdefghijklmnoprstuvwxyz'.split("");
+
+var textEntered = "";
 //
 // Particle Filter
 //
@@ -111,7 +115,7 @@ ParticleFilter.prototype.drawAggregate = function() {
 ParticleFilter.prototype.clear = function() {
     var canvas = $("#canvas")[0]; // equivalent to document.getElementById
     var ctx = canvas.getContext('2d');
-    ctx.fillStyle = "rgb(200,200,200)";
+    ctx.fillStyle = "rgb(255,255,255)";
     ctx.fillRect(0,0,canvas.width, canvas.height);
 };
 
@@ -136,6 +140,20 @@ ParticleFilter.prototype.aggregate = function() {
         var weightSum = reducedParticleCounts.reduce(function(a,b) { return a + b; });
         this.reducedParticleWeights = reducedParticleCounts.map(function(w) { return w / weightSum; });
     }
+
+ParticleFilter.prototype.updateText = function() {
+    // Okay now we're getting super specialized...
+    // assumed aggregate has been called
+    var maxval = 0
+    var maxi = -1;
+    for(var i = 0; i < this.reducedParticleWeights.length; i++) {
+        if(this.reducedParticleWeights[i] > maxval) {
+            maxval = this.reducedParticleWeights[i];
+            maxi = i;
+        }
+    }
+    textEntered += letters[this.reducedParticles[maxi].target_index];
+}
 
 }
 
@@ -249,11 +267,16 @@ Particle.prototype.draw = function(canvas, alpha) {
         for(var c = 0; c < this.target_cols; c++) {
             var i = r * this.target_cols + c;
             if(i == this.target_index) {
-                ctx2d.fillStyle = getFillStyle(rgba(10,10,10,alpha));
+                ctx2d.fillStyle = getFillStyle(rgba(200,0,0,alpha));
             } else {
-                ctx2d.fillStyle = getFillStyle(rgba(200,200,200,alpha));
+                ctx2d.fillStyle = getFillStyle(rgba(255,255,255,alpha));
             }
+            var letter = letters[i];
+
             ctx2d.fillRect(c * itemWidth, r * itemHeight, itemWidth, itemHeight);
+            ctx2d.fillStyle = getFillStyle(rgb(20,20,20));
+            ctx2d.font = "14pt Arial";
+            ctx2d.fillText(letter, c * itemWidth + itemWidth / 2, r * itemHeight + itemHeight / 2);
         }
     }
 };
@@ -265,6 +288,7 @@ function updateState() {
     $("#demo-state-num-particles").html("number of particles: " + NUM_PARTICLES);
     $("#demo-state-particle-update-state").html("update particles: " + updateParticleState[updateParticles]);
     $("#demo-state-noisy-mouse").html("noisy mouse: " + noisyMouseState[noisyMouse]);
+    $("#demo-state-text-entered").html("text entered: " + textEntered);
 }
 
 function updateParticleTable() {
@@ -274,8 +298,8 @@ function updateParticleTable() {
     var particles = particleFilter.reducedParticles;
     for(var i = 0; i < particles.length; i++) {
         var canvas = $('<canvas id="particle-' + i + '-canvas" />');
-        canvas.width(100);
-        canvas.height(100);
+        canvas.width(50);
+        canvas.height(50);
         // create a canvas and draw it here
         $("#particles-table").find('tbody')
             .append($('<tr>')
@@ -305,6 +329,7 @@ function logMouseEvent(e) {
     };
     logger.log(LOG_LEVEL_VERBOSE, JSON.stringify(toLog));
 }
+
 //
 // Window Events
 //
@@ -326,6 +351,8 @@ $(window).keydown(function(e){
     } else if (keyCode == 70) {// 'f'
         noisyMouse++;
         noisyMouse %= 2;
+    } else if (keyCode == 88) { // 'x'
+        textEntered = '';
     }
     updateState();
 });
@@ -363,6 +390,8 @@ $(function() {
         eventQueue.push(e);
         particleFilter.step();
         particleFilter.aggregate();
+        particleFilter.updateText();
+        updateState();
         particleFilter.drawAggregate();
         if(updateParticles)
             updateParticleTable();
