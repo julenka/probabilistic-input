@@ -15,7 +15,7 @@ var updateMethods = [
     ];
 var currentUpdateMethod = 0;
 
-var updateParticles = 0;
+var updateParticles = 1;
 var updateParticleState = [
     "NO",
     "YES",
@@ -34,7 +34,7 @@ var TARGET_ROWS = 5;
 var TARGET_COLS = 5;
 var NUM_PARTICLES = 100;
 
-// Global Variables argsh
+// Global Variables args
 var particleFilter;
 var logger;
 var eventQueue = [];
@@ -49,12 +49,18 @@ function ParticleFilter(N) {
     this.particles = [];
     this.weights = [];
     this.weightsNorm = [];
+    this.reducedParticles = [];
+    this.reducedParticleWeights = [];
+
     for(var i = 0; i < N; i++) {
         this.particles.push(new Particle(TARGET_ROWS, TARGET_COLS));
         this.weights.push(1.0);
         this.weightsNorm.push(1/N);
     }
+    this.aggregate();
 }
+
+
 
 ParticleFilter.prototype.step = function(observation) {
     if(eventQueue.length === 0) {
@@ -96,12 +102,42 @@ ParticleFilter.prototype.draw = function() {
     }
 };
 
+ParticleFilter.prototype.drawAggregate = function() {
+    for(var i = 0; i < this.reducedParticles.length; i++) {
+        this.reducedParticles[i].draw($('#canvas'), this.reducedParticleWeights[i]);
+    }  
+}
+
 ParticleFilter.prototype.clear = function() {
     var canvas = $("#canvas")[0]; // equivalent to document.getElementById
     var ctx = canvas.getContext('2d');
     ctx.fillStyle = "rgb(200,200,200)";
     ctx.fillRect(0,0,canvas.width, canvas.height);
 };
+
+ParticleFilter.prototype.aggregate = function() {
+    // collect identical particles together, generate normalized weights
+    this.reducedParticleWeights = [];
+    this.reducedParticles = [];
+    var reducedParticleCounts = [];
+    for(var i = 0; i < this.N; i++) {
+        var p = this.particles[i];
+        var found = false;
+        for(var j = 0; j < this.reducedParticles.length; j++) {
+            if(p.equals(this.reducedParticles[j])) {
+                found = true;
+                reducedParticleCounts[j]++;
+            }
+        }
+        if(found) continue;
+        reducedParticleCounts.push(1);
+        // does this push a copy?
+        this.reducedParticles.push(p);
+        var weightSum = reducedParticleCounts.reduce(function(a,b) { return a + b; });
+        this.reducedParticleWeights = reducedParticleCounts.map(function(w) { return w / weightSum; });
+    }
+
+}
 
 // Particle prototype. Your custom particle should extend this
 // num_targets is the total number of targets in the interface
@@ -110,6 +146,7 @@ function Particle(target_rows, target_cols) {
     this.target_cols = target_cols;
     this.num_targets = target_rows * target_cols;
     this.target_index = Math.randint(0, this.num_targets);
+    this.aggregate_id = -1;
 }
 
 Particle.prototype.measure = function(e) {
@@ -130,6 +167,10 @@ Particle.prototype.measure = function(e) {
     }
     
 };
+
+Particle.prototype.equals = function(other) {
+    return other.target_index == this.target_index;
+}
 
 Particle.prototype.gaussianMeasure = function(e) {
     //"1 / (1 + d_center)"
@@ -230,7 +271,7 @@ function updateParticleTable() {
     // remove all but first rows in partciles-table
     $("#particles-table tr:gt(0)").remove(); // select all rows of index greater than 1, then remove them.
 
-    var particles = particleFilter.particles;
+    var particles = particleFilter.reducedParticles;
     for(var i = 0; i < particles.length; i++) {
         var canvas = $('<canvas id="particle-' + i + '-canvas" />');
         canvas.width(100);
@@ -242,10 +283,7 @@ function updateParticleTable() {
                     .text('' + i)
                 )
                 .append($('<td>')
-                    .text('' + round(particleFilter.weights[i], 2) ) 
-                )
-                .append($('<td>')
-                    .text('' + round(particleFilter.weightsNorm[i], 2))
+                    .text('' + round(particleFilter.reducedParticleWeights[i], 2))
                 )
                 .append($('<td>')
                     .append(canvas)
@@ -324,7 +362,8 @@ $(function() {
         particleFilter.clear();
         eventQueue.push(e);
         particleFilter.step();
-        particleFilter.draw();
+        particleFilter.aggregate();
+        particleFilter.drawAggregate();
         if(updateParticles)
             updateParticleTable();
     });
