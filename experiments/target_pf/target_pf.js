@@ -32,7 +32,7 @@ var measurementNoise = [25,25];
 // TODO: probably doesn't make sense to put these here.
 var TARGET_ROWS = 5;
 var TARGET_COLS = 5;
-var NUM_PARTICLES = 100;
+var NUM_PARTICLES = 500;
 
 // Global Variables args
 var particleFilter;
@@ -42,6 +42,39 @@ var eventQueue = [];
 var letters = 'abcdefghijklmnoprstuvwxyz'.split("");
 
 var textEntered = "";
+
+var canvasWidth = 1000;
+var canvasHeight = 1000;
+
+// generate from letter_freq.py
+var letterFrequencies = {
+e:0.103850173421,
+i:0.0888419088411,
+a:0.087273167073,
+o:0.0753412489595,
+r:0.0710027321182,
+n:0.0700245390021,
+t:0.0670088865832,
+s:0.0607556276008,
+l:0.0573226482275,
+c:0.0447204374579,
+u:0.0386071735048,
+p:0.0336129837415,
+m:0.0304679688272,
+d:0.0297892587485,
+h:0.0280069802585,
+y:0.0228342525307,
+g:0.0204126929417,
+b:0.0172947023843,
+f:0.0104938679076,
+v:0.00877892879879,
+k:0.00691646328254,
+w:0.00599276190257,
+z:0.00364607307298,
+x:0.003030272153,
+q:0.00162013234847,
+j:0.00118862868223
+};
 //
 // Particle Filter
 //
@@ -74,8 +107,9 @@ ParticleFilter.prototype.step = function(observation) {
     var next = eventQueue.pop_front();
     // update
     for(i = 0; i < this.N; i++) {
-        this.particles[i] = this.particles[i].update();
+        this.particles[i] = this.particles[i].updateLetterFreq();
     }
+    updateParticleTable();
 
     // Apply weighted resampling using 'wheel' method covered in Udacity
     this.weights = this.particles.map(function(p) { return p.measure(next); } );
@@ -247,9 +281,23 @@ Particle.prototype.inRegionMeasure = function(e) {
     return 0.0;
 };
 
-Particle.prototype.update = function() {
+Particle.prototype.updateLetterFreq = function() {
     // returns the same thing, by default
     // for now, target index is just 
+    var result = new Particle(this.target_rows, this.target_cols);
+    var r = Math.random();
+    var sum = 0;
+    for(var i = 0; i < letterFrequencies.length; i ++) {
+        sum += letterFrequencies[i];
+        if(r < sum) {
+            result.target_index = i;
+            break;
+        }
+    }    
+    return result;
+}
+
+Particle.prototype.update = function() {
     return new Particle(this.target_rows, this.target_cols);
 };
 
@@ -275,7 +323,7 @@ Particle.prototype.draw = function(canvas, alpha) {
 
             ctx2d.fillRect(c * itemWidth, r * itemHeight, itemWidth, itemHeight);
             ctx2d.fillStyle = getFillStyle(rgb(20,20,20));
-            ctx2d.font = "14pt Arial";
+            ctx2d.font = "24pt Arial";
             ctx2d.fillText(letter, c * itemWidth + itemWidth / 2, r * itemHeight + itemHeight / 2);
         }
     }
@@ -375,9 +423,11 @@ $(function() {
     logger = new Logger($("#log"), LOG_LEVEL_VERBOSE);
     particleFilter = new ParticleFilter(NUM_PARTICLES);
     particleFilter.clear();
-    updateParticleTable();
+    
     updateState();
     particleFilter.draw();
+    $("#canvas")[0].width = canvasWidth;
+    $("#canvas")[0].height = canvasHeight;
 
     $("#canvas").mousemove(function(e) {
         addNoise(e);
@@ -393,8 +443,8 @@ $(function() {
         particleFilter.updateText();
         updateState();
         particleFilter.drawAggregate();
-        if(updateParticles)
-            updateParticleTable();
+        // if(updateParticles)
+            // updateParticleTable();
     });
 });
 
