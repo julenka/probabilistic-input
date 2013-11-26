@@ -11,7 +11,9 @@ var measureMethods = [
 var currentMeasureMethod = 0;
 
 var updateMethods = [
-    "none"
+    "none",
+    "letter frequency",
+    "n grams"
     ];
 var currentUpdateMethod = 0;
 
@@ -75,6 +77,7 @@ x:0.003030272153,
 q:0.00162013234847,
 j:0.00118862868223
 };
+
 //
 // Particle Filter
 //
@@ -85,9 +88,8 @@ function ParticleFilter(N) {
     this.N= N;
     this.particles = [];
     this.weights = [];
-    this.weightsNorm = [];
-    this.reducedParticles = [];
-    this.reducedParticleWeights = [];
+    this.weightsNorm = [];          
+    this.reducedParticles = [];     // [ {weight: x, particle: y}]
 
     for(var i = 0; i < N; i++) {
         this.particles.push(new Particle(TARGET_ROWS, TARGET_COLS));
@@ -109,7 +111,7 @@ ParticleFilter.prototype.step = function(observation) {
     for(i = 0; i < this.N; i++) {
         this.particles[i] = this.particles[i].updateLetterFreq();
     }
-    updateParticleTable();
+    
 
     // Apply weighted resampling using 'wheel' method covered in Udacity
     this.weights = this.particles.map(function(p) { return p.measure(next); } );
@@ -132,6 +134,7 @@ ParticleFilter.prototype.step = function(observation) {
         newParticles.push(this.particles[index]);
     }
     this.particles = newParticles;
+    updateParticleTable();
 };
 
 ParticleFilter.prototype.draw = function() {
@@ -142,9 +145,9 @@ ParticleFilter.prototype.draw = function() {
 
 ParticleFilter.prototype.drawAggregate = function() {
     for(var i = 0; i < this.reducedParticles.length; i++) {
-        this.reducedParticles[i].draw($('#canvas'), this.reducedParticleWeights[i]);
+        this.reducedParticles[i].particle.draw($('#canvas'), this.reducedParticles[i].weight);
     }  
-}
+};
 
 ParticleFilter.prototype.clear = function() {
     var canvas = $("#canvas")[0]; // equivalent to document.getElementById
@@ -155,14 +158,14 @@ ParticleFilter.prototype.clear = function() {
 
 ParticleFilter.prototype.aggregate = function() {
     // collect identical particles together, generate normalized weights
-    this.reducedParticleWeights = [];
     this.reducedParticles = [];
     var reducedParticleCounts = [];
-    for(var i = 0; i < this.N; i++) {
+    var i;
+    for(i = 0; i < this.N; i++) {
         var p = this.particles[i];
         var found = false;
         for(var j = 0; j < this.reducedParticles.length; j++) {
-            if(p.equals(this.reducedParticles[j])) {
+            if(p.equals(this.reducedParticles[j].particle)) {
                 found = true;
                 reducedParticleCounts[j]++;
             }
@@ -170,26 +173,58 @@ ParticleFilter.prototype.aggregate = function() {
         if(found) continue;
         reducedParticleCounts.push(1);
         // does this push a copy?
-        this.reducedParticles.push(p);
-        var weightSum = reducedParticleCounts.reduce(function(a,b) { return a + b; });
-        this.reducedParticleWeights = reducedParticleCounts.map(function(w) { return w / weightSum; });
+        this.reducedParticles.push({weight: 0, particle: p});
     }
+    var weightSum = reducedParticleCounts.reduce(function(a,b) { return a + b; });
+    for (i = 0; i < this.reducedParticles.length; i++) {
+        this.reducedParticles[i].weight = reducedParticleCounts[i] / weightSum;
+    }
+    this.reducedParticles =this.reducedParticles.sort(function(a,b) { return b.weight - a.weight;});
+};
+
+
+function updateParticleTable() {
+    // remove all but first rows in partciles-table
+    $("#particles-table tr:gt(0)").remove(); // select all rows of index greater than 1, then remove them.
+
+    var particles = particleFilter.reducedParticles;
+    for(var i = 0; i < particles.length; i++) {
+        var canvas = $('<canvas id="particle-' + i + '-canvas" />');
+        canvas.width(50);
+        canvas.height(50);
+        // create a canvas and draw it here
+        $("#particles-table").find('tbody')
+            .append($('<tr>')
+                .append($('<td>')
+                    .text('' + i)
+                )
+                .append($('<td>')
+                    .text('' + round(particleFilter.reducedParticles[i].weight, 2))
+                )
+                .append($('<td>')
+                    .append(canvas)
+                )
+            );
+        particles[i].particle.draw(canvas);
+
+    }
+}
 
 ParticleFilter.prototype.updateText = function() {
     // Okay now we're getting super specialized...
     // assumed aggregate has been called
-    var maxval = 0
+    // This is a nasty hack and should be changed!!! Need to do stuff like action requests.
+    var maxval = 0;
     var maxi = -1;
-    for(var i = 0; i < this.reducedParticleWeights.length; i++) {
-        if(this.reducedParticleWeights[i] > maxval) {
-            maxval = this.reducedParticleWeights[i];
+    for(var i = 0; i < this.reducedParticles.length; i++) {
+        if(this.reducedParticles[i].weight > maxval) {
+            maxval = this.reducedParticles[i].weight;
             maxi = i;
         }
     }
-    textEntered += letters[this.reducedParticles[maxi].target_index];
-}
+    textEntered += letters[this.reducedParticles[maxi].particle.target_index];
+};
 
-}
 
 // Particle prototype. Your custom particle should extend this
 // num_targets is the total number of targets in the interface
@@ -202,12 +237,6 @@ function Particle(target_rows, target_cols) {
 }
 
 Particle.prototype.measure = function(e) {
-// var measureMethods = [
-//     "1 if in region", 
-//     "1 / (1 + d_center)", 
-//     "gaussian",
-//     "bayesian touch"];
-// var currentMeasureMethod = 0;
     switch(currentMeasureMethod) {
         case 0: // "1 if in region"
         case 3: // beyesian touch
@@ -222,7 +251,7 @@ Particle.prototype.measure = function(e) {
 
 Particle.prototype.equals = function(other) {
     return other.target_index == this.target_index;
-}
+};
 
 Particle.prototype.gaussianMeasure = function(e) {
     //"1 / (1 + d_center)"
@@ -248,8 +277,6 @@ Particle.prototype.gaussianMeasure = function(e) {
 };
 
 Particle.prototype.distanceMeasure = function(e) {
-    //"1 / (1 + d_center)"
-    // TODO: refactor
     var cw = $("#canvas").width();
     var ch = $("#canvas").height();
     var itemWidth = Math.floor(cw / this.target_cols);
@@ -295,7 +322,7 @@ Particle.prototype.updateLetterFreq = function() {
         }
     }    
     return result;
-}
+};
 
 Particle.prototype.update = function() {
     return new Particle(this.target_rows, this.target_cols);
@@ -339,32 +366,6 @@ function updateState() {
     $("#demo-state-text-entered").html("text entered: " + textEntered);
 }
 
-function updateParticleTable() {
-    // remove all but first rows in partciles-table
-    $("#particles-table tr:gt(0)").remove(); // select all rows of index greater than 1, then remove them.
-
-    var particles = particleFilter.reducedParticles;
-    for(var i = 0; i < particles.length; i++) {
-        var canvas = $('<canvas id="particle-' + i + '-canvas" />');
-        canvas.width(50);
-        canvas.height(50);
-        // create a canvas and draw it here
-        $("#particles-table").find('tbody')
-            .append($('<tr>')
-                .append($('<td>')
-                    .text('' + i)
-                )
-                .append($('<td>')
-                    .text('' + round(particleFilter.reducedParticleWeights[i], 2))
-                )
-                .append($('<td>')
-                    .append(canvas)
-                )
-            );
-        particles[i].draw(canvas);
-
-    }
-}
 
 function logMouseEvent(e) {
     var toLog = {
