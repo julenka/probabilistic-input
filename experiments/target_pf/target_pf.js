@@ -23,7 +23,7 @@ var updateParticleState = [
     "YES",
 ];
 
-var noisyMouse = 1;
+var noisyMouse = 0;
 var noisyMouseState = [
     "NO",
     "YES"
@@ -195,9 +195,6 @@ function updateParticleTable() {
         // create a canvas and draw it here
         $("#particles-table").find('tbody')
             .append($('<tr>')
-                .append($('<td>')
-                    .text('' + i)
-                )
                 .append($('<td>')
                     .text('' + round(particleFilter.reducedParticles[i].weight, 2))
                 )
@@ -426,7 +423,7 @@ $(function() {
     particleFilter.clear();
     
     updateState();
-    particleFilter.draw();
+    
     $("#canvas")[0].width = canvasWidth;
     $("#canvas")[0].height = canvasHeight;
 
@@ -447,6 +444,8 @@ $(function() {
         // if(updateParticles)
             // updateParticleTable();
     });
+
+    particleFilter.drawAggregate();
 });
 
 
