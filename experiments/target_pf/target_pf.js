@@ -418,7 +418,7 @@ function addNoise(e) {
 
 // On document ready
 $(function() {
-    logger = new Logger($("#log"), LOG_LEVEL_VERBOSE);
+    logger = new Logger($("#log"), LOG_LEVEL_DEBUG);
     particleFilter = new ParticleFilter(NUM_PARTICLES);
     particleFilter.clear();
     
