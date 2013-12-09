@@ -122,3 +122,7 @@ Logger.prototype.log = function(level, msg) {
 		this.log_element.prepend("<div>"+msg+"</div>");
 	}
 };
+
+Logger.prototype.clear = function() {
+    this.log_element.empty();
+}

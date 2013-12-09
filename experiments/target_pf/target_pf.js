@@ -383,7 +383,7 @@ function logMouseEvent(e) {
 
 
 $(window).keydown(function(e){
-    logger.log(LOG_LEVEL_VERBOSE, "key pressed: " + e.which);
+    logger.log(LOG_LEVEL_DEBUG, "key pressed: " + e.which);
     var keyCode = e.which;
     if(keyCode == 65) { // 'a'
         currentMeasureMethod++;
@@ -399,6 +399,8 @@ $(window).keydown(function(e){
         noisyMouse %= 2;
     } else if (keyCode == 88) { // 'x'
         textEntered = '';
+    } else if (keyCode == 90) { // 'z'
+        logger.clear();
     }
     updateState();
 });
