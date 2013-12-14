@@ -2,11 +2,28 @@
 <html>
  <head>
   <meta charset="UTF-8">
+  <style type="text/css">
+  ul>ul {
+    margin-bottom:10px;
+  }
+  </style>
  </head>
  <body>
+    <h2> Initial Experiments </h2>
   <ul>
-    <li><a href="mouse_kalman/mouse_kalman.html"> Kalman filter with noisy mouse</a></li>
-    <li><a href="target_pf/target_pf.html">Particle filter</a></li>
+    <li><a href="mouse_kalman/mouse_kalman.html"> Kalman filter with noisy mouse</a> <br/>Simulate a noisy mouse by adding uniform artificial noise on mouse move, then smooth using a variety of filters: Kalman Filter, EWMA. </li>
+    <ul>
+        <li>Practice kalman filter</li>
+        <li>Make a few basic visualizations</li>
+        <li>Directly compare kalman to several known filters to verify validity of kalman implementation </li>
+        <li>Learned that color is a good way to communicate uncertainty</li>
+    </ul>
+    <li><a href="target_pf/target_pf.html">Particle Filter Keyboard</a><br/>Use a particle filter and simple letter frequency model to better estimate keys pressed. As feedback, overlays all possible interfaces.</li>
+    <ul>
+        <li>Practice with particle filter</li>
+        <li>Basic feedback mechanism: overlaying possible interfaces using opacity</li>
+        <li>Debugging interface built to see all interface particles and their likelihoods</li>
+    </ul>
   </ul>
  </body>
 </html>
