@@ -48,6 +48,8 @@ var textEntered = "";
 var canvasWidth = 1000;
 var canvasHeight = 1000;
 
+// TODO: factor out this letter frequency model. May just want to create a sepearte
+// "letter frequency" JavaScript library
 // generate from letter_freq.py
 var letterFrequencies = {
 e:0.103850173421,
@@ -443,8 +445,6 @@ $(function() {
         particleFilter.updateText();
         updateState();
         particleFilter.drawAggregate();
-        // if(updateParticles)
-            // updateParticleTable();
     });
 
     particleFilter.drawAggregate();
