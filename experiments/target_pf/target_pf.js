@@ -3,19 +3,6 @@
 // ../libs/utils.js
 
 // Settings
-
-var updateParticles = 1;
-var updateParticleState = [
-    "NO",
-    "YES",
-];
-
-var noisyMouse = 0;
-var noisyMouseState = [
-    "NO",
-    "YES"
-];
-
 var measurementNoise = [25,25];
 
 // TODO: probably doesn't make sense to put these here.
@@ -79,8 +66,6 @@ function updateState() {
     $("#demo-state-measure").html("current measurement method: " + measureMethod.string);
     $("#demo-state-update").html("current update method:" + updateMethod.string);
     $("#demo-state-num-particles").html("number of particles: " + particleFilter.N);
-    $("#demo-state-particle-update-state").html("update particles: " + updateParticleState[updateParticles]);
-    $("#demo-state-noisy-mouse").html("noisy mouse: " + noisyMouseState[noisyMouse]);
     $("#demo-state-text-entered").html("text entered: " + textEntered);
 }
 
@@ -108,8 +93,6 @@ $(window).keydown(function(e){
     } else if (keyCode == 83) { // 's'
         particleFilter.incrementUpdateMethod();
     } else if (keyCode == 68) { // 'd'
-        updateParticles++;
-        updateParticles %= 2;
     } else if (keyCode == 70) {// 'f'
         noisyMouse++;
         noisyMouse %= 2;
@@ -120,19 +103,6 @@ $(window).keydown(function(e){
     }
     updateState();
 });
-
-
-function addNoise(e) {
-    if(noisyMouse) {
-        var dx = Math.nrand() * measurementNoise[0];
-        var dy = Math.nrand() * measurementNoise[1];
-        e.pageX += dx;
-        e.pageY += dy;
-        e.offsetX += dx;
-        e.offsetY += dy;
-    }
-    $("#cursor").css({top:e.offsetY,left:e.offsetX});
-}
 
 // On document ready
 $(function() {
@@ -145,12 +115,7 @@ $(function() {
     $("#canvas")[0].width = canvasWidth;
     $("#canvas")[0].height = canvasHeight;
 
-    $("#canvas").mousemove(function(e) {
-        addNoise(e);
-    });
-
     $("#canvas").mousedown(function(e) {
-        addNoise(e);
         logMouseEvent(e);
         particleFilter.clear();
         eventQueue.push(e);

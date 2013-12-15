@@ -1,6 +1,5 @@
 body {
     font-family:monospace;
-    cursor: none;
 }
 em {
     font-weight:bold;
@@ -18,7 +17,7 @@ ul {
     width: 1000px;
     height: 1000px;
     border: 1px solid black;
-    
+
 }
 
 #main-frame td {
