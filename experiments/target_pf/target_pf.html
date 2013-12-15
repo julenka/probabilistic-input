@@ -3,6 +3,7 @@
 <head>
     <link rel="icon" href="../favicon.ico" type="image/x-icon" /> 
     <link rel="stylesheet" type="text/css" href="target_pf.css">
+    
     <!-- sylvester matrix library -->
     <script type="text/javascript" src="../libs/sylvester.js"></script>
     <!-- JQuery -->
@@ -10,10 +11,13 @@
     </script>
     <!-- Numeric library -->
     <script type="text/javascript" src="../libs/numeric-1.2.6.min.js"></script>
-    
     <!-- Common Utilities -->
     <script type="text/javascript" src="../libs/utils.js"></script>
 
+    <!-- Particle Filter related -->
+    <script type="text/javascript" src="particle_filter.js"></script>
+
+    <!-- Main -->
     <script type="text/javascript" src="target_pf.js"></script>
 </head>
 <body>
@@ -28,7 +32,6 @@
                     <p>
                     A particle filter is used to estimate the state of the interface (i.e. which button is selected). The <em> update </em> and <em> measure</em> methods for the particle filter are configurable.
                     </p>
-
                     <p>
                         <ul>
                             <li>'a' - Change measurement method</li>
