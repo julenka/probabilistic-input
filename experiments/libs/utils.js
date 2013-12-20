@@ -12,6 +12,27 @@ function round(n, sig) {
     return Math.round(n * Math.pow(10, sig)) / Math.pow(10,sig);
 }
 
+// extracts a random sample from list of weighted samples
+// samples are in the form:
+// { 
+//    value_1: weight_1,
+//    value_2: weight_2,
+// }
+// assumes that the weights all sum to 1
+function weighted_random_sample(map) {
+    var r = Math.random();
+    var sum = 0;
+    var last = undefined;
+    for(var v in map) {
+        last = v;
+        sum += map[v];
+        if (r < sum) {
+            return v;
+        }
+    }
+    return last;
+}
+
 // Augemnting Math
 
 Math.randint = function(min, max) {
@@ -125,4 +146,4 @@ Logger.prototype.log = function(level, msg) {
 
 Logger.prototype.clear = function() {
     this.log_element.empty();
-}
+};

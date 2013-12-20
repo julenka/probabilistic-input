@@ -1,34 +1,4 @@
-// TODO: factor out this letter frequency model. May just want to create a sepearte
-// "letter frequency" JavaScript library
-// generate from letter_freq.py
-var letterFrequencies = {
-e:0.103850173421,
-i:0.0888419088411,
-a:0.087273167073,
-o:0.0753412489595,
-r:0.0710027321182,
-n:0.0700245390021,
-t:0.0670088865832,
-s:0.0607556276008,
-l:0.0573226482275,
-c:0.0447204374579,
-u:0.0386071735048,
-p:0.0336129837415,
-m:0.0304679688272,
-d:0.0297892587485,
-h:0.0280069802585,
-y:0.0228342525307,
-g:0.0204126929417,
-b:0.0172947023843,
-f:0.0104938679076,
-v:0.00877892879879,
-k:0.00691646328254,
-w:0.00599276190257,
-z:0.00364607307298,
-x:0.003030272153,
-q:0.00162013234847,
-j:0.00118862868223
-};
+// Dependencies: ../utils/language_model.js
 
 // Particle prototype. Your custom particle should extend this
 function Particle(target_rows, target_cols, particle_filter) {
@@ -114,18 +84,16 @@ Particle.prototype.inRegionMeasure = function(e) {
 };
 
 Particle.prototype.updateLetterFreq = function() {
-    // returns the same thing, by default
-    // for now, target index is just 
     var result = new Particle(this.target_rows, this.target_cols, this.particle_filter);
-    var r = Math.random();
-    var sum = 0;
-    for(var i = 0; i < letterFrequencies.length; i ++) {
-        sum += letterFrequencies[i];
-        if(r < sum) {
-            result.target_index = i;
-            break;
-        }
-    }    
+    var random_letter = weighted_random_sample(LETTER_FREQUENCIES);
+    // http://stackoverflow.com/questions/94037/convert-character-to-ascii-code-in-javascript
+    // 97 is char code of 'a'
+    result.target_index = [random_letter.charCodeAt(0) - 97];
+    return result;
+};
+
+Particle.prototype.updateOneGram = function() {
+        
     return result;
 };
 
