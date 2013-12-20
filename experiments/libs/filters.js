@@ -4,15 +4,6 @@
 // Default filter (no filter)
 
 //
-// Particle Filter
-//
-
-
-// FILL IN!!!
-
-
-
-//
 // Kalman Filter
 //
 
