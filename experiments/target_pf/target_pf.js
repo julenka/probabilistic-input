@@ -6,8 +6,9 @@
 var measurementNoise = [25,25];
 
 // TODO: probably doesn't make sense to put these here.
-var TARGET_ROWS = 5;
-var TARGET_COLS = 5;
+var NUM_ROWS = 3;
+var COLS_PER_ROW = [10, 9, 7];
+var ROW_OFFSETS = [0, 0.25, 0.9]; // pixel offsets to render rows at, in terms of item width
 var NUM_PARTICLES = 500;
 
 // Global Variables args
@@ -15,7 +16,7 @@ var particleFilter;
 var logger;
 var eventQueue = [];
 
-var letters = 'abcdefghijklmnoprstuvwxyz'.split("");
+var letters = 'qwertyuiopasdfghjklzxcvbnm'.split("");
 
 var textEntered = "";
 
