@@ -93,7 +93,16 @@ Particle.prototype.updateLetterFreq = function() {
 };
 
 Particle.prototype.updateOneGram = function() {
-        
+    if (textEntered.length === 0 ) {
+        return this.updateLetterFreq();
+    }
+
+    var lastLetter = textEntered[textEntered.length - 1];
+    var result = new Particle(this.target_rows, this.target_cols, this.particle_filter);
+    var random_letter = weighted_random_sample(ONE_GRAM[lastLetter]);
+    // http://stackoverflow.com/questions/94037/convert-character-to-ascii-code-in-javascript
+    // 97 is char code of 'a'
+    result.target_index = [random_letter.charCodeAt(0) - 97];
     return result;
 };
 
@@ -200,7 +209,16 @@ ParticleFilter.prototype.step = function(observation) {
     var next = eventQueue.pop_front();
     // update
     for(i = 0; i < this.N; i++) {
-        this.particles[i] = this.particles[i].updateLetterFreq();
+        if(this.update_method === 0 ) { // none
+            this.particles[i] = this.particles[i].update();
+        } else if (this.update_method == 1) { // letter frequency
+            this.particles[i] = this.particles[i].updateLetterFreq();
+        } else if (this.update_method == 2) { // n grams
+            this.particles[i] = this.particles[i].updateOneGram();
+        } else {
+            logger.log(LOG_LEVEL_DEBUG, "ERROR: invalid update_method in particle filter: " + this.update_method);
+        }
+        
     }
 
     // Apply weighted resampling using 'wheel' method covered in Udacity
