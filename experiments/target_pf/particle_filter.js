@@ -1,11 +1,16 @@
 // Dependencies: ../utils/language_model.js
 
-// Particle prototype. Your custom particle should extend this
-function Particle(num_rows, cols_per_row, particle_filter) {
+
+function Particle(num_rows, cols_per_row, particle_filter, target_index) {
     this.num_rows = num_rows;
     this.cols_per_row = cols_per_row;
     this.num_targets = cols_per_row.reduce(function(x,y) { return x + y;});
-    this.target_index = Math.randint(0, this.num_targets - 1);
+    if(target_index !== undefined) {
+        this.target_index = target_index;
+    } else {
+        this.target_index = Math.randint(0, this.num_targets - 1);
+    }
+    
     this.aggregate_id = -1;
     this.measure_method = 0; // "1 if in region"
     this.particle_filter = particle_filter;
@@ -69,7 +74,7 @@ Particle.prototype.gaussianMeasure = function(e) {
     var d = Math.sqrt(Math.pow(cx - rx,2) + Math.pow(cy - ry, 2)); 
 
     var mu = 0;
-    var sigma = 50;
+    var sigma = 20;
     return Math.gaussian(mu, sigma, d);
 
 };
@@ -95,12 +100,10 @@ Particle.prototype.inRegionMeasure = function(e) {
 };
 
 Particle.prototype.updateLetterFreq = function() {
-    var result = new Particle(this.num_rows, this.cols_per_row, this.particle_filter);
     var random_letter = weighted_random_sample(LETTER_FREQUENCIES);
     // http://stackoverflow.com/questions/94037/convert-character-to-ascii-code-in-javascript
     // 97 is char code of 'a'
-    result.target_index = [random_letter.charCodeAt(0) - 97];
-    return result;
+    return new Particle(this.num_rows, this.cols_per_row, this.particle_filter, letters.indexOf(random_letter)  );
 };
 
 Particle.prototype.updateOneGram = function() {
@@ -109,12 +112,11 @@ Particle.prototype.updateOneGram = function() {
     }
 
     var lastLetter = textEntered[textEntered.length - 1];
-    var result = new Particle(this.num_rows, this.cols_per_row, this.particle_filter);
-    var random_letter = weighted_random_sample(ONE_GRAM[lastLetter]);
     // http://stackoverflow.com/questions/94037/convert-character-to-ascii-code-in-javascript
     // 97 is char code of 'a'
-    result.target_index = [random_letter.charCodeAt(0) - 97];
-    return result;
+    var random_letter = weighted_random_sample(ONE_GRAM[lastLetter]);
+    var target_index = letters.indexOf(random_letter);
+    return new Particle(this.num_rows, this.cols_per_row, this.particle_filter, target_index);
 };
 
 Particle.prototype.update = function() {
