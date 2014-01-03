@@ -34,6 +34,7 @@ function updateText () {
         }
     }
     textEntered += letters[particleFilter.reducedParticles[maxi].particle.target_index];
+    $("#demo-state-text-entered").html("text entered: " + textEntered);
 }
 
 
@@ -44,8 +45,8 @@ function updateParticleTable() {
     var particles = particleFilter.reducedParticles;
     for(var i = 0; i < particles.length; i++) {
         var canvas = $('<canvas id="particle-' + i + '-canvas" />');
-        canvas.width(50);
-        canvas.height(50);
+        canvas.width(200);
+        canvas.height(100);
         // create a canvas and draw it here
         $("#particles-table").find('tbody')
             .append($('<tr>')
@@ -103,6 +104,7 @@ $(window).keydown(function(e){
         logger.clear();
     }
     updateState();
+
 });
 
 // On document ready
@@ -116,16 +118,38 @@ $(function() {
     $("#canvas")[0].width = canvasWidth;
     $("#canvas")[0].height = canvasHeight;
 
-    $("#canvas").mousedown(function(e) {
+    var mouseDown = -1;
+    var particleUpdate = function(e) {
         logMouseEvent(e);
-        particleFilter.clear();
         eventQueue.push(e);
+        if(mouseDown == -1 || mouseDown == 1)
+            particleFilter.update();
         particleFilter.step();
         particleFilter.aggregate();
-        updateText();
-        updateState();
+        particleFilter.clear();
         particleFilter.drawAggregate();
+    };
+    $("#canvas").mousedown(function(e) {
+        particleUpdate(e);
+        mouseDown = 1;
     });
+    $("#canvas").mousemove(function(e) {
+        if(mouseDown == 1) {
+            particleUpdate(e);    
+        }
+    });
+    $("#canvas").mouseup(function(e) {
+        mouseDown = 0;
+        particleFilter.aggregate();
+        updateText();
+        particleFilter.update();
+        logMouseEvent(e);
+        particleFilter.aggregate();
+        particleFilter.clear();
+        particleFilter.drawAggregate();
+        
+    });
+
 
     particleFilter.drawAggregate();
 });

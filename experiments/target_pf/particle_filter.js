@@ -119,7 +119,9 @@ Particle.prototype.updateOneGram = function() {
     return new Particle(this.num_rows, this.cols_per_row, this.particle_filter, target_index);
 };
 
-Particle.prototype.update = function() {
+
+
+Particle.prototype.updateRandom = function() {
     return new Particle(this.num_rows, this.cols_per_row, this.particle_filter);
 };
 
@@ -199,6 +201,20 @@ ParticleFilter.prototype.getMeasureMethod = function() {
     };
 };
 
+ParticleFilter.prototype.update = function() {
+    for(var i = 0; i < this.N; i++) {
+        if(this.update_method === 0 ) { // none
+            this.particles[i] = this.particles[i].updateRandom();
+        } else if (this.update_method == 1) { // letter frequency
+            this.particles[i] = this.particles[i].updateLetterFreq();
+        } else if (this.update_method == 2) { // n grams
+            this.particles[i] = this.particles[i].updateOneGram();
+        } else {
+            logger.log(LOG_LEVEL_DEBUG, "ERROR: invalid update_method in particle filter: " + this.update_method);
+        }
+    }
+};
+
 ParticleFilter.prototype.updateMethods = [
     "none",
     "letter frequency",
@@ -223,19 +239,6 @@ ParticleFilter.prototype.step = function(observation) {
     }
     var i;
     var next = eventQueue.pop_front();
-    // update
-    for(i = 0; i < this.N; i++) {
-        if(this.update_method === 0 ) { // none
-            this.particles[i] = this.particles[i].update();
-        } else if (this.update_method == 1) { // letter frequency
-            this.particles[i] = this.particles[i].updateLetterFreq();
-        } else if (this.update_method == 2) { // n grams
-            this.particles[i] = this.particles[i].updateOneGram();
-        } else {
-            logger.log(LOG_LEVEL_DEBUG, "ERROR: invalid update_method in particle filter: " + this.update_method);
-        }
-        
-    }
 
     // Apply weighted resampling using 'wheel' method covered in Udacity
     this.weights = this.particles.map(function(p) { return p.measure(next); } );
