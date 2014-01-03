@@ -167,7 +167,7 @@ function ParticleFilter(N) {
     this.weightsNorm = [];          
     this.reducedParticles = [];     // [ {weight: x, particle: y}]
     this.measure_method = 2; 
-    this.update_method = 0;
+    this.update_method = 2;
 
     for(var i = 0; i < N; i++) {
         this.particles.push(new Particle(NUM_ROWS, COLS_PER_ROW, this));
@@ -259,7 +259,7 @@ ParticleFilter.prototype.step = function(observation) {
         newParticles.push(this.particles[index]);
     }
     this.particles = newParticles;
-}
+};
 
 ParticleFilter.prototype.draw = function() {
     for(var i = 0; i < this.N; i++) {

@@ -73,7 +73,7 @@ function updateState() {
     var measureMethod = particleFilter.getMeasureMethod();
     var updateMethod = particleFilter.getUpdateMethod();
     $("#demo-state-measure").html("current measurement method: " + measureMethod.string);
-    $("#demo-state-update").html("current update method:" + updateMethod.string);
+    $("#demo-state-update").html("current update method: " + updateMethod.string);
     $("#demo-state-num-particles").html("number of particles: " + particleFilter.N);
     if(textEntered == '') {
         $("#demo-state-text-entered").html(emptyText);
