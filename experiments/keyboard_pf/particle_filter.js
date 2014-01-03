@@ -49,7 +49,6 @@ Particle.prototype.getDisplayInfo = function() {
 Particle.prototype.measure = function(e) {
     switch(this.particle_filter.measure_method) {
         case 0: // "1 if in region"
-        case 3: // beyesian touch
         return this.inRegionMeasure(e);
         case 1: //"1 / (1 + d_center)"
         return this.distanceMeasure(e);
@@ -167,7 +166,7 @@ function ParticleFilter(N) {
     this.weights = [];
     this.weightsNorm = [];          
     this.reducedParticles = [];     // [ {weight: x, particle: y}]
-    this.measure_method = 0; 
+    this.measure_method = 2; 
     this.update_method = 0;
 
     for(var i = 0; i < N; i++) {
@@ -182,8 +181,7 @@ function ParticleFilter(N) {
 ParticleFilter.prototype.measureMethods = [
     "1 if in region", 
     "1 / (1 + d_center)", 
-    "gaussian",
-    "bayesian touch"
+    "gaussian"
 ];
 
 // Sets measurement method to use for particle filter
@@ -216,9 +214,9 @@ ParticleFilter.prototype.update = function() {
 };
 
 ParticleFilter.prototype.updateMethods = [
-    "none",
+    "uniform",
     "letter frequency",
-    "n grams"
+    "one grams"
 ];
 
 ParticleFilter.prototype.incrementUpdateMethod = function() {
@@ -261,8 +259,7 @@ ParticleFilter.prototype.step = function(observation) {
         newParticles.push(this.particles[index]);
     }
     this.particles = newParticles;
-    updateParticleTable();
-};
+}
 
 ParticleFilter.prototype.draw = function() {
     for(var i = 0; i < this.N; i++) {

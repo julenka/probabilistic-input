@@ -2,7 +2,7 @@
 <html>
 <head>
     <link rel="icon" href="../favicon.ico" type="image/x-icon" /> 
-    <link rel="stylesheet" type="text/css" href="target_pf.css">
+    <link rel="stylesheet" type="text/css" href="keyboard_pf.css">
     
     <!-- sylvester matrix library -->
     <script type="text/javascript" src="../libs/sylvester.js"></script>
@@ -21,22 +21,37 @@
     <script type="text/javascript" src="particle_filter.js"></script>
 
     <!-- Main -->
-    <script type="text/javascript" src="target_pf.js"></script>
+    <script type="text/javascript" src="keyboard_pf.js"></script>
 </head>
 <body>
     <table id="main-frame">
         <tr>
             <td id="left-frame">
                 <div id="description">
-                    <h1> Target Estimation With Particle Filter </h1>
+                    <h1> Probabilistic Keyboard Using Particle Filter </h1>
                     <p>
-                    The interface below is a simple grid of buttons, one button from the grid can be selected at a time. Clicking a button selects it.
+                    Below is a demonstration of a keyboard that can incorporate a range of probabilistic
+                    touch and language models, using a particle filter as a backing system. 
                     </p>
                     <p>
-                    A particle filter is used to estimate the state of the interface (i.e. which button is selected). The <em> update </em> and <em> measure</em> methods for the particle filter are configurable.
+                    Developers may incorporate arbitrary probabilistic models of touch (specifying the probability that a given key should be pressed given that the touch occured at a specific location). Additionally, developers may specify language models (specifying the probability that a key should be pressed GIVEN the current sequence of key pressed).
                     </p>
+                    <p>
+                    The keyboard uses a particle filter to combine both this touch model and language model to determine the most likely key pressed, and optionally prompt for mediation.
+                    </p>
+                    <h3> Visualization </h3>
+                    This demo provides a visualization of the likelihood of keypresses. When a user touches down and moves, he/she sees the likelihood of each key, darker means more likely. 
+                    <p>
+                    When a user releases the key, he/she can see a distribution of the NEXT most likely key.
+                    </p>
+                    <p>
+
+                    Visualization is fully configurable and alternate visualizations will soon be provided.
+                    </p>
+                    <h3> Controls: </h3>
                     <p>
                         <ul>
+                            <li>'q' - Show/hide 'interface particles' </li>
                             <li>'a' - Change measurement method</li>
                             <li>'s' - Change update method</li>
                             <li>'x' - Clear entered text </li>
@@ -45,12 +60,13 @@
                     </p>
                 </div>
                 <div id="demo-state"> 
-                    <div id="demo-state-measure"> current measure method</div>
-                    <div id="demo-state-update"> current update method</div>
+                    <div id="demo-state-measure"> current touch model</div>
+                    <div id="demo-state-update"> current language model</div>
                     <div id="demo-state-num-particles"> number of particles</div>
-                    <div id="demo-state-text-entered">text entered</div>
+                    
                 </div>
-                <div style="position:relative">
+                <div style="text-align: center">
+                    <span id="demo-state-text-entered">text goes here</div>
                     <canvas id="canvas"></canvas>
                 </div>
             </td>

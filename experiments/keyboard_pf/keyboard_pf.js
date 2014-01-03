@@ -19,9 +19,12 @@ var eventQueue = [];
 var letters = 'qwertyuiopasdfghjklzxcvbnm'.split("");
 
 var textEntered = "";
+var emptyText = "text goes here";
 
 var canvasWidth = 1000;
-var canvasHeight = 1000;
+var canvasHeight = 500;
+
+var showParticles = false;
 
 // Updates the text entered
 function updateText () {
@@ -34,7 +37,8 @@ function updateText () {
         }
     }
     textEntered += letters[particleFilter.reducedParticles[maxi].particle.target_index];
-    $("#demo-state-text-entered").html("text entered: " + textEntered);
+    $("#demo-state-text-entered").html(textEntered);
+    $("#demo-state-text-entered").css({opacity: 1.0});
 }
 
 
@@ -47,6 +51,9 @@ function updateParticleTable() {
         var canvas = $('<canvas id="particle-' + i + '-canvas" />');
         canvas.width(200);
         canvas.height(100);
+
+        canvas[0].width = 500;
+        canvas[0].height = 250;
         // create a canvas and draw it here
         $("#particles-table").find('tbody')
             .append($('<tr>')
@@ -68,7 +75,14 @@ function updateState() {
     $("#demo-state-measure").html("current measurement method: " + measureMethod.string);
     $("#demo-state-update").html("current update method:" + updateMethod.string);
     $("#demo-state-num-particles").html("number of particles: " + particleFilter.N);
-    $("#demo-state-text-entered").html("text entered: " + textEntered);
+    if(textEntered == '') {
+        $("#demo-state-text-entered").html(emptyText);
+        $("#demo-state-text-entered").css({opacity: 0.5});
+    } else {
+        $("#demo-state-text-entered").html(textEntered);    
+        $("#demo-state-text-entered").css({opacity: 1.0});
+    }
+    
 }
 
 
@@ -102,6 +116,13 @@ $(window).keydown(function(e){
         textEntered = '';
     } else if (keyCode == 90) { // 'z'
         logger.clear();
+    } else if (keyCode == 81) { // 'q'
+        showParticles = !showParticles;
+        if(!showParticles) {
+            $('#particles-table').css("display", "None");
+        } else {
+            $('#particles-table').css("display", "block");
+        }
     }
     updateState();
 
@@ -118,6 +139,8 @@ $(function() {
     $("#canvas")[0].width = canvasWidth;
     $("#canvas")[0].height = canvasHeight;
 
+    $('#particles-table').css("display", "None");
+
     var mouseDown = -1;
     var particleUpdate = function(e) {
         logMouseEvent(e);
@@ -128,6 +151,9 @@ $(function() {
         particleFilter.aggregate();
         particleFilter.clear();
         particleFilter.drawAggregate();
+        if(showParticles) {
+            updateParticleTable();
+        }
     };
     $("#canvas").mousedown(function(e) {
         particleUpdate(e);
@@ -147,7 +173,6 @@ $(function() {
         particleFilter.aggregate();
         particleFilter.clear();
         particleFilter.drawAggregate();
-        
     });
 
 
