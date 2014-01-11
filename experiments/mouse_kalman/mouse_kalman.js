@@ -3,8 +3,7 @@
 // ../libs/utils.js
 // ../libs/filters.js
 
-// TODO: use RequireJS to laod these dependencies programmatically
-// Utilities 
+// Utilities
 function get2DContext() {
     return get2DContextForId("canvas");
 }
@@ -12,12 +11,15 @@ function get2DContext() {
 // Settings //////////////////////////////////////
 var showActual = false;
 
+var dotScale = 10;
+
 var visualizationModes = [
     "dots", 
     "resized dots with opacity", 
     "resized dots with color", 
     "dots with contours"];
 var currentVisualizationMode = 0;
+var drawHistory = false;
 
 var filters = [
     "kalman", 
@@ -29,24 +31,25 @@ var errorSmoothing = 0.9;
 // To determine dt
 var time = $.now();
 
-var lastX = 0;
-var lastY = 0;
+
+
 var logger;
 
 // Draws dot at location
-// x: 4 x 1 matrix containint state
+// x: 4 x 1 matrix containing state
 // c: particle color
 function drawDot(x, c) {
     var pSize = 2;
     var ctx = get2DContext();
     ctx.fillStyle = getFillStyle(c);
-    ctx.fillRect(x.e(1, 1), x.e(2, 1), pSize, pSize); // x, y, width, height
+    ctx.fillRect(x.e(1, 1), x.e(2, 1), pSize * dotScale, pSize * dotScale); // x, y, width, height
 }
 
 function updateState() {
-    $("#debug").empty();
-    $("#debug").append("<div> visualization mode: <em>" + visualizationModes[currentVisualizationMode] + "</em></div>");
-    $("#debug").append("<div> filter: <em>" + filters[currentFilter] + "</em></div>");
+    var dbg = $('#debug');
+    dbg.empty();
+    dbg.append('<div> visualization mode: <em>' + visualizationModes[currentVisualizationMode] + "</em></div>");
+    dbg.append("<div> filter: <em>" + filters[currentFilter] + "</em></div>");
     for(var i = 0; i < filters.length; i++) {
         $("#debug").append("<div> " + filters[i] + " error: " + round(errors[i].error, 2) + " count: " + errors[i].count);
     }
@@ -59,12 +62,10 @@ function updateState() {
 function drawDot2(x, P, c) {
     var locationUncertainty = P.minor(1,1,2,2);
     var maxUncertainty = locationUncertainty.max();
-    var alpha = 1 -  remap(maxUncertainty, 2, 4, 0.0, 0.9);
-    var pSize = maxUncertainty;
-    c.a = alpha;
+    c.a = 1 -  remap(maxUncertainty, 2, 4, 0.0, 0.9);
     var ctx = get2DContext();
     ctx.fillStyle = getFillStyle(c);
-    ctx.fillRect(x.e(1, 1), x.e(2, 1), pSize, pSize); // x, y, width, height 
+    ctx.fillRect(x.e(1, 1), x.e(2, 1), maxUncertainty * dotScale, maxUncertainty * dotScale); // x, y, width, height
 }
 
 
@@ -75,14 +76,12 @@ function drawDot2(x, P, c) {
 function drawDot3(x, P) {
     var locationUncertainty = P.minor(1,1,2,2);
     var maxUncertainty = locationUncertainty.max();
-    // logger.log(LOG_LEVEL_DEBUG, "" + maxUncertainty);
-    var pSize = maxUncertainty;
     var hue = remap(maxUncertainty, 2, 4, 0.66, 0.0);
     var c = hsvToRgb(hue, 1, 1);
     c.a = 0.5;
     var ctx = get2DContext();
     ctx.fillStyle = getFillStyle(c);
-    ctx.fillRect(x.e(1, 1), x.e(2, 1), pSize, pSize); // x, y, width, height 
+    ctx.fillRect(x.e(1, 1), x.e(2, 1), maxUncertainty * dotScale, maxUncertainty  * dotScale); // x, y, width, height
 }
 
 // Draws the error ellipse given by uncertainty of state, P
@@ -92,7 +91,6 @@ function drawCov(x, P) {
     var cov = P.minor(1,1,2,2); // covariance matrix for location
     var ctx = get2DContext();
     var maxUncertainty = cov.max();
-    var pSize = maxUncertainty;
     var hue = remap(maxUncertainty, 2, 4, 0.66, 0.0);
     var c = hsvToRgb(hue, 1, 1);
     c.a = 0.5;
@@ -102,7 +100,7 @@ function drawCov(x, P) {
     
     ctx.save();
     ctx.translate(x.e(1,1), x.e(2,1));
-
+    ctx.scale(dotScale, dotScale);
     ctx.beginPath();
     for(var t = 0; t < 2 * Math.PI; t += 0.01) {
         if(t === 0) {
@@ -138,14 +136,6 @@ function updateError(xActual, yActual) {
     
 }
 
-function printMatrix(m) {
-    var round1000 = function(x){return Math.round(x * 1000)/1000;};
-    for (var i = m.rows(); i > 0; i--) {
-        logger.log(LOG_LEVEL_DEBUG, "[" + m.row(i).map(round1000).elements + "]");
-    }
-
-}
-
 var kf4d = new KalmanFilter(
     4, 
     $M([[0],[0],[0],[0]]), // x
@@ -153,9 +143,9 @@ var kf4d = new KalmanFilter(
     $M([ [1, 0, 0, 0],     // H
          [0, 1, 0, 0]]) );
 var ewma = new EWMAFilter(2, 0.9, $M([[0],[0]]) );
-var nofilter = new NoFilter(2, $M([[0],[0]]) );
+var no_filter = new NoFilter(2, $M([[0],[0]]) );
 
-var filter_values = [kf4d, ewma, nofilter];
+var filter_values = [kf4d, ewma, no_filter];
 
 var measurement_noise =  Matrix.Diagonal([20, 20]);
 
@@ -165,8 +155,8 @@ var lastV = $V([0,0]);
 // Z: observed measurements
 function filterKalman(Z) {
     // change in time
-    now = $.now();
-    dt = now - time;
+    var now = $.now();
+    var dt = now - time;
     time = now;
     if(dt === 0)
         return;
@@ -181,36 +171,29 @@ function filterKalman(Z) {
     
     var v = $V([kf4d.x.e(1,1) - Z.e(1,1), kf4d.x.e(2,1) - Z.e(2,1)]).x(1 / dt);
     var acceleration = v.subtract(lastV).distanceFrom(Vector.Zero(2)) / dt;
-    // logger.log(LOG_LEVEL_DEBUG, "acceleration: " + acceleration);
     lastV = v;
     kf4d.decay(Math.abs(0.5 * acceleration));
-    // kf4d.decay(1.0);
 
     kf4d.predict(F, $M([[0],[0],[0],[0] ]));
 
     kf4d.measure(Z, measurement_noise);
 }
 
-var ewmaFactor = 0.9;
-function filterEWMA(Z) {
-    ewma.update(Z.elements);
-}
-
-$(window).mousemove(function (e) {
+function onMouseMove(e) {
     // Measure
-    // Fake uncertaintity in our measurements
-    xMeasure = e.pageX + Math.nrand() * measurement_noise.e(1,1);
-    yMeasure = e.pageY + Math.nrand() * measurement_noise.e(2,2);
+    // Fake uncertainty in our measurements
+    var xMeasure = e.pageX + Math.nrand() * measurement_noise.e(1,1);
+    var yMeasure = e.pageY + Math.nrand() * measurement_noise.e(2,2);
 
     $("#cursor").offset({top:yMeasure,left:xMeasure});
-    Z = $M([
+    var Z = $M([
         [xMeasure], [yMeasure]
-        ]);
+    ]);
 
     // filter
     filterKalman(Z);
     ewma.update(Z);
-    nofilter.update(Z);
+    no_filter.update(Z);
     updateError(e.pageX, e.pageY);
 
     var to_draw = {};
@@ -219,20 +202,23 @@ $(window).mousemove(function (e) {
     } else if (currentFilter == 1) { // ewma
         to_draw = {
             x: ewma.x,
-            P : Matrix.Diagonal([measurement_noise.e(1,1), measurement_noise.e(2,2), 0, 0])
+            P : Matrix.Diagonal([1, 1, 0, 0])
         };
     } else  if(currentFilter == 2) { // none
         to_draw = {
-            x: nofilter.x,
-            P: Matrix.Diagonal([measurement_noise.e(1,1), measurement_noise.e(2,2), 0, 0])
+            x: no_filter.x,
+            P: Matrix.Diagonal([1, 1, 0, 0])
         };
     }
 
+    if(!drawHistory) {
+        get2DContext().clearRect(0,0, 1000, 1000);
+    }
     if(currentVisualizationMode === 0) { // dots
         // Draw our predicted point
         drawDot(to_draw.x, rgb(0,0,255));
     } else if (currentVisualizationMode == 1) { // resized dots with opacity
-        drawDot2(to_draw.x, to_draw.P, rgb(0,0,255));    
+        drawDot2(to_draw.x, to_draw.P, rgb(0,0,255));
     } else if (currentVisualizationMode == 2) { // resized dots with color
         drawDot3(to_draw.x,to_draw.P);
     } else if (currentVisualizationMode == 3) { // dots with covariance
@@ -243,9 +229,9 @@ $(window).mousemove(function (e) {
         drawDot($M([[e.pageX], [e.pageY]]), rgb(0,255,0));
     }
     updateState();
-});
+}
 
-$(window).keydown(function(e) {
+function onKeyDown(e) {
     logger.log(LOG_LEVEL_VERBOSE, "key pressed: " + e.which);
     var keyCode = e.which;
     if(keyCode == 65) { // 'a'
@@ -256,17 +242,23 @@ $(window).keydown(function(e) {
     } else if (keyCode == 68) { // 'd'
         currentFilter++;
         currentFilter %= filters.length;
-        if(currentFilter === 0) { // kalman
-            P = Matrix.Random(4, 4);
-        }
     } else if (keyCode == 70) { // 'f'
         get2DContext().clearRect(0,0, 1000, 1000);
+    } else if (keyCode == 86) { // 'v'
+        drawHistory = !drawHistory;
+    } else if (keyCode == 67) { // 'c'
+        $('#cursor').toggle();
     }
     updateState();
-});
+}
 
-$((function() {
+function onLoad() {
     updateState();
-    logger = new Logger($("#log"), LOG_LEVEL_DEBUG);
-}));
+    logger = new Logger($('#log'), LOG_LEVEL_DEBUG);
+    $('#cursor').hide();
+}
+
+$(window).keydown(onKeyDown);
+$(window).mousemove(onMouseMove);
+$(onLoad);
 
