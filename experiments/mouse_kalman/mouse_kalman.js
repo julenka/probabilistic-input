@@ -4,14 +4,14 @@
 // ../libs/filters.js
 
 // Utilities
-function get2DContext() {
-    return get2DContextForId("canvas");
-}
+//function get2DContext() {
+//    return get2DContextForId("canvas");
+//}
 
 // Settings //////////////////////////////////////
 var showActual = false;
 
-var dotScale = 10;
+var dotScale = 5;
 
 var visualizationModes = [
     "dots", 
@@ -19,7 +19,7 @@ var visualizationModes = [
     "resized dots with color", 
     "dots with contours"];
 var currentVisualizationMode = 0;
-var drawHistory = false;
+var drawHistory = true;
 
 var filters = [
     "kalman", 
@@ -31,19 +31,9 @@ var errorSmoothing = 0.9;
 // To determine dt
 var time = $.now();
 
-
-
 var logger;
 
-// Draws dot at location
-// x: 4 x 1 matrix containing state
-// c: particle color
-function drawDot(x, c) {
-    var pSize = 2;
-    var ctx = get2DContext();
-    ctx.fillStyle = getFillStyle(c);
-    ctx.fillRect(x.e(1, 1), x.e(2, 1), pSize * dotScale, pSize * dotScale); // x, y, width, height
-}
+var snap;
 
 function updateState() {
     var dbg = $('#debug');
@@ -55,6 +45,17 @@ function updateState() {
     }
 }
 
+
+// Draws dot at location
+// x: 4 x 1 matrix containing state
+// c: particle color
+function drawDot(x, c) {
+    var pSize = 2;
+    snap.circle(x.e(1,1), x.e(2,1), pSize * dotScale).attr({
+        fill: getFillStyle(c)
+    });
+}
+
 // Draws dot at observed location, change size and alpha to reflect uncertainty
 // More uncertain => more transparent
 // x: 4x1 matrix containing state
@@ -63,9 +64,9 @@ function drawDot2(x, P, c) {
     var locationUncertainty = P.minor(1,1,2,2);
     var maxUncertainty = locationUncertainty.max();
     c.a = 1 -  remap(maxUncertainty, 2, 4, 0.0, 0.9);
-    var ctx = get2DContext();
-    ctx.fillStyle = getFillStyle(c);
-    ctx.fillRect(x.e(1, 1), x.e(2, 1), maxUncertainty * dotScale, maxUncertainty * dotScale); // x, y, width, height
+    snap.circle(x.e(1,1), x.e(2,1), maxUncertainty * dotScale).attr( {
+       fill: getFillStyle(c)
+    });
 }
 
 
@@ -79,9 +80,9 @@ function drawDot3(x, P) {
     var hue = remap(maxUncertainty, 2, 4, 0.66, 0.0);
     var c = hsvToRgb(hue, 1, 1);
     c.a = 0.5;
-    var ctx = get2DContext();
-    ctx.fillStyle = getFillStyle(c);
-    ctx.fillRect(x.e(1, 1), x.e(2, 1), maxUncertainty * dotScale, maxUncertainty  * dotScale); // x, y, width, height
+    snap.circle(x.e(1, 1), x.e(2, 1), maxUncertainty * dotScale).attr ( {
+        fill: getFillStyle(c)
+    });
 }
 
 // Draws the error ellipse given by uncertainty of state, P
@@ -89,7 +90,6 @@ function drawDot3(x, P) {
 // P: 4.4 uncertainty matrix
 function drawCov(x, P) {
     var cov = P.minor(1,1,2,2); // covariance matrix for location
-    var ctx = get2DContext();
     var maxUncertainty = cov.max();
     var hue = remap(maxUncertainty, 2, 4, 0.66, 0.0);
     var c = hsvToRgb(hue, 1, 1);
@@ -97,27 +97,9 @@ function drawCov(x, P) {
     
     var a = cov.e(1,1);
     var b = cov.e(2,2);
-    
-    ctx.save();
-    ctx.translate(x.e(1,1), x.e(2,1));
-    ctx.scale(dotScale, dotScale);
-    ctx.beginPath();
-    for(var t = 0; t < 2 * Math.PI; t += 0.01) {
-        if(t === 0) {
-            ctx.moveTo(0,0);
-        } else {
-            ctx.lineTo(
-                a * Math.cos(t),
-                b * Math.sin(t));
-        }
-    }
-    ctx.closePath();
-    c.a = 0.5;
-    ctx.fillStyle  = getFillStyle(c);
-
-    ctx.fill();
-    ctx.restore();
-
+    snap.ellipse(x.e(1,1), x.e(2,1), dotScale * a, dotScale * b).attr({
+        fill: getFillStyle(c)
+    });
 }
 
 
@@ -212,7 +194,7 @@ function onMouseMove(e) {
     }
 
     if(!drawHistory) {
-        get2DContext().clearRect(0,0, 1000, 1000);
+        clearScreen();
     }
     if(currentVisualizationMode === 0) { // dots
         // Draw our predicted point
@@ -231,6 +213,10 @@ function onMouseMove(e) {
     updateState();
 }
 
+function clearScreen() {
+    $('#root').empty();
+}
+
 function onKeyDown(e) {
     logger.log(LOG_LEVEL_VERBOSE, "key pressed: " + e.which);
     var keyCode = e.which;
@@ -243,7 +229,7 @@ function onKeyDown(e) {
         currentFilter++;
         currentFilter %= filters.length;
     } else if (keyCode == 70) { // 'f'
-        get2DContext().clearRect(0,0, 1000, 1000);
+        clearScreen();
     } else if (keyCode == 86) { // 'v'
         drawHistory = !drawHistory;
     } else if (keyCode == 67) { // 'c'
@@ -256,6 +242,7 @@ function onLoad() {
     updateState();
     logger = new Logger($('#log'), LOG_LEVEL_DEBUG);
     $('#cursor').hide();
+    snap = Snap("#root");
 }
 
 $(window).keydown(onKeyDown);

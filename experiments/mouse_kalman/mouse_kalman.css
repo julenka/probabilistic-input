@@ -12,7 +12,7 @@ em {
     height: 19px;
     background-image: url('imgs/cursor.png');
 }
-#canvas {
+#root {
     position:fixed;
     border-style:solid;
     border-width:1px;
