@@ -1,6 +1,7 @@
 // ***DEPENDENCIES***
 // Make sure the following scripts are included before this one!!!
 // ../libs/utils.js
+// ../libs/snap.svg.js
 
 // Settings
 var measurementNoise = [25,25];
@@ -21,10 +22,9 @@ var letters = 'qwertyuiopasdfghjklzxcvbnm'.split("");
 var textEntered = "";
 var emptyText = "text goes here";
 
-var canvasWidth = 1000;
-var canvasHeight = 500;
-
 var showParticles = false;
+
+var mouseDown = -1;
 
 // Updates the text entered
 function updateText () {
@@ -37,10 +37,10 @@ function updateText () {
         }
     }
     textEntered += letters[particleFilter.reducedParticles[maxi].particle.target_index];
-    $("#demo-state-text-entered").html(textEntered);
-    $("#demo-state-text-entered").css({opacity: 1.0});
+    var enteredTextDiv = $("#demo-state-text-entered");
+    enteredTextDiv.html(textEntered);
+    enteredTextDiv.css({opacity: 1.0});
 }
-
 
 function updateParticleTable() {
     // remove all but first rows in partciles-table
@@ -48,12 +48,7 @@ function updateParticleTable() {
 
     var particles = particleFilter.reducedParticles;
     for(var i = 0; i < particles.length; i++) {
-        var canvas = $('<canvas id="particle-' + i + '-canvas" />');
-        canvas.width(200);
-        canvas.height(100);
-
-        canvas[0].width = 500;
-        canvas[0].height = 250;
+        var svg = $('<svg id="particle-' + i + '-svg"  class="particle_snapshot"/>');
         // create a canvas and draw it here
         $("#particles-table").find('tbody')
             .append($('<tr>')
@@ -61,10 +56,11 @@ function updateParticleTable() {
                     .text('' + round(particleFilter.reducedParticles[i].weight, 2))
                 )
                 .append($('<td>')
-                    .append(canvas)
+                    .append(svg)
                 )
             );
-        particles[i].particle.draw(canvas);
+        var s = Snap("#particle-"+i+"-svg");
+        particles[i].particle.draw(s, s.node.offsetWidth, s.node.offsetHeight);
 
     }
 }
@@ -75,12 +71,13 @@ function updateState() {
     $("#demo-state-measure").html("current measurement method: " + measureMethod.string);
     $("#demo-state-update").html("current update method: " + updateMethod.string);
     $("#demo-state-num-particles").html("number of particles: " + particleFilter.N);
+    var enteredTextDiv = $("#demo-state-text-entered");
     if(textEntered == '') {
-        $("#demo-state-text-entered").html(emptyText);
-        $("#demo-state-text-entered").css({opacity: 0.5});
+        enteredTextDiv.html(emptyText);
+        enteredTextDiv.css({opacity: 0.5});
     } else {
-        $("#demo-state-text-entered").html(textEntered);    
-        $("#demo-state-text-entered").css({opacity: 1.0});
+        enteredTextDiv.html(textEntered);
+        enteredTextDiv.css({opacity: 1.0});
     }
     
 }
@@ -128,55 +125,62 @@ $(window).keydown(function(e){
 
 });
 
-// On document ready
-$(function() {
-    logger = new Logger($("#log"), LOG_LEVEL_DEBUG);
-    particleFilter = new ParticleFilter(NUM_PARTICLES);
+function onLoad() {
+    logger = new Logger(LOG_LEVEL_DEBUG);
+    var snap = Snap("#root");
+    particleFilter = new ParticleFilter(NUM_PARTICLES, snap);
     particleFilter.clear();
-    
+
     updateState();
-    
-    $("#canvas")[0].width = canvasWidth;
-    $("#canvas")[0].height = canvasHeight;
 
     $('#particles-table').css("display", "None");
 
-    var mouseDown = -1;
-    var particleUpdate = function(e) {
-        logMouseEvent(e);
-        eventQueue.push(e);
-        if(mouseDown == -1 || mouseDown == 1)
-            particleFilter.update();
-        particleFilter.step();
-        particleFilter.aggregate();
-        particleFilter.clear();
-        particleFilter.drawAggregate();
-        if(showParticles) {
-            updateParticleTable();
-        }
-    };
-    $("#canvas").mousedown(function(e) {
-        particleUpdate(e);
-        mouseDown = 1;
-    });
-    $("#canvas").mousemove(function(e) {
-        if(mouseDown == 1) {
-            particleUpdate(e);    
-        }
-    });
-    $("#canvas").mouseup(function(e) {
-        mouseDown = 0;
-        particleFilter.aggregate();
-        updateText();
-        particleFilter.update();
-        logMouseEvent(e);
-        particleFilter.aggregate();
-        particleFilter.clear();
-        particleFilter.drawAggregate();
-    });
-
-
+    var svg = $("#root");
+    svg.mousedown(onMouseDown);
+    svg.mousemove(onMouseMove);
+    svg.mouseup(onMouseUp);
     particleFilter.drawAggregate();
+}
+
+function particleUpdate(e) {
+    eventQueue.push(e);
+    if(mouseDown == -1 || mouseDown == 1)
+        particleFilter.update();
+    particleFilter.step();
+    particleFilter.aggregate();
+    particleFilter.clear();
+    particleFilter.drawAggregate();
+    if(showParticles) {
+        updateParticleTable();
+    }
+}
+
+function onMouseDown(e) {
+    particleUpdate(e);
+    mouseDown = 1;
+}
+
+function onMouseMove(e) {
+    if(mouseDown == 1) {
+        particleUpdate(e);
+    }
+}
+
+function onMouseUp(e) {
+    mouseDown = 0;
+    particleFilter.aggregate();
+    updateText();
+    particleFilter.update();
+    logMouseEvent(e);
+    particleFilter.aggregate();
+    particleFilter.clear();
+    particleFilter.drawAggregate();
+}
+
+// On document ready
+$(function() {
+    onLoad();
+
 });
 
 

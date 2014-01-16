@@ -128,8 +128,7 @@ function getFillStyle(c) {
 }
 
 // Logging
-function Logger(log_jquery_element, level) {
-	this.log_element = log_jquery_element;
+function Logger(level) {
 	this.level = level;
 }
 
@@ -140,7 +139,7 @@ LOG_LEVEL_ERROR = 1;
 
 Logger.prototype.log = function(level, msg) {
 	if (this.level >= level) {
-		this.log_element.prepend("<div>"+msg+"</div>");
+        console.log(msg);
 	}
 };
 

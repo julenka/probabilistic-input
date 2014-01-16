@@ -20,6 +20,9 @@
     <!-- Particle Filter related -->
     <script type="text/javascript" src="particle_filter.js"></script>
 
+    <!-- Snap SVG library -->
+    <script type="text/javascript" src="../libs/snap.svg.js"></script>
+
     <!-- Main -->
     <script type="text/javascript" src="keyboard_pf.js"></script>
 </head>
@@ -65,31 +68,19 @@
                     <div id="demo-state-num-particles"> number of particles</div>
                     
                 </div>
-                <div style="text-align: center">
-                    <span id="demo-state-text-entered">text goes here</div>
-                    <canvas id="canvas"></canvas>
+                <div id="demo" >
+
+                    <span id="demo-state-text-entered">text goes here</span>
+                    <svg id="root"></svg>
                 </div>
             </td>
-            <td id="middle-frame">
+            <td id="right-frame">
                     <table id="particles-table">
                     <tr>
                         <th> w </th>
                         <th> rendered </th>
                     </tr>
-                    <tr>
-                        <td> 0 </td>
-                        <td> 1 </td>
-                        <td> 
-                            <canvas id="particle-0-canvas"></canvas>
-                        </td>
-                    </tr>
-
                 </table>
-                
-            </td>
-            <td id="right-frame">
-                <h3> Log </h3>
-                <div id="log"></div>
                 
             </td>
 

@@ -25,12 +25,8 @@ ul {
 }
 
 #left-frame {
-    width:50%;
+    width:75%;
     border: 1px solid black;
-}
-
-#middle-frame {
-    
 }
 
 #cursor {
@@ -67,9 +63,23 @@ ul {
     border-bottom: 1px solid black;
 }
 
-#canvas {
+/* Disable text selection on all elements */
+* {
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -khtml-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+
+}
+
+#demo {
+    text-align: center;
+}
+#root {
     width: 500px;
-    height: 250;
+    height: 250px;
     cursor: pointer;
 }
 
@@ -85,4 +95,9 @@ ul {
     padding: 5px;
     margin-top: 20px;
     margin-bottom: 40px;
+}
+
+.particle_snapshot {
+    width: 160px;
+    height: 80px;
 }

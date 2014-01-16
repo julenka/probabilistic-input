@@ -1,5 +1,5 @@
 // Dependencies: ../utils/language_model.js
-
+//               ../utils/snap.svg.js
 
 function Particle(num_rows, cols_per_row, particle_filter, target_index) {
     this.num_rows = num_rows;
@@ -10,39 +10,29 @@ function Particle(num_rows, cols_per_row, particle_filter, target_index) {
     } else {
         this.target_index = Math.randint(0, this.num_targets - 1);
     }
-    
-    this.aggregate_id = -1;
     this.measure_method = 0; // "1 if in region"
     this.particle_filter = particle_filter;
-    
     this.r = this.num_rows;
     var cnt = this.num_targets;
     while (this.target_index < cnt) {
         this.r--;
         cnt -= this.cols_per_row[this.r];
-        
     }
     this.c = this.target_index - cnt;
+
 }
 
-Particle.prototype.getDisplayInfo = function() {
-    var cw1 = $("#canvas").width();
-    var ch1 = $("#canvas").height();
-    var itemWidth1 = Math.floor(cw1 / this.cols_per_row[0]);
-    var itemHeight1 = itemWidth1;
-
-    var cw2 = $("#canvas")[0].width;
-    var ch2 = $("#canvas")[0].height;
-    var itemWidth2 = Math.floor(cw2 / this.cols_per_row[0]);
-    var itemHeight2 = itemWidth2;
-
+Particle.prototype.getDrawInfo = function(width, height) {
+    var itemWidth = width / this.cols_per_row[0];
+    var x = itemWidth * (ROW_OFFSETS[this.r] + this.c);
+    var y = itemWidth * this.r;
     return {
-        canvasContainerItemWidth: itemWidth1,
-        canvasContainerItemHeight: itemHeight1,
-        innerCanvasItemWidth: itemWidth2,
-        innerCanvasItemHeight: itemHeight2,
-        x: ROW_OFFSETS[this.r] * itemWidth1 + itemWidth1 * this.c,
-        y: itemHeight1 * this.r
+        w: width,
+        h: height,
+        itemWidth: itemWidth,
+        itemHeight: itemWidth,
+        x: x,
+        y: y
     };
 };
 
@@ -55,6 +45,7 @@ Particle.prototype.measure = function(e) {
         case 2: // "gaussian"
         return this.gaussianMeasure(e);
     }
+    return -1;
 };
 
 Particle.prototype.equals = function(other) {
@@ -62,13 +53,12 @@ Particle.prototype.equals = function(other) {
 };
 
 
-
 Particle.prototype.gaussianMeasure = function(e) {
-    var displayInfo = this.getDisplayInfo();
-    var rx = e.offsetX - displayInfo.x;
-    var ry = e.offsetY - displayInfo.y;
-    var cx = displayInfo.canvasContainerItemWidth / 2;
-    var cy = displayInfo.canvasContainerItemHeight / 2;
+    var drawInfo = this.getDrawInfo(this.particle_filter.snap.offsetWidth, this.particle_filter.snap.offsetHeight);
+    var rx = e.offsetX - (drawInfo.x);
+    var ry = e.offsetY - (drawInfo.y);
+    var cx = this.itemWidth / 2;
+    var cy = this.itemHeight / 2;
 
     var d = Math.sqrt(Math.pow(cx - rx,2) + Math.pow(cy - ry, 2)); 
 
@@ -79,25 +69,30 @@ Particle.prototype.gaussianMeasure = function(e) {
 };
 
 Particle.prototype.distanceMeasure = function(e) {
-    var displayInfo = this.getDisplayInfo();
-    var rx = e.offsetX - displayInfo.x;
-    var ry = e.offsetY - displayInfo.y;
-    var cx = displayInfo.canvasContainerItemWidth / 2;
-    var cy = displayInfo.canvasContainerItemHeight / 2;
+    var drawInfo = this.getDrawInfo(this.particle_filter.snap.offsetWidth, this.particle_filter.snap.offsetHeight);
+    var rx = e.offsetX - (drawInfo.x);
+    var ry = e.offsetY - (drawInfo.y);
+    var cx = this.itemWidth / 2;
+    var cy = this.itemHeight / 2;
+
     var d = Math.sqrt(Math.pow(cx - rx,2) + Math.pow(cy - ry, 2));
     return 1 / (1 + d);
 };
 
 Particle.prototype.inRegionMeasure = function(e) {
-    var displayInfo = this.getDisplayInfo();
-    var rx = e.offsetX - displayInfo.x;
-    var ry = e.offsetY - displayInfo.y;
-    if(rx > 0 && ry > 0 && rx < displayInfo.canvasContainerItemWidth && ry < displayInfo.canvasContainerItemHeight) {
+    var drawInfo = this.getDrawInfo(this.particle_filter.snap.offsetWidth, this.particle_filter.snap.offsetHeight);
+    var rx = e.offsetX - (drawInfo.x + drawInfo.itemWidth / 2);
+    var ry = e.offsetY - (drawInfo.y + drawInfo.itemHeight / 2);
+    if(rx > 0 && ry > 0 && rx < this.itemWidth && ry < this.itemHeight) {
         return 1.0;
     }
     return 0.0;
 };
 
+/**
+ * Particle filter 'update' method using a simple letter frequency model
+ * @returns {Particle}
+ */
 Particle.prototype.updateLetterFreq = function() {
     var random_letter = weighted_random_sample(LETTER_FREQUENCIES);
     // http://stackoverflow.com/questions/94037/convert-character-to-ascii-code-in-javascript
@@ -105,6 +100,10 @@ Particle.prototype.updateLetterFreq = function() {
     return new Particle(this.num_rows, this.cols_per_row, this.particle_filter, letters.indexOf(random_letter)  );
 };
 
+/**
+ * Particle filter 'update' method using a one gram model
+ * @returns {Particle}
+ */
 Particle.prototype.updateOneGram = function() {
     if (textEntered.length === 0 ) {
         return this.updateLetterFreq();
@@ -119,7 +118,10 @@ Particle.prototype.updateOneGram = function() {
 };
 
 
-
+/**
+ * Particle filter 'update' method using random particle drawn from uniform distribution
+ * @returns {Particle}
+ */
 Particle.prototype.updateRandom = function() {
     return new Particle(this.num_rows, this.cols_per_row, this.particle_filter);
 };
@@ -127,32 +129,37 @@ Particle.prototype.updateRandom = function() {
 // Draw the interface this particle represents to the canvas.
 // canvas: jQuery canvas object
 // alpha: opacity to use. [0-255]
-Particle.prototype.draw = function(canvas, alpha) {
-    alpha = typeof alpha !== 'undefined' ? alpha : 1.0;
-
-    var ctx2d = get2DContextForJQueryCanvas(canvas);
-    var cw = canvas[0].width;
-    var ch = canvas[0].height;
-    var itemWidth = cw / this.cols_per_row[0];
-    var itemHeight = itemWidth;
-
+Particle.prototype.draw = function(snap, width, height) {
     var i = 0;
+    var drawInfo = this.getDrawInfo(width, height);
     for(var r = 0; r < this.num_rows; r++) {
         for(var c = 0; c < this.cols_per_row[r]; c++) {
-            if(i == this.target_index) {
-                ctx2d.fillStyle = getFillStyle(rgba(200,0,0,alpha));
-            } else {
-                ctx2d.fillStyle = getFillStyle(rgba(255,255,255,alpha));
+            var fill = getFillStyle(rgb(200,0,0));
+            if(i != this.target_index) {
+                fill = getFillStyle(rgb(255,255,255));
             }
             var letter = letters[i]; // letters is defined in target_pf.js
 
-            var x = ROW_OFFSETS[r] * itemWidth + c * itemWidth;
-            var y = r * itemHeight;
-            ctx2d.fillRect(x, y, itemWidth, itemHeight);
-            ctx2d.fillStyle = getFillStyle(rgb(20,20,20));
-            ctx2d.font = "24pt Arial";
-            ctx2d.fillText(letter, x + itemWidth / 2, y + itemHeight / 2);
-            i++;   
+            var x = ROW_OFFSETS[r] * drawInfo.itemWidth + c * drawInfo.itemWidth;
+            var y = r * drawInfo.itemHeight;
+            snap.rect().attr({
+                fill: fill,
+                x: x,
+                y: y,
+                stroke: "#000000",
+                strokeWidth: 1,
+                width: drawInfo.itemWidth,
+                height: drawInfo.itemHeight,
+                rx: drawInfo.itemWidth / 4,
+                ry:drawInfo.itemWidth / 4
+            });
+            // TODO: center properly
+            snap.text(x + drawInfo.itemWidth / 2, y + drawInfo.itemHeight / 2, letter).attr(
+                {
+                   "font-size": drawInfo.itemHeight / 2,
+                   fill: "#000000"
+                });
+            i++;
         }
     }
 };
@@ -160,8 +167,9 @@ Particle.prototype.draw = function(canvas, alpha) {
 
 // ParticleFilter constructor
 // N is number of particles
-function ParticleFilter(N) {
+function ParticleFilter(N, snap) {
     this.N= N;
+    this.snap = snap;
     this.particles = [];
     this.weights = [];
     this.weightsNorm = [];          
@@ -231,7 +239,7 @@ ParticleFilter.prototype.getUpdateMethod = function() {
     };
 };
 
-ParticleFilter.prototype.step = function(observation) {
+ParticleFilter.prototype.step = function() {
     if(eventQueue.length === 0) {
         return;
     }
@@ -244,7 +252,6 @@ ParticleFilter.prototype.step = function(observation) {
     this.weightsNorm = this.weights.map(function(w) { return w / weightSum; });
     var weightMax = this.weightsNorm.max();
 
-    
     // resample
     var newParticles = [];
     var index = Math.randint(0, this.N - 1);
@@ -261,23 +268,20 @@ ParticleFilter.prototype.step = function(observation) {
     this.particles = newParticles;
 };
 
-ParticleFilter.prototype.draw = function() {
-    for(var i = 0; i < this.N; i++) {
-        this.particles[i].draw($('#canvas'), 1 / this.N);
-    }
-};
-
 ParticleFilter.prototype.drawAggregate = function() {
+    this.clear();
     for(var i = 0; i < this.reducedParticles.length; i++) {
-        this.reducedParticles[i].particle.draw($('#canvas'), this.reducedParticles[i].weight);
+        var g = this.snap.group().attr(
+            {
+                opacity: this.reducedParticles[i].weight
+            }
+        );
+        this.reducedParticles[i].particle.draw(g, this.snap.node.offsetWidth, this.snap.node.offsetHeight);
     }  
 };
 
 ParticleFilter.prototype.clear = function() {
-    var canvas = $("#canvas")[0]; // equivalent to document.getElementById
-    var ctx = canvas.getContext('2d');
-    ctx.fillStyle = "rgb(255,255,255)";
-    ctx.fillRect(0,0,canvas.width, canvas.height);
+    this.snap.clear();
 };
 
 ParticleFilter.prototype.aggregate = function() {
