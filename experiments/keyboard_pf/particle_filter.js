@@ -221,9 +221,13 @@ ParticleFilter.prototype.getMeasureMethod = function() {
     };
 };
 
-ParticleFilter.prototype.update = function() {
+/**
+ *
+ * @param update_prob Probability that update will randomly execute instead of doing specified update method
+ */
+ParticleFilter.prototype.update = function(update_prob) {
     for(var i = 0; i < this.N; i++) {
-        if(this.update_method === 0 ) { // none
+        if(this.update_method === 0 || Math.random() < update_prob) { // none
             this.particles[i] = this.particles[i].updateRandom();
         } else if (this.update_method == 1) { // letter frequency
             this.particles[i] = this.particles[i].updateLetterFreq();

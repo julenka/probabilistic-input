@@ -150,14 +150,14 @@ function particleUpdate(e) {
 
     eventQueue.push(e);
     if(mouseDown == -1 || mouseDown == 1)
-        particleFilter.update();
+        particleFilter.update(0.1);
     particleFilter.step();
     particleFilter.aggregate();
     particleFilter.clear();
     particleFilter.drawAggregate();
-    if(showParticles) {
+    if(showParticles)
         updateParticleTable();
-    }
+
 }
 
 function onMouseDown(e) {
@@ -176,11 +176,14 @@ function onMouseUp(e) {
     mouseDown = 0;
     particleFilter.aggregate();
     updateText();
-    particleFilter.update();
+    particleFilter.update(0.2);
     logMouseEvent(e);
     particleFilter.aggregate();
     particleFilter.clear();
     particleFilter.drawAggregate();
+    if(showParticles)
+        updateParticleTable();
+
 }
 
 // On document ready
