@@ -7,17 +7,22 @@ em {
 h1 {
     font-size:1.5em;
     margin-top:0px;
+    margin-bottom: 5px;
 }
 
+h3 {
+    margin-bottom: 5px;
+}
 ul {
     list-style-type: none;
 }
 
+p {
+    margin: 5px;
+}
 #main-frame {
     width: 1000px;
     height: 1000px;
-    border: 1px solid black;
-
 }
 
 #main-frame td {
@@ -26,7 +31,6 @@ ul {
 
 #left-frame {
     width:75%;
-    border: 1px solid black;
 }
 
 #cursor {
@@ -55,8 +59,6 @@ ul {
 
 #particles-table {
     width:100%;
-    border: 1px solid black;
-    border-spacing: 0px;
 }
 
 #particles-table th {
@@ -98,6 +100,7 @@ ul {
 }
 
 .particle_snapshot {
-    width: 160px;
-    height: 80px;
+    width: 180px;
+    height: 90px;
+    margin: 5px;
 }

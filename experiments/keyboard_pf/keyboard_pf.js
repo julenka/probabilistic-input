@@ -9,7 +9,7 @@ var measurementNoise = [25,25];
 // TODO: probably doesn't make sense to put these here.
 var NUM_ROWS = 3;
 var COLS_PER_ROW = [10, 9, 7];
-var ROW_OFFSETS = [0, 0.25, 0.9]; // pixel offsets to render rows at, in terms of item width
+var ROW_OFFSETS = [0, 0.5, 1.3]; // pixel offsets to render rows at, in terms of item width
 var NUM_PARTICLES = 500;
 
 // Global Variables args
@@ -98,7 +98,7 @@ function logMouseEvent(e) {
 //
 // Window Events
 //
-$(window).keydown(function(e){
+function onKeyDown(e) {
     logger.log(LOG_LEVEL_DEBUG, "key pressed: " + e.which);
     var keyCode = e.which;
     if(keyCode == 65) { // 'a'
@@ -111,6 +111,7 @@ $(window).keydown(function(e){
         noisyMouse %= 2;
     } else if (keyCode == 88) { // 'x'
         textEntered = '';
+        particleFilter.reset();
     } else if (keyCode == 90) { // 'z'
         logger.clear();
     } else if (keyCode == 81) { // 'q'
@@ -122,8 +123,7 @@ $(window).keydown(function(e){
         }
     }
     updateState();
-
-});
+}
 
 function onLoad() {
     logger = new Logger(LOG_LEVEL_DEBUG);
@@ -143,6 +143,11 @@ function onLoad() {
 }
 
 function particleUpdate(e) {
+    // make sure the e.offsetX and e.offsetY are correct
+    var rootPosition = $("#root").offset();
+    e.offsetX = e.pageX - rootPosition.left;
+    e.offsetY = e.pageY - rootPosition.top;
+
     eventQueue.push(e);
     if(mouseDown == -1 || mouseDown == 1)
         particleFilter.update();
@@ -156,6 +161,7 @@ function particleUpdate(e) {
 }
 
 function onMouseDown(e) {
+    logger.log(LOG_LEVEL_DEBUG, "offsetX: " + e.offsetX + " offsetY: " + e.offsetY);
     particleUpdate(e);
     mouseDown = 1;
 }
@@ -178,10 +184,8 @@ function onMouseUp(e) {
 }
 
 // On document ready
-$(function() {
-    onLoad();
-
-});
+$(onLoad);
+$(window).keydown(onKeyDown);
 
 
 

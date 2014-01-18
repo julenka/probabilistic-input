@@ -36,14 +36,18 @@
                     Below is a demonstration of a keyboard that can incorporate a range of probabilistic
                     touch and language models, using a particle filter as a backing system. 
                     </p>
+                    <!--
                     <p>
                     Developers may incorporate arbitrary probabilistic models of touch (specifying the probability that a given key should be pressed given that the touch occured at a specific location). Additionally, developers may specify language models (specifying the probability that a key should be pressed GIVEN the current sequence of key pressed).
                     </p>
+                    -->
                     <p>
                     The keyboard uses a particle filter to combine both this touch model and language model to determine the most likely key pressed, and optionally prompt for mediation.
                     </p>
                     <h3> Visualization </h3>
-                    This demo provides a visualization of the likelihood of keypresses. When a user touches down and moves, he/she sees the likelihood of each key, darker means more likely. 
+                    <p>
+                    This demo provides a visualization of the likelihood of keypresses. When a user touches down and moves, he/she sees the likelihood of each key, darker means more likely.
+                    </p>
                     <p>
                     When a user releases the key, he/she can see a distribution of the NEXT most likely key.
                     </p>
@@ -51,6 +55,8 @@
 
                     Visualization is fully configurable and alternate visualizations will soon be provided.
                     </p>
+                </div>
+                <div id="instructions">
                     <h3> Controls: </h3>
                     <p>
                         <ul>

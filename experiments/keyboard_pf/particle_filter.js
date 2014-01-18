@@ -19,7 +19,8 @@ function Particle(num_rows, cols_per_row, particle_filter, target_index) {
         cnt -= this.cols_per_row[this.r];
     }
     this.c = this.target_index - cnt;
-
+    // left, top, bottom, right padding as a percentage
+    this.paddingPct = .03;
 }
 
 Particle.prototype.getDrawInfo = function(width, height) {
@@ -32,9 +33,28 @@ Particle.prototype.getDrawInfo = function(width, height) {
         itemWidth: itemWidth,
         itemHeight: itemWidth,
         x: x,
-        y: y
+        y: y,
+        xpad: itemWidth * this.paddingPct,
+        ypad: itemWidth * this.paddingPct
     };
 };
+
+Particle.prototype.getDistanceInfo = function(x, y, width, height) {
+    var drawInfo = this.getDrawInfo(width, height);
+    var rx = x - (drawInfo.x);
+    var ry = y - (drawInfo.y);
+    var cx = drawInfo.itemWidth / 2;
+    var cy = drawInfo.itemHeight / 2;
+
+    var d = Math.sqrt(Math.pow(cx - rx,2) + Math.pow(cy - ry, 2));
+    return {
+        dx: cx - rx,
+        dy: cy - ry,
+        itemWidth: drawInfo.itemWidth,
+        itemHeight: drawInfo.itemHeight,
+        d: d
+    };
+}
 
 Particle.prototype.measure = function(e) {
     switch(this.particle_filter.measure_method) {
@@ -54,36 +74,25 @@ Particle.prototype.equals = function(other) {
 
 
 Particle.prototype.gaussianMeasure = function(e) {
-    var drawInfo = this.getDrawInfo(this.particle_filter.snap.offsetWidth, this.particle_filter.snap.offsetHeight);
-    var rx = e.offsetX - (drawInfo.x);
-    var ry = e.offsetY - (drawInfo.y);
-    var cx = this.itemWidth / 2;
-    var cy = this.itemHeight / 2;
-
-    var d = Math.sqrt(Math.pow(cx - rx,2) + Math.pow(cy - ry, 2)); 
-
+    var snap = this.particle_filter.snap;
+    var distanceInfo = this.getDistanceInfo(e.offsetX, e.offsetY, snap.node.offsetWidth, snap.node.offsetHeight);
     var mu = 0;
     var sigma = 20;
-    return Math.gaussian(mu, sigma, d);
+    return Math.gaussian(mu, sigma, distanceInfo.d);
 
 };
 
 Particle.prototype.distanceMeasure = function(e) {
-    var drawInfo = this.getDrawInfo(this.particle_filter.snap.offsetWidth, this.particle_filter.snap.offsetHeight);
-    var rx = e.offsetX - (drawInfo.x);
-    var ry = e.offsetY - (drawInfo.y);
-    var cx = this.itemWidth / 2;
-    var cy = this.itemHeight / 2;
-
-    var d = Math.sqrt(Math.pow(cx - rx,2) + Math.pow(cy - ry, 2));
-    return 1 / (1 + d);
+    var snap = this.particle_filter.snap;
+    var distanceInfo = this.getDistanceInfo(e.offsetX, e.offsetY, snap.node.offsetWidth, snap.node.offsetHeight);
+    return 1 / (1 + distanceInfo.d);
 };
 
 Particle.prototype.inRegionMeasure = function(e) {
-    var drawInfo = this.getDrawInfo(this.particle_filter.snap.offsetWidth, this.particle_filter.snap.offsetHeight);
-    var rx = e.offsetX - (drawInfo.x + drawInfo.itemWidth / 2);
-    var ry = e.offsetY - (drawInfo.y + drawInfo.itemHeight / 2);
-    if(rx > 0 && ry > 0 && rx < this.itemWidth && ry < this.itemHeight) {
+    var snap = this.particle_filter.snap;
+    var distanceInfo = this.getDistanceInfo(e.offsetX, e.offsetY, snap.node.offsetWidth, snap.node.offsetHeight);
+    if(distanceInfo.d > 0 &&
+        distanceInfo.d < distanceInfo.itemWidth / 2 ) {
         return 1.0;
     }
     return 0.0;
@@ -140,24 +149,24 @@ Particle.prototype.draw = function(snap, width, height) {
             }
             var letter = letters[i]; // letters is defined in target_pf.js
 
-            var x = ROW_OFFSETS[r] * drawInfo.itemWidth + c * drawInfo.itemWidth;
-            var y = r * drawInfo.itemHeight;
+            var x = ROW_OFFSETS[r] * drawInfo.itemWidth + c * drawInfo.itemWidth + drawInfo.xpad;
+            var y = r * drawInfo.itemHeight + drawInfo.ypad;
             snap.rect().attr({
                 fill: fill,
                 x: x,
                 y: y,
                 stroke: "#000000",
                 strokeWidth: 1,
-                width: drawInfo.itemWidth,
-                height: drawInfo.itemHeight,
+                width: drawInfo.itemWidth - 2 * drawInfo.xpad,
+                height: drawInfo.itemHeight - 2 * drawInfo.ypad,
                 rx: drawInfo.itemWidth / 4,
                 ry:drawInfo.itemWidth / 4
             });
-            // TODO: center properly
-            snap.text(x + drawInfo.itemWidth / 2, y + drawInfo.itemHeight / 2, letter).attr(
+            snap.text(x + drawInfo.itemWidth / 2, y + drawInfo.itemHeight / 2 + drawInfo.itemHeight / 8, letter).attr(
                 {
                    "font-size": drawInfo.itemHeight / 2,
-                   fill: "#000000"
+                   fill: "#000000",
+                    "text-anchor": "middle"
                 });
             i++;
         }
@@ -170,20 +179,25 @@ Particle.prototype.draw = function(snap, width, height) {
 function ParticleFilter(N, snap) {
     this.N= N;
     this.snap = snap;
-    this.particles = [];
-    this.weights = [];
-    this.weightsNorm = [];          
-    this.reducedParticles = [];     // [ {weight: x, particle: y}]
+
     this.measure_method = 2; 
     this.update_method = 2;
 
-    for(var i = 0; i < N; i++) {
+    this.reset();
+}
+
+ParticleFilter.prototype.reset = function () {
+    this.particles = [];
+    this.weights = [];
+    this.weightsNorm = [];
+    this.reducedParticles = []; // [ {weight: x, particle: y}]
+    for (var i = 0; i < this.N; i++) {
         this.particles.push(new Particle(NUM_ROWS, COLS_PER_ROW, this));
         this.weights.push(1.0);
-        this.weightsNorm.push(1/N);
+        this.weightsNorm.push(1 / this.N);
     }
     this.aggregate();
-}
+};
 
 
 ParticleFilter.prototype.measureMethods = [
