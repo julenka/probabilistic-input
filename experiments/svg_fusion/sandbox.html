@@ -8,7 +8,7 @@
     <!-- Snap SVG library -->
     <script type="text/javascript" src="../libs/snap.svg.js"></script>
     <style>
-        #original,#fuzed {
+        #original,#fuzed_overlay,#fuzed_alpha,#fuzed_mouseover, #fuzed_nbest{
             border: 1px solid black;
         }
         #particles{
@@ -26,47 +26,47 @@
             <div id="particles">
             </div>
         </td>
-        <td><svg id="fuzed" width="375px" height="500px" /></td>
+        <td>
+            <svg id="fuzed_overlay" width="187px" height="250px" />
+            <svg id="fuzed_alpha" width="187px" height="250px" />
+            <svg id="fuzed_mouseover" width="187px" height="250px" />
+            <svg id="fuzed_nbest" width="187px" height="250px" />
+        </td>
     </tr>
 </table>
 
 <script type="text/javascript">
-    function onLoad() {
-        // make base
-        var s = Snap("#original");
-        var sbb = s.node.getBoundingClientRect();
-        s.rect(0,0,sbb.width,sbb.height/2).attr({fill:"#00b4f0"});
-        s.circle(100,100,25).attr({fill: "#FEDC57"});
-        s.rect(0,sbb.height/2,sbb.width,sbb.height).attr({fill:"#77cc33"});
-
-        // make particles
-        var particles = $("#particles");
-        var numParticles = 20;
-        for(var i = 0; i < numParticles; i++) {
-            var id = "particle-" + i;
-            var clone = s.clone().attr({id: id, viewBox:"0 0 375 500",width:38, height: 50});
-            clone.select("desc").node.textContent = "probability: " + 1 / numParticles;
-            var ambiguous = clone.select("circle");
-            ambiguous.attr({class: "ambiguous", cx: i * 375 / numParticles, cy: 250 - 250 * Math.sin(i / numParticles * (Math.PI))});
-            particles.append(clone.node);
-        }
-
+    /**
+     *
+     * @param original Snap object of original SVG
+     * @param fuzed_id
+     * @param particles
+     */
+    function fuzeOverlay(originalSnap, fuzedSelector, particles, useAlpha) {
+        useAlpha = typeof useAlpha !== 'undefined' ? useAlpha : false;
         // fuze particles into master copy
         // clone master
-        // walk across particles, label in master everything that is ambiguous
-        var clone = s.clone();
-        var fuzedJQ = $("#fuzed");
+        var fuzedJQ = $(fuzedSelector);
+        var clone = originalSnap.clone().attr({width: fuzedJQ.width(), height: fuzedJQ.height(), viewBox:"0 0 375 500"});
+        var fuzedSnap = Snap(fuzedSelector);
+        fuzedSnap.clear();
         fuzedJQ.append(clone.node);
-        var fuzedSnap = Snap("#fuzed");
+
+
         var fuzedGroup = fuzedSnap.g();
 
+        // walk across particles, label in master everything that is ambiguous
         var toFuze = particles.children();
         var fuzedDescendants = fuzedJQ.find("svg *");
-        particles.children().each(function(i,v){
+        toFuze.each(function(i,v){
+            var probability = parseFloat($(v).find("desc")[0].textContent.split(":")[1]);
             var particleDescendants = $(v).find("*");
             particleDescendants.each(function(j,v2){
                 if(v2.className.baseVal.indexOf("ambiguous") >= 0) {
-                    fuzedGroup.append(Snap(v2).clone());
+                    var v2s = Snap(v2).clone();
+                    if(useAlpha)
+                        v2s.attr({opacity: Math.log(1 + probability) * 3});
+                    fuzedGroup.append(v2s);
                     fuzedDescendants[j].setAttribute("class", "dirty");
                 }
             });
@@ -79,11 +79,44 @@
         dirty.before(fuzedGroup);
         // remove the dirty element
         dirty.remove();
+    }
 
-
-        // Step 1: fuze using just overlay
+    function fuze() {
+        var s = Snap("#original");
+        var particles = $("#particles");
+        // Step 1: fuze using just overlay, no alpha
+        fuzeOverlay(s, "#fuzed_overlay", particles);
         // Step 2: fuze with opacity
-        // Step 3: Interactive stuff
+        fuzeOverlay(s, "#fuzed_alpha", particles, true);
+        // Step 3: When you mouseover the circle, render all values
+        // step 4: Show n-best list
+    }
+    function onLoad() {
+        // make base
+        var s = Snap("#original");
+        var sbb = s.node.getBoundingClientRect();
+        s.rect(0,0,sbb.width,sbb.height/2).attr({fill:"#00b4f0"});
+        s.circle(100,100,50).attr({fill: "#FEDC57"});
+        s.rect(0,sbb.height/2,sbb.width,sbb.height).attr({fill:"#77cc33"});
+
+        // make particles
+        var particles = $("#particles");
+        var numParticles = 20;
+        for(var i = 0; i < numParticles; i++) {
+            var id = "particle-" + i;
+            var clone = s.clone().attr({id: id, viewBox:"0 0 375 500",width:76, height: 100});
+            clone.select("desc").node.textContent = "probability: " + 1 / numParticles;
+            var ambiguous = clone.select("circle");
+            ambiguous.attr({class: "ambiguous", cx: i * 375 / numParticles, cy: 250 - 250 * Math.sin(i / numParticles * (Math.PI))});
+            ambiguous.drag();
+            eve.on('snap.drag.end.' + ambiguous.id, function() {
+                fuze();
+            });
+
+            particles.append(clone.node);
+        }
+
+        fuze();
 
     }
 
