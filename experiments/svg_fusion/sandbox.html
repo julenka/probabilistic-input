@@ -151,15 +151,17 @@
         fuzeInteractive(s, "#fuzed_mouseover", particles, true);
         // step 4: Show n-best list
     }
-    function onLoad() {
-        // make base
+
+    function makeOriginal() {
         var s = Snap("#original");
         var sbb = s.node.getBoundingClientRect();
         s.rect(0,0,sbb.width,sbb.height/2).attr({fill:"#00b4f0"});
         s.circle(100,100,50).attr({fill: "#FEDC57"});
         s.rect(0,sbb.height/2,sbb.width,sbb.height).attr({fill:"#77cc33"});
+    }
 
-        // make particles
+    function makeParticles() {
+        var s = Snap("#original");
         var particles = $("#particles");
         var numParticles = 20;
         for(var i = 0; i < numParticles; i++) {
@@ -174,9 +176,12 @@
             });
             particles.append(clone.node);
         }
+    }
 
+    function onLoad() {
+        makeOriginal();
+        makeParticles();
         fuze();
-
     }
 
     $(onLoad);
