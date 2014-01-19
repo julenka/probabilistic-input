@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <!-- JQuery -->
+    <script type="text/javascript"  src="../libs/jquery.min.js">
+    </script>
+
+    <!-- Snap SVG library -->
+    <script type="text/javascript" src="../libs/snap.svg.js"></script>
+    <style>
+        #original,#fuzed {
+            border: 1px solid black;
+        }
+        #particles{
+            border:1px solid green;
+            width: 350px;
+        }
+    </style>
+    <title>Sandbox</title>
+</head>
+<body>
+<table>
+    <tr>
+        <td><svg id="original" width="375px" height="500px" /></td>
+        <td>
+            <div id="particles">
+            </div>
+        </td>
+        <td><svg id="fuzed" width="375px" height="500px" /></td>
+    </tr>
+</table>
+
+<script type="text/javascript">
+    function onLoad() {
+        // make base
+        var s = Snap("#original");
+        var sbb = s.node.getBoundingClientRect();
+        s.rect(0,0,sbb.width,sbb.height/2).attr({fill:"#00b4f0"});
+        s.circle(100,100,25).attr({fill: "#FEDC57"});
+        s.rect(0,sbb.height/2,sbb.width,sbb.height).attr({fill:"#77cc33"});
+
+        // make particles
+        var particles = $("#particles");
+        var numParticles = 20;
+        for(var i = 0; i < numParticles; i++) {
+            var id = "particle-" + i;
+            var clone = s.clone().attr({id: id, viewBox:"0 0 375 500",width:38, height: 50});
+            var ambiguous = clone.select("circle");
+            ambiguous.attr({class: "ambiguous", cx: i * 375 / numParticles, cy: 250 - 250 * Math.sin(i / numParticles * (Math.PI))});
+            particles.append(clone.node);
+        }
+
+        // fuze particles into master copy
+        // clone master
+        // walk across particles, label in master everything that is ambiguous
+        var clone = s.clone();
+        var fuzedJQ = $("#fuzed");
+        fuzedJQ.append(clone.node);
+        var fuzedSnap = Snap("#fuzed");
+        var fuzedGroup = fuzedSnap.g();
+
+        var toFuze = particles.children();
+        var fuzedDescendants = fuzedJQ.find("svg *");
+        particles.children().each(function(i,v){
+            var particleDescendants = $(v).find("*");
+            particleDescendants.each(function(j,v2){
+                if(v2.className.baseVal.indexOf("ambiguous") >= 0) {
+                    fuzedGroup.append(Snap(v2).clone());
+                    fuzedDescendants[j].setAttribute("class", "dirty");
+                }
+            });
+        });
+
+        // Assume for now only one part is ambiguous
+        // Remove all the dirty parts
+        var dirty = fuzedSnap.select(".dirty");
+        // Add the fuzed group before the dirty element
+        dirty.before(fuzedGroup);
+        // remove the dirty element
+        dirty.remove();
+
+
+        // Step 1: fuze using just overlay
+        // Step 2: fuze with opacity
+        // Step 3: Interactive stuff
+
+    }
+
+    $(onLoad);
+
+</script>
+</body>
+</html>
