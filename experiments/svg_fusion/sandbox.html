@@ -11,9 +11,20 @@
         #original,#fuzed_overlay,#fuzed_alpha,#fuzed_mouseover, #fuzed_nbest{
             border: 1px solid black;
         }
-        #particles{
-            border:1px solid green;
-            width: 350px;
+        #particles, #fusions{
+            width: 390px;
+        }
+        th {
+            text-align: center;
+            font-family: sans-serif;
+            font-size: 18pt;
+        }
+        .fusions_cell {
+            float: left;
+        }
+        .fusions_cell div {
+            text-align: center;
+            font-family: sans-serif;
         }
     </style>
     <title>Sandbox</title>
@@ -21,16 +32,36 @@
 <body>
 <table>
     <tr>
+        <th>Original</th>
+        <th>Particles (drag them)</th>
+        <th>Fusions</th>
+    </tr>
+    <tr>
         <td><svg id="original" width="375px" height="500px" /></td>
         <td>
             <div id="particles">
             </div>
         </td>
         <td>
-            <svg id="fuzed_overlay" width="187px" height="250px" />
-            <svg id="fuzed_alpha" width="187px" height="250px" />
-            <svg id="fuzed_mouseover" width="187px" height="250px" />
-            <svg id="fuzed_nbest" width="187px" height="250px" />
+            <div id="fusions">
+                <div class="fusions_cell">
+                    <div>Overlay</div>
+                    <svg id="fuzed_overlay" width="187px" height="250px" />
+                </div>
+                <div class="fusions_cell">
+                    <div>Opacity = Probability </div>
+                    <svg id="fuzed_alpha" width="187px" height="250px" />
+                </div>
+                <div class="fusions_cell">
+                    <div>Mouse Over</div>
+                    <svg id="fuzed_mouseover" width="187px" height="250px" />
+                </div>
+                <div class="fusions_cell">
+                    <div>Test 4</div>
+                    <svg id="fuzed_nbest" width="187px" height="250px" />
+                </div>
+            </div>
+
         </td>
     </tr>
 </table>
