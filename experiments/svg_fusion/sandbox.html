@@ -26,6 +26,9 @@
             text-align: center;
             font-family: sans-serif;
         }
+        body {
+            text-align: center;
+        }
     </style>
     <title>Sandbox</title>
 </head>
@@ -33,7 +36,7 @@
 <table>
     <tr>
         <th>Original</th>
-        <th>Particles (drag them)</th>
+        <th>Particles (drag the circles!)</th>
         <th>Fusions</th>
     </tr>
     <tr>
@@ -57,24 +60,26 @@
                     <svg id="fuzed_mouseover" width="187px" height="250px" />
                 </div>
                 <div class="fusions_cell">
-                    <div>Test 4</div>
+                    <div>TBD!</div>
                     <svg id="fuzed_nbest" width="187px" height="250px" />
                 </div>
             </div>
-
         </td>
     </tr>
 </table>
 
+<button id="refresh_button" onclick="fuze();">refresh</button>
 <script type="text/javascript">
     /**
      *
      * @param original Snap object of original SVG
-     * @param fuzed_id
-     * @param particles
+     * @param fuzed_id id of svg containing fuzed SVG
+     * @param particles list of SVG instances to fuse
      */
-    function fuzeOverlay(originalSnap, fuzedSelector, particles, useAlpha) {
+    function fuzeOverlay(originalSnap, fuzedSelector, particles, useAlpha, removeDirty) {
+        // Definition of default values
         useAlpha = typeof useAlpha !== 'undefined' ? useAlpha : false;
+        removeDirty = typeof removeDirty !== 'undefined' ? removeDirty : true;
         // fuze particles into master copy
         // clone master
         var fuzedJQ = $(fuzedSelector);
@@ -84,7 +89,7 @@
         fuzedJQ.append(clone.node);
 
 
-        var fuzedGroup = fuzedSnap.g();
+        var fuzedGroup = fuzedSnap.g().attr({class: "fuzedGroup"});
 
         // walk across particles, label in master everything that is ambiguous
         var toFuze = particles.children();
@@ -108,8 +113,31 @@
         var dirty = fuzedSnap.select(".dirty");
         // Add the fuzed group before the dirty element
         dirty.before(fuzedGroup);
-        // remove the dirty element
-        dirty.remove();
+        if(removeDirty) {
+            // remove the dirty element
+            dirty.remove();
+        }
+    }
+
+    function fuzeInteractive(originalSnap, fuzedSelector, particles) {
+        fuzeOverlay(originalSnap, fuzedSelector, particles, true, false);
+        var fuzedSnap = Snap(fuzedSelector);
+        var fuzedGroup = fuzedSnap.select(".fuzedGroup");
+        var dirty = fuzedSnap.select(".dirty");
+        var f = fuzedSnap.filter(Snap.filter.blur(5, 10));
+        dirty.attr({filter: f});
+
+        fuzedGroup.attr({opacity: 0.0});
+        var animDurationMs = 100;
+        dirty.mouseover(function() {
+            dirty.animate({opacity: 0.0}, animDurationMs);
+           fuzedGroup.animate({opacity: 1.0}, animDurationMs);
+        })
+        .mouseout(function() {
+           dirty.animate({opacity: 1.0}, animDurationMs);
+           fuzedGroup.animate({opacity: 0.0}, animDurationMs);
+        });
+
     }
 
     function fuze() {
@@ -120,6 +148,7 @@
         // Step 2: fuze with opacity
         fuzeOverlay(s, "#fuzed_alpha", particles, true);
         // Step 3: When you mouseover the circle, render all values
+        fuzeInteractive(s, "#fuzed_mouseover", particles, true);
         // step 4: Show n-best list
     }
     function onLoad() {
@@ -143,7 +172,6 @@
             eve.on('snap.drag.end.' + ambiguous.id, function() {
                 fuze();
             });
-
             particles.append(clone.node);
         }
 
