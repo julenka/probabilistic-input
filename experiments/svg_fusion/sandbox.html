@@ -60,7 +60,7 @@
                     <svg id="fuzed_mouseover" width="187px" height="250px" />
                 </div>
                 <div class="fusions_cell">
-                    <div>TBD!</div>
+                    <div>Top 3</div>
                     <svg id="fuzed_nbest" width="187px" height="250px" />
                 </div>
             </div>
@@ -70,6 +70,23 @@
 
 <button id="refresh_button" onclick="fuze();">refresh</button>
 <script type="text/javascript">
+    // http://stackoverflow.com/questions/13957354/how-to-have-foreach-available-on-pseudo-arrays-returned-by-queryselectorall
+    NodeList.prototype.forEach = HTMLCollection.prototype.forEach = Array.prototype.forEach;
+
+
+    /**
+     * @return a Snap object wraping resultSelector, with original cloned in
+     */
+    function cloneOriginal(originalSnap, resultSelector) {
+        var fuzedJQ = $(resultSelector);
+        var clone = originalSnap.clone().attr({width: fuzedJQ.width(), height: fuzedJQ.height(), viewBox:"0 0 375 500"});
+        fuzedJQ.after(clone.node);
+        var id = fuzedJQ[0].id;
+        fuzedJQ.remove();
+        clone.attr({id: id});
+        return clone;
+    };
+
     /**
      *
      * @param original Snap object of original SVG
@@ -82,18 +99,14 @@
         removeDirty = typeof removeDirty !== 'undefined' ? removeDirty : true;
         // fuze particles into master copy
         // clone master
+
+        var fuzedSnap = cloneOriginal(originalSnap, fuzedSelector);
         var fuzedJQ = $(fuzedSelector);
-        var clone = originalSnap.clone().attr({width: fuzedJQ.width(), height: fuzedJQ.height(), viewBox:"0 0 375 500"});
-        var fuzedSnap = Snap(fuzedSelector);
-        fuzedSnap.clear();
-        fuzedJQ.append(clone.node);
-
-
         var fuzedGroup = fuzedSnap.g().attr({class: "fuzedGroup"});
 
         // walk across particles, label in master everything that is ambiguous
         var toFuze = particles.children();
-        var fuzedDescendants = fuzedJQ.find("svg *");
+        var fuzedDescendants = fuzedJQ.find("*");
         toFuze.each(function(i,v){
             var probability = parseFloat($(v).find("desc")[0].textContent.split(":")[1]);
             var particleDescendants = $(v).find("*");
@@ -137,7 +150,38 @@
            dirty.animate({opacity: 1.0}, animDurationMs);
            fuzedGroup.animate({opacity: 0.0}, animDurationMs);
         });
+    }
 
+    function fuzetopN(originalSnap, fuzedSelector, particles, n) {
+        // sort particles according to their probability
+        var particleElements = particles.children();
+        var particleIndexWithLikelihood = [];
+        particleElements.each(function(i, v) {
+            var probability = parseFloat($(v).find("desc")[0].textContent.split(":")[1]);
+            particleIndexWithLikelihood.push({index: i, probability: probability});
+        });
+
+        particleIndexWithLikelihood.sort(function(a,b) {
+           return b.probability - a.probability;
+        });
+
+        var particlesToInclude = [];
+        for(var i = 0; i < n; i++) {
+            particlesToInclude.push(Snap(particleElements[particleIndexWithLikelihood[i].index]).clone());
+        }
+        var fuzedJQ = $(fuzedSelector);
+        var fuzedSnap = cloneOriginal(originalSnap, fuzedSelector);
+        var particleGroup = fuzedSnap.g();
+        particlesToInclude.forEach(function(v,i){
+            var g = particleGroup.g().attr({transform: "translate(" + (20 + i * 120) + ",320) scale(0.25, 0.25) "});
+            g.attr({stroke: "#ffffff", "stroke-width": "10px"});
+            for(var i = v.node.children.length - 1; i > 0; i--) {
+                g.node.insertBefore(v.node.children[i], g.node.firstChild);
+            }
+            v.node.remove();
+            particleGroup.add(g);
+        });
+        particleGroup.attr({transform: "translate(0, 50)"});
     }
 
     function fuze() {
@@ -150,6 +194,7 @@
         // Step 3: When you mouseover the circle, render all values
         fuzeInteractive(s, "#fuzed_mouseover", particles, true);
         // step 4: Show n-best list
+        fuzetopN(s, "#fuzed_nbest", particles, 3);
     }
 
     function makeOriginal() {
@@ -157,7 +202,7 @@
         var sbb = s.node.getBoundingClientRect();
         s.rect(0,0,sbb.width,sbb.height/2).attr({fill:"#00b4f0"});
         s.circle(100,100,50).attr({fill: "#FEDC57"});
-        s.rect(0,sbb.height/2,sbb.width,sbb.height).attr({fill:"#77cc33"});
+        s.rect(0,sbb.height/2,sbb.width,sbb.height/2).attr({fill:"#77cc33"});
     }
 
     function makeParticles() {
