@@ -167,7 +167,10 @@
 
         var particleWeights = []
         for(var i = 0; i < numParticles; i++){
-            particleWeights.push(numParticles - i);
+            var dx =  i * 375 / numParticles - 100;
+            var dy = 250 - 250 * Math.sin(i / numParticles * (Math.PI)) - 100;
+            var dst = Math.sqrt(dx * dx + dy * dy);
+            particleWeights.push(1/dst);
         }
         var weightSum = particleWeights.reduce(function(prev,cur,index,array){ return prev + cur });
 
