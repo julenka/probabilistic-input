@@ -164,10 +164,18 @@
         var s = Snap("#original");
         var particles = $("#particles");
         var numParticles = 20;
+
+        var particleWeights = []
+        for(var i = 0; i < numParticles; i++){
+            particleWeights.push(numParticles - i);
+        }
+        var weightSum = particleWeights.reduce(function(prev,cur,index,array){ return prev + cur });
+
         for(var i = 0; i < numParticles; i++) {
             var id = "particle-" + i;
             var clone = s.clone().attr({id: id, viewBox:"0 0 375 500",width:76, height: 100});
-            clone.select("desc").node.textContent = "probability: " + 1 / numParticles;
+            var probability = particleWeights[i] / weightSum;
+            clone.select("desc").node.textContent = "probability: " + probability;
             var ambiguous = clone.select("circle");
             ambiguous.attr({class: "ambiguous", cx: i * 375 / numParticles, cy: 250 - 250 * Math.sin(i / numParticles * (Math.PI))});
             ambiguous.drag();
