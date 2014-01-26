@@ -101,7 +101,7 @@ function ID() {
 // UI object
 // TODO: make everything a module
 function UI(snap) {
-    this.sun = {cx: 100, cy: 100, r: 50, fill: "#FEDC57"};
+    this.sun = {cx: 100, cy: 100, rx: 50, ry: 50, fill: "#FEDC57"};
     this.grass = {x: 0, y: UI_HEIGHT / 2, width: UI_WIDTH, height: UI_HEIGHT / 2, fill: "#77cc33"};
     this.sky = {x: 0, y: 0, width: UI_WIDTH, height: UI_HEIGHT / 2, fill: "#00b4f0"};
     this.id = ID();
@@ -118,7 +118,7 @@ UI.prototype.draw = function (s) {
     s.el('desc');
     s.el('defs');
     s.el('rect', this.sky);
-    s.el('circle', this.sun);
+    s.el('ellipse', this.sun);
     s.el('rect', this.grass);
 };
 
@@ -126,12 +126,13 @@ UI.prototype.onMouseDown = function (x,y,e) {
     this.sun.fill = "red";
     this.sun.ox = this.sun.cx;
     this.sun.oy = this.sun.cy;
-    this.sun.or = this.sun.r;
+    this.sun.or = this.sun.rx;
 };
 
 UI.prototype.onMouseMove = function (dx,dy,x,y,e) {
     if(this.resize) {
-        this.sun.r = Math.max(0,this.sun.or + dx);
+        this.sun.rx = Math.max(0,this.sun.or + dx);
+        this.sun.ry = Math.max(0,this.sun.or + dy);
     } else {
         this.sun.cx = this.sun.ox + dx;
         this.sun.cy = this.sun.oy + dy;
@@ -148,7 +149,7 @@ UI.prototype.onMouseUp = function (e) {
 UI.prototype.clone = function () {
     var result = new UI(undefined);
     // WOAH NASTY HACK
-    var uiJSON = JSON.parse(JSON.stringify(this, ["sun", "grass", "sky", "cx", "cy", "x", "y", "width", "height", "fill", "r"]));
+    var uiJSON = JSON.parse(JSON.stringify(this, ["sun", "grass", "sky", "cx", "cy", "x", "y", "width", "height", "fill", "rx", "ry"]));
     for (var prop in uiJSON) result[prop] = uiJSON[prop];
     result.id = ID();
     return result;
