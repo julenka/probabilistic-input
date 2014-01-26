@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <!-- JQuery -->
+    <script type="text/javascript" src="../libs/jquery.min.js">
+    </script>
+
+    <!-- Snap SVG library -->
+    <script type="text/javascript" src="../libs/snap.svg.js"></script>
+    <style>
+        #original, #fuzed_overlay, #fuzed_alpha, #fuzed_mouseover, #fuzed_nbest {
+            border: 1px solid black;
+        }
+
+        #particles, #fusions {
+            width: 390px;
+        }
+
+        th {
+            text-align: center;
+            font-family: sans-serif;
+            font-size: 18pt;
+        }
+
+        .fusions_cell {
+            float: left;
+        }
+
+        .fusions_cell div {
+            text-align: center;
+            font-family: sans-serif;
+        }
+
+        body {
+            text-align: center;
+        }
+    </style>
+    <title>SVG Fusion 2</title>
+</head>
+<body>
+<table>
+    <tr>
+        <th>Original (drag me!)</th>
+        <th>Particles (drag the circles!)</th>
+        <th>Fusions</th>
+    </tr>
+    <tr>
+        <td>
+            <svg id="original" width="375px" height="500px"></svg>
+        </td>
+        <td>
+            <div id="particles">
+            </div>
+        </td>
+        <td>
+            <div id="fusions">
+                <div class="fusions_cell">
+                    <div>Overlay</div>
+                    <svg id="fuzed_overlay" width="187px" height="250px"></svg>
+                </div>
+                <div class="fusions_cell">
+                    <div>Opacity = Probability</div>
+                    <svg id="fuzed_alpha" width="187px" height="250px"></svg>
+                </div>
+                <div class="fusions_cell">
+                    <div>Mouse Over</div>
+                    <svg id="fuzed_mouseover" width="187px" height="250px"></svg>
+                </div>
+                <div class="fusions_cell">
+                    <div>Top 3</div>
+                    <svg id="fuzed_nbest" width="187px" height="250px"></svg>
+                </div>
+            </div>
+        </td>
+    </tr>
+</table>
+
+<script type="text/javascript">
+// http://stackoverflow.com/questions/13957354/how-to-have-foreach-available-on-pseudo-arrays-returned-by-queryselectorall
+NodeList.prototype.forEach = HTMLCollection.prototype.forEach = Array.prototype.forEach;
+
+// eugh, a global :(
+N_PARTICLES = 10;
+
+// These units must (for now) match what is in the original SVG
+UI_WIDTH = 375;
+UI_HEIGHT = 500;
+
+
+idgen = 0;
+// toString(36) converts number to base 36
+idprefix = "S" + (+new Date).toString(36);
+
+/**
+ * @return String id
+ */
+function ID() {
+    return idprefix + (idgen++).toString(36);
+}
+
+// UI object
+// TODO: make everything a module
+function UI(snap) {
+    this.sun = {cx: 100, cy: 100, r: 50, fill: "#FEDC57"};
+    this.grass = {x: 0, y: UI_HEIGHT / 2, width: UI_WIDTH, height: UI_HEIGHT / 2, fill: "#77cc33"};
+    this.sky = {x: 0, y: 0, width: UI_WIDTH, height: UI_HEIGHT / 2, fill: "#00b4f0"};
+    this.id = ID();
+    this.snap = snap;
+    if(typeof snap === 'undefined') {
+        this.resize = Math.random() > 0.5 ? true : false;
+    }
+
+}
+
+UI.prototype.draw = function (s) {
+    s.selectAll(":not(defs)").remove();
+    s.selectAll("defs *").remove();
+    s.el('desc');
+    s.el('defs');
+    s.el('rect', this.sky);
+    s.el('circle', this.sun);
+    s.el('rect', this.grass);
+};
+
+UI.prototype.onMouseDown = function (x,y,e) {
+    this.sun.fill = "red";
+    this.sun.ox = this.sun.cx;
+    this.sun.oy = this.sun.cy;
+    this.sun.or = this.sun.r;
+};
+
+UI.prototype.onMouseMove = function (dx,dy,x,y,e) {
+    if(this.resize) {
+        this.sun.r = Math.max(0,this.sun.or + dx);
+    } else {
+        this.sun.cx = this.sun.ox + dx;
+        this.sun.cy = this.sun.oy + dy;
+    }
+
+};
+
+UI.prototype.onMouseUp = function (e) {
+    // check which item you hit
+    // change color
+    this.sun.fill = "#FEDC57";
+};
+
+UI.prototype.clone = function () {
+    var result = new UI(undefined);
+    // WOAH NASTY HACK
+    var uiJSON = JSON.parse(JSON.stringify(this, ["sun", "grass", "sky", "cx", "cy", "x", "y", "width", "height", "fill", "r"]));
+    for (var prop in uiJSON) result[prop] = uiJSON[prop];
+    result.id = ID();
+    return result;
+}
+
+
+// TODO: once you've figured everything out, move to module patternN
+function PUI(rootSnap) {
+    this.rootSnap = rootSnap;
+    // Initialize the UI here
+    this.root = new UI(rootSnap);
+    this.alternatives = [];
+    this.weights = [];
+    this.snaps = [];
+    this.probabilities = [];
+    for (var i = 0; i < N_PARTICLES; i++) {
+        var clone = this.root.clone();
+        var s = Snap();
+        s.attr({id: clone.id, viewBox: "0 0 375 500", width: 76, height: 100});
+        this.snaps.push(s);
+        clone.snap = undefined;
+        clone.sun.cx = i * 375 / N_PARTICLES;
+        clone.sun.cy = 250 - 250 * Math.sin(i / N_PARTICLES * (Math.PI));
+        clone.sun.ambiguous = true;
+        this.alternatives.push(clone);
+        // todo: change the location of the circle here and update the weight
+        this.weights.push(Math.random());
+        var weightSum = this.weights.reduce(function (prev, cur, index, array) {
+            return prev + cur
+        });
+        this.probabilities = this.weights.map(function (x) {
+            return x / weightSum;
+        });
+    }
+
+    var me = this;
+    rootSnap.drag(
+            function(dx,dy,x,y,e) {
+                me.root.onMouseMove(dx,dy,x,y,e);
+                me.alternatives.forEach(function(el){
+                    el.onMouseMove(dx ,dy,x,y,e);
+                });
+                me.invalidate();
+            },
+            function(x,y,e) {
+                me.root.onMouseDown(x,y,e);
+                me.alternatives.forEach(function(el){
+                    el.onMouseDown(x,y,e);
+                });
+                me.invalidate();
+            },
+            function(e){
+                me.root.onMouseUp(e);
+                me.alternatives.forEach(function(el){
+                    el.onMouseUp(e);
+                });
+                me.invalidate();
+            });
+}
+;
+
+PUI.prototype.drawRoot = function () {
+    this.root.draw(this.rootSnap);
+};
+
+PUI.prototype.drawAlternatives = function (div_selector) {
+    var alternativesJQ = $(div_selector);
+    alternativesJQ.remove("svg");
+    var me = this;
+    this.alternatives.forEach(function (el, i) {
+        var s = me.snaps[i];
+        el.draw(s);
+        alternativesJQ.append(s.node);
+    });
+};
+
+PUI.prototype.drawOverlay = function (s, useOpacity, removeDirty) {
+    // default value
+    useOpacity = typeof useOpacity !== 'undefined' ? useOpacity : false;
+    removeDirty = typeof removeDirty !== 'undefined' ? removeDirty : true;
+
+    s.attr({viewBox: "0 0 375 500"});
+    this.root.draw(s);
+
+    var fuzedGroup = s.g().attr({class: "fuzedGroup"});
+
+    // Assumes alternatives have been drawn. Not necessary!
+    var rootDescendants = s.selectAll("*");
+    var me = this;
+    this.alternatives.forEach(function (el, i) {
+        var s2 = Snap("#" + el.id);
+        var alternativeDescendants = s2.selectAll("*");
+        alternativeDescendants.forEach(function (el2, i2) {
+            if (el2.attr("ambiguous")) {
+                var el2s = el2.clone();
+                if(useOpacity) {
+                    el2s.attr({opacity: Math.log(1 + me.probabilities[i]) * 3});
+                }
+                fuzedGroup.append(el2s);
+                rootDescendants[i2].attr({class: "dirty"});
+            }
+        });
+    });
+    var dirty = s.select(".dirty");
+    dirty.before(fuzedGroup);
+    if (removeDirty && dirty) {
+
+        dirty.remove();
+    }
+}
+
+PUI.prototype.invalidate = function() {
+    this.drawRoot();
+    this.drawAlternatives("#particles")
+    this.drawFusion1(Snap("#fuzed_overlay"));
+    this.drawFusion2(Snap("#fuzed_alpha"));
+    this.drawFusion3(Snap("#fuzed_mouseover"));
+}
+
+PUI.prototype.drawFusion1 = function (s) {
+    this.drawOverlay(s, false, true);
+}
+
+PUI.prototype.drawFusion2 = function (s) {
+    this.drawOverlay(s, true, true);
+}
+
+PUI.prototype.drawFusion3 = function (s) {
+    this.drawOverlay(s, true, false);
+
+    var fuzedGroup = s.select(".fuzedGroup");
+    var dirty = s.select(".dirty");
+    var f = s.filter(Snap.filter.blur(2, 5));
+    dirty.attr({filter: f});
+
+    fuzedGroup.attr({opacity: 0.0});
+    var animDurationMs = 100;
+    dirty.mouseover(function () {
+        dirty.animate({opacity: 0.0}, animDurationMs);
+        fuzedGroup.animate({opacity: 1.0}, animDurationMs);
+    })
+    .mouseout(function () {
+        dirty.animate({opacity: 1.0}, animDurationMs);
+        fuzedGroup.animate({opacity: 0.0}, animDurationMs);
+    });
+}
+
+function onLoad() {
+    var pui = new PUI(Snap("#original"));
+    pui.drawRoot();
+    pui.drawAlternatives("#particles")
+    pui.drawFusion1(Snap("#fuzed_overlay"));
+    pui.drawFusion2(Snap("#fuzed_alpha"));
+    pui.drawFusion3(Snap("#fuzed_mouseover"));
+}
+
+$(onLoad);
+
+</script>
+</body>
+</html>
