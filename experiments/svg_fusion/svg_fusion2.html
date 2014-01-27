@@ -97,7 +97,6 @@ idprefix = "S" + (+new Date).toString(36);
 function ID() {
     return idprefix + (idgen++).toString(36);
 }
-
 // UI object
 // TODO: make everything a module
 function UI(snap) {
@@ -106,10 +105,6 @@ function UI(snap) {
     this.sky = {x: 0, y: 0, width: UI_WIDTH, height: UI_HEIGHT / 2, fill: "#00b4f0"};
     this.id = ID();
     this.snap = snap;
-    if(typeof snap === 'undefined') {
-        this.resize = Math.random() > 0.5 ? true : false;
-    }
-
 }
 
 UI.prototype.draw = function (s) {
@@ -130,14 +125,8 @@ UI.prototype.onMouseDown = function (x,y,e) {
 };
 
 UI.prototype.onMouseMove = function (dx,dy,x,y,e) {
-    if(this.resize) {
-        this.sun.rx = Math.max(0,this.sun.or + dx);
-        this.sun.ry = Math.max(0,this.sun.or + dy);
-    } else {
-        this.sun.cx = this.sun.ox + dx;
-        this.sun.cy = this.sun.oy + dy;
-    }
-
+    this.sun.cx = this.sun.ox + dx;
+    this.sun.cy = this.sun.oy + dy;
 };
 
 UI.prototype.onMouseUp = function (e) {
@@ -153,7 +142,7 @@ UI.prototype.clone = function () {
     for (var prop in uiJSON) result[prop] = uiJSON[prop];
     result.id = ID();
     return result;
-}
+};
 
 
 // TODO: once you've figured everything out, move to module patternN
