@@ -7,6 +7,9 @@
 
     <!-- Snap SVG library -->
     <script type="text/javascript" src="../libs/snap.svg.js"></script>
+
+    <!-- Misc Utils -->
+    <script type="text/javascript" src="../libs/utils.js"></script>
     <style>
         #original, #fuzed_overlay, #fuzed_alpha, #fuzed_mouseover, #fuzed_nbest {
             border: 1px solid black;
@@ -26,9 +29,13 @@
             float: left;
         }
 
-        .fusions_cell div {
+        .fusions_cell  div {
             text-align: center;
             font-family: sans-serif;
+        }
+
+        #particles > div {
+            float: left;
         }
 
         body {
@@ -265,7 +272,6 @@ function PUI(rootSnap) {
             var pos = getPos(e);
             var dx = pos.x - lastX;
             var dy = pos.y - lastY;
-            console.log(dx, dy);
             pui.root.onMouseMove(dx, dy,pos.x,pos.y,e);
             pui.alternatives.forEach(function(el){
                 el.onMouseMove(dx, dy,pos.x,pos.y,e);
@@ -290,12 +296,16 @@ PUI.prototype.drawRoot = function () {
 
 PUI.prototype.drawAlternatives = function (div_selector) {
     var alternativesJQ = $(div_selector);
-    alternativesJQ.remove("svg");
+    $(div_selector + " > div").remove();
     var me = this;
     this.alternatives.forEach(function (el, i) {
         var s = me.snaps[i];
         el.draw(s);
-        alternativesJQ.append(s.node);
+        alternativesJQ.append(
+            $("<div/>").append(
+                $("<div>").text(round(me.probabilities[i],2).toString()))
+                .append(s.node)
+        );
     });
 };
 
