@@ -47,7 +47,7 @@
 <body>
 <table>
     <tr>
-        <th>Original (drag me!)</th>
+        <th>Most Likely (drag me!)</th>
         <th>Particles (drag the circles!)</th>
         <th>Fusions</th>
     </tr>
@@ -83,6 +83,10 @@
 </table>
 
 <script type="text/javascript">
+
+
+// TODO: remove this. this is just to get rid of errors about "Snap" being undeclared in Webstorm
+var Snap;
 // http://stackoverflow.com/questions/13957354/how-to-have-foreach-available-on-pseudo-arrays-returned-by-queryselectorall
 NodeList.prototype.forEach = HTMLCollection.prototype.forEach = Array.prototype.forEach;
 
@@ -159,7 +163,7 @@ UIRectangle.prototype = {
     draw: function(s) {
         s.el('rect', this.snap_rect);
     }
-}
+};
 
 // UI objectr
 // TODO: make everything a module
@@ -182,6 +186,7 @@ UI.prototype.draw = function (s) {
 };
 
 UI.prototype.onMouseDown = function (x,y,e) {
+    //noinspection FunctionWithInconsistentReturnsJS
     this.children.forEach(function(el) {
        if(typeof el.onMouseDown !== 'undefined') {
            return el.onMouseDown(x,y,e);
@@ -192,6 +197,7 @@ UI.prototype.onMouseDown = function (x,y,e) {
 
 UI.prototype.onMouseMove = function (dx,dy,x,y,e) {
     // TODO: should I have an element that's 'in focus'?
+    //noinspection FunctionWithInconsistentReturnsJS
     this.children.forEach(function(el) {
         if(typeof el.onMouseMove !== 'undefined') {
             return el.onMouseMove(dx,dy,x,y,e);
@@ -204,9 +210,10 @@ function isUndefined(f) {
 }
 UI.prototype.onMouseUp = function (e) {
     // TODO: should I have an element that's 'in focus'?
+    //noinspection FunctionWithInconsistentReturnsJS
     this.children.forEach(function(el){
        if( typeof el.onMouseUp !== 'undefined') {
-           return el.onMouseUp(e)
+           return el.onMouseUp(e);
        }
     });
     return 0;
@@ -220,19 +227,20 @@ UI.prototype.clone = function () {
     return result;
 };
 
-
+var MAIN_SELECTOR = "#original";
+var ALTERNATIVES_SELECTOR = "#particles";
 // TODO: once you've figured everything out, move to module patternN
-function PUI(rootSnap) {
-    this.rootSnap = rootSnap;
+function PUI() {
     // Initialize the UI here
-    this.root = new UI(rootSnap);
     this.alternatives = [];
     this.weights = [];
     this.snaps = [];
     this.probabilities = [];
     for (var i = 0; i < N_PARTICLES; i++) {
-        var clone = this.root.clone();
         var s = Snap();
+        var clone = new UI(s);
+
+        // TODO: probably should have alternatives be of form {alt: v, ui:v, prob:v...} instead of separate arrays...
         s.attr({id: clone.id, viewBox: "0 0 375 500", width: 76, height: 100});
         this.snaps.push(s);
         clone.snap = undefined;
@@ -242,16 +250,14 @@ function PUI(rootSnap) {
         this.alternatives.push(clone);
         // todo: change the location of the circle here and update the weight
         this.weights.push(Math.random());
-        var weightSum = this.weights.reduce(function (prev, cur, index, array) {
-            return prev + cur
-        });
-        this.probabilities = this.weights.map(function (x) {
-            return x / weightSum;
-        });
     }
-
-    var me = this;
-    var addhandlers = function(dom_el, pui) {
+    var weightSum = this.weights.reduce(function (prev, cur) {
+        return prev + cur
+    });
+    this.probabilities = this.weights.map(function (x) {
+        return x / weightSum;
+    });
+    var addHandlers = function(dom_el, pui) {
         var offset = $(dom_el).position();
         var getPos = function(e) {
             return {x: e.clientX - offset.left, y: e.clientY - offset.top};
@@ -262,7 +268,6 @@ function PUI(rootSnap) {
             var pos = getPos(e);
             lastX = pos.x;
             lastY = pos.y;
-            pui.root.onMouseDown(pos.x,pos.y,e);
             pui.alternatives.forEach(function(el){
                 el.onMouseDown(pos.x,pos.y,e);
             });
@@ -272,26 +277,31 @@ function PUI(rootSnap) {
             var pos = getPos(e);
             var dx = pos.x - lastX;
             var dy = pos.y - lastY;
-            pui.root.onMouseMove(dx, dy,pos.x,pos.y,e);
             pui.alternatives.forEach(function(el){
                 el.onMouseMove(dx, dy,pos.x,pos.y,e);
             });
             pui.invalidate();
         };
         dom_el.onmouseup = function() {
-            pui.root.onMouseUp();
             pui.alternatives.forEach(function(el){
                 el.onMouseUp();
             });
             pui.invalidate();
         }
-    }
-    addhandlers(rootSnap.node, this);
+    };
+    addHandlers($(MAIN_SELECTOR)[0], this);
 }
-;
 
-PUI.prototype.drawRoot = function () {
-    this.root.draw(this.rootSnap);
+// TODO: Should just sort the interfaces by probability every time you update
+PUI.prototype.getMostLikely = function() {
+    return this.alternatives[enumerate(this.probabilities).sort(function(a,b){return b.v - a.v})[0].i];
+};
+/**
+ * Draw the most likely interface
+ */
+PUI.prototype.drawMain = function () {
+    // draw the most likely interface
+    this.getMostLikely().draw(Snap(MAIN_SELECTOR));
 };
 
 PUI.prototype.drawAlternatives = function (div_selector) {
@@ -309,13 +319,15 @@ PUI.prototype.drawAlternatives = function (div_selector) {
     });
 };
 
+
+
 PUI.prototype.drawOverlay = function (s, useOpacity, removeDirty) {
     // default value
     useOpacity = typeof useOpacity !== 'undefined' ? useOpacity : false;
     removeDirty = typeof removeDirty !== 'undefined' ? removeDirty : true;
 
     s.attr({viewBox: "0 0 375 500"});
-    this.root.draw(s);
+    this.getMostLikely().draw(s);
 
     var fuzedGroup = s.g().attr({class: "fuzedGroup"});
 
@@ -342,15 +354,52 @@ PUI.prototype.drawOverlay = function (s, useOpacity, removeDirty) {
 
         dirty.remove();
     }
+};
+
+function enumerate(a) {
+    return a.map(function(v, i){return {i:i, v:v}});
 }
 
+PUI.prototype.drawFusion4 = function(s) {
+    s.attr({viewBox: "0 0 375 500"});
+    var particleIndexWithLikelihood = enumerate(this.probabilities);
+    particleIndexWithLikelihood.sort(function(a,b){ return b.v - a.v});
+    var topN = 3;
+    var topNParticles = [];
+    this.alternatives[particleIndexWithLikelihood[0].i].draw(s);
+    for(var i = 1; i < topN + 1; i++) {
+        var particle = this.alternatives[particleIndexWithLikelihood[i].i];
+        var s2 = Snap("#" + particle.id).clone();
+        topNParticles.push(s2);
+        particle.draw(s2);
+    }
+
+    var particleGroup = s.g();
+    topNParticles.forEach(function(v,i) {
+        // g is the subgroup containing the snapshot of the possible interface
+        var g = particleGroup.g().attr({transform: "translate(" + (20 + i * 120) + ",320) scale(0.25, 0.25) "});
+        g.attr({stroke: "#ffffff", "stroke-width": "10px"});
+        // add all svg elements to this snapshot without actually adding the svg
+        for(var j = v.node.children.length - 1; j > 0; j--) {
+            g.node.insertBefore(v.node.children[j], g.node.firstChild);
+        }
+        // don't add the <svg> element intself
+        v.node.remove();
+        // add the snapshot to the particle group itself.
+        particleGroup.add(g);
+    });
+};
+
+
+
 PUI.prototype.invalidate = function() {
-    this.drawRoot();
+    this.drawMain();
     this.drawAlternatives("#particles");
     this.drawFusion1(Snap("#fuzed_overlay"));
     this.drawFusion2(Snap("#fuzed_alpha"));
     this.drawFusion3(Snap("#fuzed_mouseover"));
-}
+    this.drawFusion4(Snap("#fuzed_nbest"));
+};
 
 PUI.prototype.drawFusion1 = function (s) {
     this.drawOverlay(s, false, true);
@@ -380,13 +429,11 @@ PUI.prototype.drawFusion3 = function (s) {
     });
 };
 
+
+
 function onLoad() {
-    var pui = new PUI(Snap("#original"));
-    pui.drawRoot();
-    pui.drawAlternatives("#particles");
-    pui.drawFusion1(Snap("#fuzed_overlay"));
-    pui.drawFusion2(Snap("#fuzed_alpha"));
-    pui.drawFusion3(Snap("#fuzed_mouseover"));
+    var pui = new PUI();
+    pui.invalidate();
 }
 
 $(onLoad);
