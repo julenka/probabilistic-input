@@ -2,7 +2,7 @@
 <html>
 <head>
     <!-- JQuery -->
-    <script type="text/javascript" src="../libs/jquery.min.js">
+    <script type="text/javascript" src="../libs/jquery.js">
     </script>
 
     <!-- Snap SVG library -->
@@ -46,7 +46,7 @@
     </tr>
     <tr>
         <td>
-            <svg id="original" width="375px" height="500px"></svg>
+            <svg id="original" width="375px" height="500px" viewBox="0 0 375 500"></svg>
         </td>
         <td>
             <div id="particles">
@@ -97,12 +97,70 @@ idprefix = "S" + (+new Date).toString(36);
 function ID() {
     return idprefix + (idgen++).toString(36);
 }
-// UI object
+
+UIDraggableCircle = function(cx, cy, r, fill) {
+    this.snap_circle = {cx: cx, cy: cy, r: r, fill: fill};
+    this.state = "start";
+};
+
+UIDraggableCircle.prototype = {
+    draw: function(s) {
+        s.el('circle', this.snap_circle);
+    },
+
+    hitTest: function(x,y) {
+        var rx = x - this.snap_circle.cx;
+        var ry = y - this.snap_circle.cy;
+        var r = Math.sqrt(rx * rx + ry * ry);
+        return r < this.snap_circle.r ;
+    },
+    onMouseDown: function(x,y) {
+        if(this.hitTest(x,y)) {
+            this.state = "down";
+            this.start_fill = this.snap_circle.fill;
+            this.snap_circle.fill = "red";
+            this.ox = this.snap_circle.cx;
+            this.oy = this.snap_circle.cy;
+            return 1;
+        }
+        return 0;
+    },
+    onMouseMove: function (dx,dy) {
+        if(this.state === "down"){
+            this.snap_circle.cx = this.ox + dx;
+            this.snap_circle.cy = this.oy + dy;
+            return 1;
+        }
+        return 0;
+    },
+    onMouseUp: function() {
+        if(this.state === "down") {
+            this.state = "start";
+            this.snap_circle.fill = this.start_fill;
+            return 1;
+        }
+        return 0;
+    }
+};
+
+
+UIRectangle = function(x,y,width,height,fill) {
+    this.snap_rect = {x:x, y:y, width: width, height: height, fill: fill};
+
+};
+UIRectangle.prototype = {
+    draw: function(s) {
+        s.el('rect', this.snap_rect);
+    }
+}
+
+// UI objectr
 // TODO: make everything a module
 function UI(snap) {
-    this.sun = {cx: 100, cy: 100, rx: 50, ry: 50, fill: "#FEDC57"};
-    this.grass = {x: 0, y: UI_HEIGHT / 2, width: UI_WIDTH, height: UI_HEIGHT / 2, fill: "#77cc33"};
-    this.sky = {x: 0, y: 0, width: UI_WIDTH, height: UI_HEIGHT / 2, fill: "#00b4f0"};
+    this.sun =  new UIDraggableCircle(100, 100, 50, "#FEDC57");
+    this.grass = new UIRectangle(0,UI_HEIGHT/2, UI_WIDTH, UI_HEIGHT / 2, "#77cc33");
+    this.sky = new UIRectangle(0,0,UI_WIDTH, UI_HEIGHT / 2, "#00b4f0");
+    this.children = [this.sky, this.sun, this.grass];
     this.id = ID();
     this.snap = snap;
 }
@@ -111,36 +169,47 @@ UI.prototype.draw = function (s) {
     s.selectAll(":not(defs)").remove();
     s.selectAll("defs *").remove();
     s.el('desc');
-    s.el('defs');
-    s.el('rect', this.sky);
-    s.el('ellipse', this.sun);
-    s.el('rect', this.grass);
+    this.sky.draw(s);
+    this.sun.draw(s);
+    this.grass.draw(s);
 };
 
 UI.prototype.onMouseDown = function (x,y,e) {
-    this.sun.fill = "red";
-    this.sun.ox = this.sun.cx;
-    this.sun.oy = this.sun.cy;
-    this.sun.or = this.sun.rx;
+    this.children.forEach(function(el) {
+       if(typeof el.onMouseDown !== 'undefined') {
+           return el.onMouseDown(x,y,e);
+       }
+    });
+    return 0;
 };
 
 UI.prototype.onMouseMove = function (dx,dy,x,y,e) {
-    this.sun.cx = this.sun.ox + dx;
-    this.sun.cy = this.sun.oy + dy;
+    // TODO: should I have an element that's 'in focus'?
+    this.children.forEach(function(el) {
+        if(typeof el.onMouseMove !== 'undefined') {
+            return el.onMouseMove(dx,dy,x,y,e);
+        }
+    });
+    return 0;
 };
-
+function isUndefined(f) {
+    return typeof f() !== 'undefined';
+}
 UI.prototype.onMouseUp = function (e) {
-    // check which item you hit
-    // change color
-    this.sun.fill = "#FEDC57";
+    // TODO: should I have an element that's 'in focus'?
+    this.children.forEach(function(el){
+       if( typeof el.onMouseUp !== 'undefined') {
+           return el.onMouseUp(e)
+       }
+    });
+    return 0;
 };
 
 UI.prototype.clone = function () {
-    var result = new UI(undefined);
-    // WOAH NASTY HACK
-    var uiJSON = JSON.parse(JSON.stringify(this, ["sun", "grass", "sky", "cx", "cy", "x", "y", "width", "height", "fill", "rx", "ry"]));
-    for (var prop in uiJSON) result[prop] = uiJSON[prop];
+    var result = {};
+    result = jQuery.extend(true, result, this);
     result.id = ID();
+    result.children = [result.sky, result.sun, result.grass];
     return result;
 };
 
@@ -160,9 +229,9 @@ function PUI(rootSnap) {
         s.attr({id: clone.id, viewBox: "0 0 375 500", width: 76, height: 100});
         this.snaps.push(s);
         clone.snap = undefined;
-        clone.sun.cx = i * 375 / N_PARTICLES;
-        clone.sun.cy = 250 - 250 * Math.sin(i / N_PARTICLES * (Math.PI));
-        clone.sun.ambiguous = true;
+        clone.sun.snap_circle.cx = i * 375 / N_PARTICLES;
+        clone.sun.snap_circle.cy = 250 - 250 * Math.sin(i / N_PARTICLES * (Math.PI));
+        clone.sun.snap_circle.ambiguous = true;
         this.alternatives.push(clone);
         // todo: change the location of the circle here and update the weight
         this.weights.push(Math.random());
@@ -175,28 +244,43 @@ function PUI(rootSnap) {
     }
 
     var me = this;
-    rootSnap.drag(
-            function(dx,dy,x,y,e) {
-                me.root.onMouseMove(dx,dy,x,y,e);
-                me.alternatives.forEach(function(el){
-                    el.onMouseMove(dx ,dy,x,y,e);
-                });
-                me.invalidate();
-            },
-            function(x,y,e) {
-                me.root.onMouseDown(x,y,e);
-                me.alternatives.forEach(function(el){
-                    el.onMouseDown(x,y,e);
-                });
-                me.invalidate();
-            },
-            function(e){
-                me.root.onMouseUp(e);
-                me.alternatives.forEach(function(el){
-                    el.onMouseUp(e);
-                });
-                me.invalidate();
+    var addhandlers = function(dom_el, pui) {
+        var offset = $(dom_el).position();
+        var getPos = function(e) {
+            return {x: e.clientX - offset.left, y: e.clientY - offset.top};
+        };
+        var lastX = 0;
+        var lastY = 0;
+        dom_el.onmousedown = function(e) {
+            var pos = getPos(e);
+            lastX = pos.x;
+            lastY = pos.y;
+            pui.root.onMouseDown(pos.x,pos.y,e);
+            pui.alternatives.forEach(function(el){
+                el.onMouseDown(pos.x,pos.y,e);
             });
+            pui.invalidate();
+        };
+        dom_el.onmousemove = function(e) {
+            var pos = getPos(e);
+            var dx = pos.x - lastX;
+            var dy = pos.y - lastY;
+            console.log(dx, dy);
+            pui.root.onMouseMove(dx, dy,pos.x,pos.y,e);
+            pui.alternatives.forEach(function(el){
+                el.onMouseMove(dx, dy,pos.x,pos.y,e);
+            });
+            pui.invalidate();
+        };
+        dom_el.onmouseup = function() {
+            pui.root.onMouseUp();
+            pui.alternatives.forEach(function(el){
+                el.onMouseUp();
+            });
+            pui.invalidate();
+        }
+    }
+    addhandlers(rootSnap.node, this);
 }
 ;
 
@@ -252,7 +336,7 @@ PUI.prototype.drawOverlay = function (s, useOpacity, removeDirty) {
 
 PUI.prototype.invalidate = function() {
     this.drawRoot();
-    this.drawAlternatives("#particles")
+    this.drawAlternatives("#particles");
     this.drawFusion1(Snap("#fuzed_overlay"));
     this.drawFusion2(Snap("#fuzed_alpha"));
     this.drawFusion3(Snap("#fuzed_mouseover"));
@@ -260,11 +344,11 @@ PUI.prototype.invalidate = function() {
 
 PUI.prototype.drawFusion1 = function (s) {
     this.drawOverlay(s, false, true);
-}
+};
 
 PUI.prototype.drawFusion2 = function (s) {
     this.drawOverlay(s, true, true);
-}
+};
 
 PUI.prototype.drawFusion3 = function (s) {
     this.drawOverlay(s, true, false);
@@ -284,12 +368,12 @@ PUI.prototype.drawFusion3 = function (s) {
         dirty.animate({opacity: 1.0}, animDurationMs);
         fuzedGroup.animate({opacity: 0.0}, animDurationMs);
     });
-}
+};
 
 function onLoad() {
     var pui = new PUI(Snap("#original"));
     pui.drawRoot();
-    pui.drawAlternatives("#particles")
+    pui.drawAlternatives("#particles");
     pui.drawFusion1(Snap("#fuzed_overlay"));
     pui.drawFusion2(Snap("#fuzed_alpha"));
     pui.drawFusion3(Snap("#fuzed_mouseover"));
