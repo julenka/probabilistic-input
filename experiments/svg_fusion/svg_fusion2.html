@@ -185,6 +185,22 @@ UI.prototype.draw = function (s) {
     this.grass.draw(s);
 };
 
+// return measurement probability given that event was at X,Y
+UI.prototype.measure = function (x,y, prev, name) {
+    var dx = x - this.sun.snap_circle.cx;
+    var dy = y - this.sun.snap_circle.cy;
+    var d = Math.sqrt(dx * dx + dy * dy);
+    if (name === "down") {
+        if (d > this.sun.snap_circle * 1.5) return prev;
+        return Math.gaussian(0, this.sun.snap_circle.r * 2, d);
+    } else if (name === "move") {
+        return prev;
+    } else if (name === "up") {
+        return prev;
+    }
+    return 0;
+};
+
 UI.prototype.onMouseDown = function (x,y,e) {
     //noinspection FunctionWithInconsistentReturnsJS
     this.children.forEach(function(el) {
@@ -271,6 +287,7 @@ function PUI() {
             pui.alternatives.forEach(function(el){
                 el.onMouseDown(pos.x,pos.y,e);
             });
+            pui.measure(pos.x, pos.y, "down");
             pui.invalidate();
         };
         dom_el.onmousemove = function(e) {
@@ -280,6 +297,7 @@ function PUI() {
             pui.alternatives.forEach(function(el){
                 el.onMouseMove(dx, dy,pos.x,pos.y,e);
             });
+            pui.measure(pos.x, pos.y, "move");
             pui.invalidate();
         };
         dom_el.onmouseup = function() {
@@ -304,6 +322,13 @@ PUI.prototype.drawMain = function () {
     this.getMostLikely().draw(Snap(MAIN_SELECTOR));
 };
 
+PUI.prototype.measure = function(x,y, name) {
+    var me = this;
+    this.weights = this.alternatives.map(function(alternative, i){ return alternative.measure(x,y, me.weights[i], name) });
+    var weightSum = this.weights.reduce(function (prev, cur) { return prev + cur });
+    this.probabilities = this.weights.map(function (x) { return x / weightSum; });
+};
+
 PUI.prototype.drawAlternatives = function (div_selector) {
     var alternativesJQ = $(div_selector);
     $(div_selector + " > div").remove();
@@ -318,7 +343,6 @@ PUI.prototype.drawAlternatives = function (div_selector) {
         );
     });
 };
-
 
 
 PUI.prototype.drawOverlay = function (s, useOpacity, removeDirty) {
@@ -341,7 +365,7 @@ PUI.prototype.drawOverlay = function (s, useOpacity, removeDirty) {
             if (el2.attr("ambiguous")) {
                 var el2s = el2.clone();
                 if(useOpacity) {
-                    el2s.attr({opacity: Math.log(1 + me.probabilities[i]) * 3});
+                    el2s.attr({opacity: me.probabilities[i]});
                 }
                 fuzedGroup.append(el2s);
                 rootDescendants[i2].attr({class: "dirty"});
