@@ -242,14 +242,13 @@ function PUI(rootSnap) {
         this.alternatives.push(clone);
         // todo: change the location of the circle here and update the weight
         this.weights.push(Math.random());
-        var weightSum = this.weights.reduce(function (prev, cur, index, array) {
-            return prev + cur
-        });
-        this.probabilities = this.weights.map(function (x) {
-            return x / weightSum;
-        });
     }
-
+    var weightSum = this.weights.reduce(function (prev, cur, index, array) {
+        return prev + cur
+    });
+    this.probabilities = this.weights.map(function (x) {
+        return x / weightSum;
+    });
     var me = this;
     var addhandlers = function(dom_el, pui) {
         var offset = $(dom_el).position();
@@ -309,6 +308,8 @@ PUI.prototype.drawAlternatives = function (div_selector) {
     });
 };
 
+
+
 PUI.prototype.drawOverlay = function (s, useOpacity, removeDirty) {
     // default value
     useOpacity = typeof useOpacity !== 'undefined' ? useOpacity : false;
@@ -344,12 +345,48 @@ PUI.prototype.drawOverlay = function (s, useOpacity, removeDirty) {
     }
 }
 
+function enumerate(a) {
+    return a.map(function(v, i){return {i:i, v:v}});
+}
+
+PUI.prototype.drawFusion4 = function(s) {
+    s.attr({viewBox: "0 0 375 500"});
+    var particleIndexWithLikelihood = enumerate(this.probabilities);
+    particleIndexWithLikelihood.sort(function(a,b){ return b.v - a.v});
+    var topN = 3;
+    var topNParticles = [];
+    for(var i = 0; i < topN; i++) {
+        var particle = this.alternatives[particleIndexWithLikelihood[i].i];
+        var s2 = Snap("#" + particle.id).clone();
+        topNParticles.push(s2);
+        particle.draw(s2);
+    }
+    this.root.draw(s);
+    var particleGroup = s.g();
+    topNParticles.forEach(function(v,i) {
+        // g is the subgroup containing the snapshot of the possible interface
+        var g = particleGroup.g().attr({transform: "translate(" + (20 + i * 120) + ",320) scale(0.25, 0.25) "});
+        g.attr({stroke: "#ffffff", "stroke-width": "10px"});
+        // add all svg elements to this snapshot without actually adding the svg
+        for(var i = v.node.children.length - 1; i > 0; i--) {
+            g.node.insertBefore(v.node.children[i], g.node.firstChild);
+        }
+        // don't add the <svg> element intself
+        v.node.remove();
+        // add the snapshot to the particle group itself.
+        particleGroup.add(g);
+    });
+}
+
+
+
 PUI.prototype.invalidate = function() {
     this.drawRoot();
     this.drawAlternatives("#particles");
     this.drawFusion1(Snap("#fuzed_overlay"));
     this.drawFusion2(Snap("#fuzed_alpha"));
     this.drawFusion3(Snap("#fuzed_mouseover"));
+    this.drawFusion4(Snap("#fuzed_nbest"));
 }
 
 PUI.prototype.drawFusion1 = function (s) {
@@ -380,13 +417,11 @@ PUI.prototype.drawFusion3 = function (s) {
     });
 };
 
+
+
 function onLoad() {
     var pui = new PUI(Snap("#original"));
-    pui.drawRoot();
-    pui.drawAlternatives("#particles");
-    pui.drawFusion1(Snap("#fuzed_overlay"));
-    pui.drawFusion2(Snap("#fuzed_alpha"));
-    pui.drawFusion3(Snap("#fuzed_mouseover"));
+    pui.invalidate();
 }
 
 $(onLoad);
