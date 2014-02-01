@@ -1,0 +1,682 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="AnalysisUIOptions">
+    <option name="SCOPE_TYPE" value="3" />
+  </component>
+  <component name="ChangeListManager">
+    <list default="true" id="7cf94037-4565-4c58-9e2f-584dc4778775" name="Default" comment="Kalman filter use snapsvg instead of canvas.&#10;&#10;# Please enter the commit message for your changes. Lines starting&#10;# with '#' will be ignored, and an empty message aborts the commit.&#10;# On branch master&#10;# Changes to be committed:&#10;#   (use &quot;git reset HEAD &lt;file&gt;...&quot; to unstage)&#10;#&#10;#&#9;modified:   keyboard_pf/keyboard_pf.js&#10;#&#9;modified:   keyboard_pf/particle_filter.js&#10;#&#10;">
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/experiments/svg_fusion/svg_fusion2.html" afterPath="$PROJECT_DIR$/experiments/svg_fusion/svg_fusion2.html" />
+    </list>
+    <ignored path="pi.iws" />
+    <ignored path=".idea/workspace.xml" />
+    <option name="TRACKING_ENABLED" value="true" />
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="ChangesViewManager" flattened_view="true" show_ignored="false" />
+  <component name="CreatePatchCommitExecutor">
+    <option name="PATCH_PATH" value="" />
+  </component>
+  <component name="DaemonCodeAnalyzer">
+    <disable_hints />
+  </component>
+  <component name="ExecutionTargetManager" SELECTED_TARGET="default_target" />
+  <component name="FavoritesManager">
+    <favorites_list name="pi" />
+  </component>
+  <component name="FileEditorManager">
+    <leaf>
+      <file leaf-file-name="snap.svg.js" pinned="false" current="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/experiments/libs/snap.svg.js">
+          <provider selected="true" editor-type-id="text-editor">
+            <state line="762" column="8" selection-start="23334" selection-end="23338" vertical-scroll-proportion="0.0" vertical-offset="10687" max-vertical-offset="48975">
+              <folding>
+                <element signature="e#23353#135110#0" expanded="false" />
+                <element signature="e#67439#96781#0" expanded="false" />
+                <element signature="e#97111#97669#0" expanded="false" />
+              </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="utils.js" pinned="false" current="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/experiments/libs/utils.js">
+          <provider selected="true" editor-type-id="text-editor">
+            <state line="10" column="14" selection-start="263" selection-end="263" vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="2295">
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="svg_fusion2.html" pinned="false" current="true" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/experiments/svg_fusion/svg_fusion2.html">
+          <provider selected="true" editor-type-id="text-editor">
+            <state line="29" column="9" selection-start="709" selection-end="709" vertical-scroll-proportion="-5.6577415" vertical-offset="5295" max-vertical-offset="6705">
+              <folding>
+                <element signature="e#5631#5683#0" expanded="false" />
+              </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+    </leaf>
+  </component>
+  <component name="FindManager">
+    <FindUsagesManager>
+      <setting name="OPEN_NEW_TAB" value="false" />
+    </FindUsagesManager>
+  </component>
+  <component name="Git.Settings">
+    <option name="UPDATE_TYPE" value="MERGE" />
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+  </component>
+  <component name="HighlightingSettingsPerFile">
+    <setting file="file://$PROJECT_DIR$/experiments/svg_fusion/svg_fusion2.html" root0="FORCE_HIGHLIGHTING" />
+  </component>
+  <component name="IdeDocumentHistory">
+    <option name="changedFiles">
+      <list>
+        <option value="$PROJECT_DIR$/experiments/mouse_kalman/mouse_kalman.css" />
+        <option value="$PROJECT_DIR$/experiments/mouse_kalman/mouse_kalman.js" />
+        <option value="$PROJECT_DIR$/experiments/mouse_kalman/mouse_kalman.html" />
+        <option value="$PROJECT_DIR$/experiments/keyboard_pf/snap_test.html" />
+        <option value="$PROJECT_DIR$/experiments/libs/utils.js" />
+        <option value="$PROJECT_DIR$/experiments/keyboard_pf/keyboard_pf.html" />
+        <option value="$PROJECT_DIR$/experiments/keyboard_pf/keyboard_pf.css" />
+        <option value="$PROJECT_DIR$/experiments/keyboard_pf/keyboard_pf.js" />
+        <option value="$PROJECT_DIR$/experiments/keyboard_pf/particle_filter.js" />
+        <option value="$PROJECT_DIR$/experiments/svg_fusion/sandbox.html" />
+        <option value="$PROJECT_DIR$/experiments/sandbox.html" />
+        <option value="$PROJECT_DIR$/experiments/svg_fusion/tmp.js" />
+        <option value="$PROJECT_DIR$/experiments/libs/snap.svg.js" />
+        <option value="$PROJECT_DIR$/experiments/svg_fusion/svg_fusion1.html" />
+        <option value="$PROJECT_DIR$/experiments/svg_fusion/svg_fusion2.html" />
+      </list>
+    </option>
+  </component>
+  <component name="ProjectFrameBounds">
+    <option name="y" value="22" />
+    <option name="width" value="1279" />
+    <option name="height" value="1414" />
+  </component>
+  <component name="ProjectInspectionProfilesVisibleTreeState">
+    <entry key="Project Default">
+      <profile-state>
+        <expanded-state>
+          <State>
+            <id />
+          </State>
+          <State>
+            <id>CSS</id>
+          </State>
+          <State>
+            <id>GeneralJavaScript</id>
+          </State>
+          <State>
+            <id>JavaScript</id>
+          </State>
+          <State>
+            <id>JsTestDriverJavaScript</id>
+          </State>
+        </expanded-state>
+      </profile-state>
+    </entry>
+  </component>
+  <component name="ProjectLevelVcsManager" settingsEditedManually="false">
+    <OptionsSetting value="true" id="Add" />
+    <OptionsSetting value="true" id="Remove" />
+    <OptionsSetting value="true" id="Checkout" />
+    <OptionsSetting value="true" id="Update" />
+    <OptionsSetting value="true" id="Status" />
+    <OptionsSetting value="true" id="Edit" />
+    <ConfirmationsSetting value="0" id="Add" />
+    <ConfirmationsSetting value="0" id="Remove" />
+  </component>
+  <component name="ProjectReloadState">
+    <option name="STATE" value="0" />
+  </component>
+  <component name="ProjectView">
+    <navigator proportions="" version="1" splitterProportion="0.5">
+      <flattenPackages />
+      <showMembers />
+      <showModules />
+      <showLibraryContents />
+      <hideEmptyPackages />
+      <abbreviatePackageNames />
+      <autoscrollToSource />
+      <autoscrollFromSource />
+      <sortByType />
+    </navigator>
+    <panes />
+  </component>
+  <component name="PropertiesComponent">
+    <property name="WebServerToolWindowFactoryState" value="false" />
+    <property name="FileHistory.git4idea.history.GitHistoryProvider_flatWidth0" value="107" />
+    <property name="FileHistory.git4idea.history.GitHistoryProvider_flatOrder0" value="0" />
+    <property name="FileHistory.git4idea.history.GitHistoryProvider_flatWidth1" value="109" />
+    <property name="FileHistory.git4idea.history.GitHistoryProvider_flatOrder1" value="1" />
+    <property name="FileHistory.git4idea.history.GitHistoryProvider_flatWidth2" value="113" />
+    <property name="FileHistory.git4idea.history.GitHistoryProvider_flatOrder2" value="2" />
+    <property name="FileHistory.git4idea.history.GitHistoryProvider_flatWidth3" value="907" />
+    <property name="FileHistory.git4idea.history.GitHistoryProvider_flatOrder3" value="3" />
+    <property name="FileHistory.git4idea.history.GitHistoryProvider_treeWidth0" value="107" />
+    <property name="FileHistory.git4idea.history.GitHistoryProvider_treeOrder0" value="0" />
+    <property name="FileHistory.git4idea.history.GitHistoryProvider_treeWidth1" value="109" />
+    <property name="FileHistory.git4idea.history.GitHistoryProvider_treeOrder1" value="1" />
+    <property name="FileHistory.git4idea.history.GitHistoryProvider_treeWidth2" value="113" />
+    <property name="FileHistory.git4idea.history.GitHistoryProvider_treeOrder2" value="2" />
+    <property name="FileHistory.git4idea.history.GitHistoryProvider_treeWidth3" value="907" />
+    <property name="FileHistory.git4idea.history.GitHistoryProvider_treeOrder3" value="3" />
+    <property name="SearchEverywhereHistory" value="getmostlik&#10;keyboard&#10;pf&#10;drawHi&#10;particle" />
+    <property name="FullScreen" value="false" />
+    <property name="recentsLimit" value="5" />
+    <property name="options.lastSelected" value="Settings.JavaScript.Linters.JSHint" />
+    <property name="options.splitter.main.proportions" value="0.3" />
+    <property name="options.splitter.details.proportions" value="0.2" />
+    <property name="options.searchVisible" value="true" />
+    <property name="DefaultHtmlFileTemplate" value="Html5" />
+    <property name="LayoutCode.rearrangeEntriesHTML" value="false" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$/experiments/libs/snap.svg.js" />
+  </component>
+  <component name="RunManager" selected="JavaScript Debug.mouse_kalman.html">
+    <configuration default="false" name="mouse_kalman.html" type="JavascriptDebugType" factoryName="JavaScript Debug" singleton="true" temporary="true" uri="http://localhost:63342/pi/experiments/mouse_kalman/mouse_kalman.html">
+      <RunnerSettings RunnerId="JavascriptDebugRunner" />
+      <ConfigurationWrapper RunnerId="JavascriptDebugRunner" />
+      <method />
+    </configuration>
+    <configuration default="true" type="DartUnitRunConfigurationType" factoryName="DartUnit">
+      <option name="VMOptions" />
+      <option name="arguments" />
+      <option name="filePath" />
+      <option name="scope" value="ALL" />
+      <option name="testName" />
+      <method />
+    </configuration>
+    <configuration default="true" type="DartCommandLineRunConfigurationType" factoryName="Dart Command Line Application">
+      <option name="VMOptions" />
+      <option name="arguments" />
+      <option name="filePath" />
+      <option name="name" value="Dart" />
+      <option name="saveOutputToFile" value="false" />
+      <option name="showConsoleOnStdErr" value="false" />
+      <option name="showConsoleOnStdOut" value="false" />
+      <method />
+    </configuration>
+    <configuration default="true" type="JSTestDriver:ConfigurationType" factoryName="JsTestDriver">
+      <setting name="configLocationType" value="CONFIG_FILE" />
+      <setting name="settingsFile" value="" />
+      <setting name="serverType" value="INTERNAL" />
+      <setting name="preferredDebugBrowser" value="CHROME" />
+      <method />
+    </configuration>
+    <configuration default="true" type="JavaScriptTestRunnerKarma" factoryName="Karma" singleton="true" config-file="">
+      <envs />
+      <method />
+    </configuration>
+    <configuration default="true" type="JavascriptDebugType" factoryName="JavaScript Debug" singleton="true">
+      <method />
+    </configuration>
+    <configuration default="true" type="NodeJSConfigurationType" factoryName="Node.js" working-dir="">
+      <browser start="false" url="" with-js-debugger="false" />
+      <method />
+    </configuration>
+    <list size="1">
+      <item index="0" class="java.lang.String" itemvalue="JavaScript Debug.mouse_kalman.html" />
+    </list>
+    <recent_temporary>
+      <list size="1">
+        <item index="0" class="java.lang.String" itemvalue="JavaScript Debug.mouse_kalman.html" />
+      </list>
+    </recent_temporary>
+  </component>
+  <component name="ShelveChangesManager" show_recycled="false" />
+  <component name="StructureViewFactory">
+    <option name="ACTIVE_ACTIONS" value=",SHOW_INHERITED_FROM_OBJECT,ALPHA_COMPARATOR" />
+  </component>
+  <component name="SvnConfiguration" maxAnnotateRevisions="500" myUseAcceleration="nothing" myAutoUpdateAfterCommit="false" cleanupOnStartRun="false" SSL_PROTOCOLS="sslv3">
+    <option name="USER" value="" />
+    <option name="PASSWORD" value="" />
+    <option name="mySSHConnectionTimeout" value="30000" />
+    <option name="mySSHReadTimeout" value="30000" />
+    <option name="LAST_MERGED_REVISION" />
+    <option name="MERGE_DRY_RUN" value="false" />
+    <option name="MERGE_DIFF_USE_ANCESTRY" value="true" />
+    <option name="UPDATE_LOCK_ON_DEMAND" value="false" />
+    <option name="IGNORE_SPACES_IN_MERGE" value="false" />
+    <option name="CHECK_NESTED_FOR_QUICK_MERGE" value="false" />
+    <option name="IGNORE_SPACES_IN_ANNOTATE" value="true" />
+    <option name="SHOW_MERGE_SOURCES_IN_ANNOTATE" value="true" />
+    <option name="FORCE_UPDATE" value="false" />
+    <option name="IGNORE_EXTERNALS" value="false" />
+    <myIsUseDefaultProxy>false</myIsUseDefaultProxy>
+  </component>
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="7cf94037-4565-4c58-9e2f-584dc4778775" name="Default" comment="" />
+      <created>1389460360617</created>
+      <updated>1389460360617</updated>
+    </task>
+    <task id="LOCAL-00001" summary="Mouse demo add options to show/hide cursor and cursory history. Also typo fixes.&#10;&#10;# Please enter the commit message for your changes. Lines starting&#10;# with '#' will be ignored, and an empty message aborts the commit.&#10;# On branch master&#10;# Changes to be committed:&#10;#   (use &quot;git reset HEAD &lt;file&gt;...&quot; to unstage)&#10;#&#10;#&#9;modified:   keyboard_pf/keyboard_pf.js&#10;#&#9;modified:   keyboard_pf/particle_filter.js&#10;#&#10;">
+      <created>1389468914398</created>
+      <updated>1389468914398</updated>
+    </task>
+    <task id="LOCAL-00002" summary="Kalman filter use snapsvg instead of canvas.&#10;&#10;# Please enter the commit message for your changes. Lines starting&#10;# with '#' will be ignored, and an empty message aborts the commit.&#10;# On branch master&#10;# Changes to be committed:&#10;#   (use &quot;git reset HEAD &lt;file&gt;...&quot; to unstage)&#10;#&#10;#&#9;modified:   keyboard_pf/keyboard_pf.js&#10;#&#9;modified:   keyboard_pf/particle_filter.js&#10;#&#10;">
+      <created>1389584097116</created>
+      <updated>1389584097116</updated>
+    </task>
+    <option name="localTasksCounter" value="3" />
+    <servers />
+  </component>
+  <component name="TodoView" selected-index="1">
+    <todo-panel id="selected-file">
+      <are-packages-shown value="false" />
+      <are-modules-shown value="false" />
+      <flatten-packages value="false" />
+      <is-autoscroll-to-source value="false" />
+    </todo-panel>
+    <todo-panel id="all">
+      <are-packages-shown value="false" />
+      <are-modules-shown value="false" />
+      <flatten-packages value="false" />
+      <is-autoscroll-to-source value="false" />
+    </todo-panel>
+    <todo-panel id="default-changelist">
+      <are-packages-shown value="false" />
+      <are-modules-shown value="false" />
+      <flatten-packages value="false" />
+      <is-autoscroll-to-source value="false" />
+    </todo-panel>
+  </component>
+  <component name="ToolWindowManager">
+    <frame x="0" y="22" width="1279" height="1414" extended-state="0" />
+    <editor active="true" />
+    <layout>
+      <window_info id="Changes" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.3286445" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
+      <window_info id="Terminal" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.19052224" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
+      <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.14803626" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
+      <window_info id="Find" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.31089258" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
+      <window_info id="Structure" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.21701112" sideWeight="0.4990476" order="1" side_tool="false" content_ui="tabs" />
+      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.10510689" sideWeight="0.4990476" order="0" side_tool="false" content_ui="combo" />
+      <window_info id="Debug" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.2927383" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
+      <window_info id="Favorites" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.18181819" sideWeight="0.50095236" order="2" side_tool="true" content_ui="tabs" />
+      <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="7" side_tool="true" content_ui="tabs" />
+      <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
+      <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.21028744" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
+      <window_info id="Cvs" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="4" side_tool="false" content_ui="tabs" />
+      <window_info id="Message" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
+      <window_info id="Ant Build" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
+      <window_info id="Messages" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.3286445" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
+      <window_info id="Commander" active="false" anchor="right" auto_hide="false" internal_type="SLIDING" type="SLIDING" visible="false" weight="0.4" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
+      <window_info id="Hierarchy" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="2" side_tool="false" content_ui="combo" />
+      <window_info id="Inspection" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.23657289" sideWeight="0.5" order="5" side_tool="false" content_ui="tabs" />
+    </layout>
+  </component>
+  <component name="Vcs.Log.UiProperties">
+    <option name="RECENTLY_FILTERED_USERS">
+      <collection />
+    </option>
+  </component>
+  <component name="VcsContentAnnotationSettings">
+    <option name="myLimit" value="2678400000" />
+  </component>
+  <component name="VcsManagerConfiguration">
+    <option name="myTodoPanelSettings">
+      <TodoPanelSettings />
+    </option>
+    <MESSAGE value="Mouse demo add options to show/hide cursor and cursory history. Also typo fixes.&#10;&#10;# Please enter the commit message for your changes. Lines starting&#10;# with '#' will be ignored, and an empty message aborts the commit.&#10;# On branch master&#10;# Changes to be committed:&#10;#   (use &quot;git reset HEAD &lt;file&gt;...&quot; to unstage)&#10;#&#10;#&#9;modified:   keyboard_pf/keyboard_pf.js&#10;#&#9;modified:   keyboard_pf/particle_filter.js&#10;#&#10;" />
+    <MESSAGE value="Kalman filter use snapsvg instead of canvas.&#10;&#10;# Please enter the commit message for your changes. Lines starting&#10;# with '#' will be ignored, and an empty message aborts the commit.&#10;# On branch master&#10;# Changes to be committed:&#10;#   (use &quot;git reset HEAD &lt;file&gt;...&quot; to unstage)&#10;#&#10;#&#9;modified:   keyboard_pf/keyboard_pf.js&#10;#&#9;modified:   keyboard_pf/particle_filter.js&#10;#&#10;" />
+    <option name="LAST_COMMIT_MESSAGE" value="Kalman filter use snapsvg instead of canvas.&#10;&#10;# Please enter the commit message for your changes. Lines starting&#10;# with '#' will be ignored, and an empty message aborts the commit.&#10;# On branch master&#10;# Changes to be committed:&#10;#   (use &quot;git reset HEAD &lt;file&gt;...&quot; to unstage)&#10;#&#10;#&#9;modified:   keyboard_pf/keyboard_pf.js&#10;#&#9;modified:   keyboard_pf/particle_filter.js&#10;#&#10;" />
+  </component>
+  <component name="XDebuggerManager">
+    <breakpoint-manager>
+      <option name="time" value="5" />
+    </breakpoint-manager>
+  </component>
+  <component name="editorHistoryManager">
+    <entry file="file://$PROJECT_DIR$/experiments/libs/snap.svg.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="2213" column="21" selection-start="67420" selection-end="67440" vertical-scroll-proportion="0.0" vertical-offset="33195" max-vertical-offset="103950">
+          <folding>
+            <element signature="e#23353#135110#0" expanded="false" />
+            <element signature="e#67439#96781#0" expanded="false" />
+            <element signature="e#97111#97669#0" expanded="false" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/experiments/svg_fusion/svg_fusion1.html">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="147" column="11" selection-start="5184" selection-end="5184" vertical-scroll-proportion="0.0" vertical-offset="1870" max-vertical-offset="3750">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/experiments/svg_fusion/svg_fusion2.html">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="315" column="19" selection-start="9077" selection-end="9077" vertical-scroll-proportion="0.0" vertical-offset="4725" max-vertical-offset="6570">
+          <folding>
+            <element signature="e#5631#5683#0" expanded="false" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/experiments/libs/snap.svg.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="3223" column="8" selection-start="99482" selection-end="99482" vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="103950">
+          <folding>
+            <element signature="e#23353#135110#0" expanded="false" />
+            <element signature="e#67439#96781#0" expanded="false" />
+            <element signature="e#97111#97669#0" expanded="false" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/experiments/svg_fusion/svg_fusion1.html">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="147" column="11" selection-start="5184" selection-end="5184" vertical-scroll-proportion="0.0" vertical-offset="1910" max-vertical-offset="3750">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/experiments/svg_fusion/svg_fusion2.html">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="152" column="19" selection-start="4129" selection-end="4129" vertical-scroll-proportion="0.0" vertical-offset="1996" max-vertical-offset="4770">
+          <folding>
+            <element signature="e#5631#5683#0" expanded="false" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/experiments/libs/snap.svg.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="2694" column="35" selection-start="82163" selection-end="82163" vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="103950">
+          <folding>
+            <element signature="e#23353#135110#0" expanded="false" />
+            <element signature="e#67439#96781#0" expanded="false" />
+            <element signature="e#97111#97669#0" expanded="false" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/experiments/svg_fusion/svg_fusion1.html">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="114" column="48" selection-start="3977" selection-end="3977" vertical-scroll-proportion="0.0" vertical-offset="1995" max-vertical-offset="3750">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/experiments/keyboard_pf/keyboard_pf.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="144" column="25" selection-start="4310" selection-end="4310" vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="3000">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/experiments/keyboard_pf/keyboard_pf.css">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="25" column="0" selection-start="280" selection-end="280" vertical-scroll-proportion="0.0" vertical-offset="375" max-vertical-offset="1665">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/experiments/keyboard_pf/particle_filter.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="190" column="0" selection-start="6208" selection-end="6208" vertical-scroll-proportion="0.0" vertical-offset="15" max-vertical-offset="5010">
+          <folding>
+            <element signature="n#!!doc" expanded="false" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/experiments/libs/utils.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="131" column="0" selection-start="2891" selection-end="2891" vertical-scroll-proportion="0.0" vertical-offset="1965" max-vertical-offset="2295" />
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/experiments/keyboard_pf/keyboard_pf.html">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="49" column="24" selection-start="2442" selection-end="2442" vertical-scroll-proportion="0.0" vertical-offset="420" max-vertical-offset="1560" />
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/experiments/keyboard_pf/keyboard_pf.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="144" column="25" selection-start="4254" selection-end="4254" vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="2850">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/experiments/keyboard_pf/keyboard_pf.css">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="69" column="5" selection-start="800" selection-end="800" vertical-scroll-proportion="0.0" vertical-offset="641" max-vertical-offset="1395">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/experiments/keyboard_pf/particle_filter.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="278" column="2" selection-start="8893" selection-end="8893" vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="4335">
+          <folding>
+            <element signature="n#!!doc" expanded="false" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/experiments/keyboard_pf/keyboard_pf.html">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="77" column="0" selection-start="3775" selection-end="3775" vertical-scroll-proportion="0.0" vertical-offset="813" max-vertical-offset="1530" />
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/experiments/keyboard_pf/keyboard_pf.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="122" column="0" selection-start="3717" selection-end="3717" vertical-scroll-proportion="0.0" vertical-offset="1830" max-vertical-offset="2850">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/experiments/keyboard_pf/keyboard_pf.css">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="69" column="5" selection-start="800" selection-end="800" vertical-scroll-proportion="0.0" vertical-offset="641" max-vertical-offset="1395">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/experiments/keyboard_pf/particle_filter.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="290" column="10" selection-start="9350" selection-end="9350" vertical-scroll-proportion="0.0" vertical-offset="4350" max-vertical-offset="4740">
+          <folding>
+            <element signature="n#!!doc" expanded="false" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/experiments/keyboard_pf/keyboard_pf.html">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="77" column="0" selection-start="3775" selection-end="3775" vertical-scroll-proportion="0.0" vertical-offset="813" max-vertical-offset="1530" />
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/experiments/keyboard_pf/keyboard_pf.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="60" column="32" selection-start="1917" selection-end="1917" vertical-scroll-proportion="0.0" vertical-offset="397" max-vertical-offset="2820">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/experiments/keyboard_pf/keyboard_pf.css">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="69" column="5" selection-start="800" selection-end="800" vertical-scroll-proportion="0.0" vertical-offset="641" max-vertical-offset="1395">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/experiments/keyboard_pf/particle_filter.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="142" column="42" selection-start="4699" selection-end="4699" vertical-scroll-proportion="0.0" vertical-offset="1654" max-vertical-offset="4710">
+          <folding>
+            <element signature="n#!!doc" expanded="false" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/experiments/keyboard_pf/keyboard_pf.html">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="77" column="0" selection-start="3775" selection-end="3775" vertical-scroll-proportion="0.0" vertical-offset="813" max-vertical-offset="1530" />
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/experiments/mouse_kalman/mouse_kalman.html">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="43" column="26" selection-start="1797" selection-end="1797" vertical-scroll-proportion="0.0" vertical-offset="645" max-vertical-offset="825" />
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/experiments/mouse_kalman/mouse_kalman.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="24" column="14" selection-start="533" selection-end="533" vertical-scroll-proportion="0.0" vertical-offset="45" max-vertical-offset="4050">
+          <folding>
+            <element signature="n#!!doc" expanded="false" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/experiments/mouse_kalman/mouse_kalman.css">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="0" column="0" selection-start="0" selection-end="0" vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="660" />
+      </provider>
+    </entry>
+    <entry file="jar://$APPLICATION_HOME_DIR$/plugins/JavaScriptLanguage/lib/JavaScriptLanguage.jar!/com/intellij/lang/javascript/index/predefined/EcmaScript5.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="70" column="7" selection-start="1125" selection-end="1125" vertical-scroll-proportion="0.33333334" vertical-offset="611" max-vertical-offset="2865">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="jar://$APPLICATION_HOME_DIR$/lib/webstorm.jar!/resources/html5-schema/applications.rnc">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="274" column="23" selection-start="6301" selection-end="6301" vertical-scroll-proportion="0.33289126" vertical-offset="3859" max-vertical-offset="5550" />
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/experiments/libs/sylvester.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="0" column="0" selection-start="0" selection-end="0" vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="429" />
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/experiments/mouse_kalman/mouse_kalman.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="21" column="22" selection-start="504" selection-end="504" vertical-scroll-proportion="0.33289126" vertical-offset="64" max-vertical-offset="3855">
+          <folding>
+            <element signature="n#!!doc" expanded="false" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/experiments/mouse_kalman/mouse_kalman.css">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="33" column="14" selection-start="446" selection-end="446" vertical-scroll-proportion="0.6564987" vertical-offset="0" max-vertical-offset="754" />
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/experiments/libs/numeric-1.2.6.min.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="2" column="33" selection-start="65573" selection-end="65573" vertical-scroll-proportion="0.04048583" vertical-offset="0" max-vertical-offset="741">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/experiments/mouse_kalman/mouse_kalman.html">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="2" column="0" selection-start="23" selection-end="23" vertical-scroll-proportion="-1.25" vertical-offset="0" max-vertical-offset="870" />
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/experiments/keyboard_pf/snap_test.html">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="9" column="19" selection-start="186" selection-end="186" vertical-scroll-proportion="0.26112187" vertical-offset="0" max-vertical-offset="517" />
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/experiments/keyboard_pf/keyboard_pf.css">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="25" column="0" selection-start="280" selection-end="280" vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="1665">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/experiments/libs/filters.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="84" column="19" selection-start="2458" selection-end="2458" vertical-scroll-proportion="0.8209549" vertical-offset="596" max-vertical-offset="1350" />
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/experiments/keyboard_pf/particle_filter.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="301" column="22" selection-start="9712" selection-end="9712" vertical-scroll-proportion="-16.26923" vertical-offset="4092" max-vertical-offset="5010">
+          <folding>
+            <element signature="n#!!doc" expanded="false" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/experiments/keyboard_pf/keyboard_pf.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="144" column="25" selection-start="4310" selection-end="4310" vertical-scroll-proportion="0.0" vertical-offset="2017" max-vertical-offset="3000">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/experiments/keyboard_pf/keyboard_pf.html">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="74" column="20" selection-start="3619" selection-end="3619" vertical-scroll-proportion="0.6425735" vertical-offset="301" max-vertical-offset="1560" />
+      </provider>
+    </entry>
+    <entry file="jar://$APPLICATION_HOME_DIR$/plugins/JavaScriptLanguage/lib/JavaScriptLanguage.jar!/com/intellij/lang/javascript/index/predefined/DOMCore.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="518" column="15" selection-start="9047" selection-end="9047" vertical-scroll-proportion="0.33333334" vertical-offset="7468" max-vertical-offset="16200">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/experiments/sandbox.html">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="18" column="9" selection-start="366" selection-end="366" vertical-scroll-proportion="0.5065666" vertical-offset="0" max-vertical-offset="533" />
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/experiments/libs/jquery.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="1842" column="9" selection-start="50639" selection-end="50639" vertical-scroll-proportion="0.33333334" vertical-offset="27160" max-vertical-offset="136575">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/experiments/svg_fusion/svg_fusion1.html">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="87" column="6" selection-start="2733" selection-end="2733" vertical-scroll-proportion="0.33333334" vertical-offset="1023" max-vertical-offset="3750">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/experiments/libs/utils.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="10" column="14" selection-start="263" selection-end="263" vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="2295">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/experiments/libs/snap.svg.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="762" column="8" selection-start="23334" selection-end="23338" vertical-scroll-proportion="0.0" vertical-offset="10687" max-vertical-offset="48975">
+          <folding>
+            <element signature="e#23353#135110#0" expanded="false" />
+            <element signature="e#67439#96781#0" expanded="false" />
+            <element signature="e#97111#97669#0" expanded="false" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/experiments/svg_fusion/svg_fusion2.html">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="29" column="9" selection-start="709" selection-end="709" vertical-scroll-proportion="-5.6577415" vertical-offset="5295" max-vertical-offset="6705">
+          <folding>
+            <element signature="e#5631#5683#0" expanded="false" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+  </component>
+</project>
+
