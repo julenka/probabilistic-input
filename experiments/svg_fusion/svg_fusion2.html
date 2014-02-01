@@ -47,7 +47,7 @@
 <body>
 <table>
     <tr>
-        <th>Most Likely (drag me!)</th>
+        <th>Main UI (drag me!)</th>
         <th>Particles (drag the circles!)</th>
         <th>Fusions</th>
     </tr>
@@ -319,7 +319,8 @@ PUI.prototype.getMostLikely = function() {
  */
 PUI.prototype.drawMain = function () {
     // draw the most likely interface
-    this.getMostLikely().draw(Snap(MAIN_SELECTOR));
+    this.drawFusion5(Snap(MAIN_SELECTOR));
+//    this.getMostLikely().draw(Snap(MAIN_SELECTOR));
 };
 
 PUI.prototype.measure = function(x,y, name) {
@@ -417,8 +418,9 @@ PUI.prototype.drawFusion4 = function(s) {
 
 
 PUI.prototype.invalidate = function() {
-    this.drawMain();
+    // NOTE: right now, we must draw the Alternative FIRST because of how we do fusion (using the SVGs themselves).
     this.drawAlternatives("#particles");
+    this.drawMain();
     this.drawFusion1(Snap("#fuzed_overlay"));
     this.drawFusion2(Snap("#fuzed_alpha"));
     this.drawFusion3(Snap("#fuzed_mouseover"));
@@ -453,7 +455,9 @@ PUI.prototype.drawFusion3 = function (s) {
     });
 };
 
-
+PUI.prototype.drawFusion5 = function(s) {
+    this.drawOverlay(s, true, false);
+}
 
 function onLoad() {
     var pui = new PUI();
