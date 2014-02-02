@@ -1,0 +1,540 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <!-- JQuery -->
+    <script type="text/javascript" src="../libs/jquery.js">
+    </script>
+
+    <!-- Snap SVG library -->
+    <script type="text/javascript" src="../libs/snap.svg.js"></script>
+
+    <!-- Misc Utils -->
+    <script type="text/javascript" src="../libs/utils.js"></script>
+    <style>
+        #original, #fuzed_overlay, #fuzed_alpha, #fuzed_mouseover, #fuzed_nbest {
+            border: 1px solid black;
+        }
+
+        #particles, #fusions {
+            width: 390px;
+        }
+
+        th {
+            text-align: center;
+            font-family: sans-serif;
+            font-size: 18pt;
+        }
+
+        .fusions_cell {
+            float: left;
+        }
+
+        .fusions_cell  div {
+            text-align: center;
+            font-family: sans-serif;
+        }
+
+        #particles > div {
+            float: left;
+        }
+
+        body {
+            text-align: center;
+        }
+    </style>
+    <title>UI PF 1</title>
+</head>
+<body>
+<table>
+    <tr>
+        <th>Main UI (drag me!)</th>
+        <th>Particles (drag the circles!)</th>
+        <th>Fusions</th>
+    </tr>
+    <tr>
+        <td>
+            <svg id="original" width="375px" height="500px" viewBox="0 0 375 500"></svg>
+        </td>
+        <td>
+            <div id="particles">
+            </div>
+        </td>
+        <td>
+            <div id="fusions">
+                <div class="fusions_cell">
+                    <div>Overlay</div>
+                    <svg id="fuzed_overlay" width="187px" height="250px"></svg>
+                </div>
+                <div class="fusions_cell">
+                    <div>Opacity = Probability</div>
+                    <svg id="fuzed_alpha" width="187px" height="250px"></svg>
+                </div>
+                <div class="fusions_cell">
+                    <div>Mouse Over</div>
+                    <svg id="fuzed_mouseover" width="187px" height="250px"></svg>
+                </div>
+                <div class="fusions_cell">
+                    <div>Top 3</div>
+                    <svg id="fuzed_nbest" width="187px" height="250px"></svg>
+                </div>
+            </div>
+        </td>
+    </tr>
+</table>
+
+<script type="text/javascript">
+
+
+// TODO: remove this. this is just to get rid of errors about "Snap" being undeclared in Webstorm
+var Snap;
+// http://stackoverflow.com/questions/13957354/how-to-have-foreach-available-on-pseudo-arrays-returned-by-queryselectorall
+NodeList.prototype.forEach = HTMLCollection.prototype.forEach = Array.prototype.forEach;
+
+// eugh, a global :(
+N_PARTICLES = 10;
+
+// These units must (for now) match what is in the original SVG
+UI_WIDTH = 375;
+UI_HEIGHT = 500;
+
+
+idgen = 0;
+// toString(36) converts number to base 36
+idprefix = "S" + (+new Date).toString(36);
+
+/**
+ * @return String id
+ */
+function ID() {
+    return idprefix + (idgen++).toString(36);
+}
+
+UIDraggableCircle = function(cx, cy, r, fill) {
+    this.snap_circle = {cx: cx, cy: cy, r: r, fill: fill, ambiguous: true};
+    this.state = "start";
+};
+
+UIDraggableCircle.prototype = {
+    draw: function(s) {
+        s.el('circle', this.snap_circle);
+    },
+    measure: function(x,y,prev){
+        var dx = x - this.snap_circle.cx;
+        var dy = y - this.snap_circle.cy;
+        var d = Math.sqrt(dx * dx + dy * dy);
+        if(d > 1.5 * this.snap_circle.r) return 0;
+        return Math.gaussian(0,this.snap_circle.r, d);
+    },
+    setAmbiguous: function(){
+        this.ambiguous = true;
+        this.snap_circle.ambiguous = true;
+    },
+    hitTest: function(x,y) {
+        var rx = x - this.snap_circle.cx;
+        var ry = y - this.snap_circle.cy;
+        var r = Math.sqrt(rx * rx + ry * ry);
+        return r < this.snap_circle.r ;
+    },
+    onMouseDown: function(x,y) {
+        if(this.hitTest(x,y)) {
+            this.state = "down";
+            this.start_fill = this.snap_circle.fill;
+            this.snap_circle.fill = "red";
+            this.ox = this.snap_circle.cx;
+            this.oy = this.snap_circle.cy;
+            return 1;
+        }
+        return 0;
+    },
+    onMouseMove: function (dx,dy) {
+        if(this.state === "down"){
+            this.snap_circle.cx = this.ox + dx;
+            this.snap_circle.cy = this.oy + dy;
+            return 1;
+        }
+        return 0;
+    },
+    onMouseUp: function() {
+        if(this.state === "down") {
+            this.state = "start";
+            this.snap_circle.fill = this.start_fill;
+            resetWindow();
+            return 1;
+        }
+        return 0;
+    }
+};
+
+
+UIRectangle = function(x,y,width,height,fill) {
+    this.snap_rect = {x:x, y:y, width: width, height: height, fill: fill};
+
+};
+UIRectangle.prototype = {
+    draw: function(s) {
+        s.el('rect', this.snap_rect);
+    }
+};
+
+// UI objectr
+// TODO: make everything a module
+function UI(pui) {
+    this.pui = pui;
+    this.sun =  new UIDraggableCircle(100, 100, 50, "#FEDC57");
+    this.sun2 = new UIDraggableCircle(150, 150, 50, "#FF6600");
+    this.grass = new UIRectangle(0,UI_HEIGHT/2, UI_WIDTH, UI_HEIGHT / 2, "#77cc33");
+    this.sky = new UIRectangle(0,0,UI_WIDTH, UI_HEIGHT / 2, "#00b4f0");
+    this.children = [this.sky, this.sun, this.sun2, this.grass];
+    this.id = ID();
+    this.handlers = [];
+    this.addHandlers();
+}
+
+// call this when you are finalizing stuff
+UI.prototype.removeHandlers = function() {
+    var me = this;
+    // TODO: figure out how to remove these handlers, GAH
+    this.handlers.forEach(function(el){
+        me.pui.removeEventHandler(el);
+    });
+};
+
+UI.prototype.addHandlers  = function(){
+    var me = this;
+
+    this.children.forEach(function(el, i){
+        var clone = me.clone();
+        var fn1 = function(dx,dy) {return clone.children[i].onMouseMove(dx,dy)};
+        var fn2 = function(x,y) { return clone.children[i].onMouseDown(x,y)};
+        var fn3 = function() { return clone.children[i].onMouseUp()};
+        me.handlers.push(fn1);
+        me.handlers.push(fn2);
+        me.handlers.push(fn3);
+        if("onMouseMove" in el) {
+            me.pui.addEventHandler("move", clone, clone.children[i], fn1);
+        }
+        if("onMouseDown" in el) {
+            me.pui.addEventHandler("down", clone, clone.children[i], fn2);
+        }
+        if("onMouseUp" in el) {
+            me.pui.addEventHandler("up", clone, clone.children[i], fn3);
+        }
+    });
+};
+
+UI.prototype.draw = function (s) {
+    s.selectAll(":not(defs)").remove();
+    s.selectAll("defs *").remove();
+    s.el('desc');
+    this.sky.draw(s);
+    this.sun.draw(s);
+    this.sun2.draw(s);
+    this.grass.draw(s);
+};
+
+// return measurement probability given that event was at X,Y
+UI.prototype.measure = function (x,y, prev, name) {
+    if(name==="move" || name ==="up") {
+        return prev;
+    }
+    if(name==="down"){
+        var result = 0.01;
+        this.children.forEach(function(el)
+        {
+            if(el.ambiguous) {
+                result += el.measure(x,y,prev);
+            }
+        });
+        return result;
+    }
+
+    return 0;
+};
+
+function isUndefined(f) {
+    return typeof f() !== 'undefined';
+}
+
+UI.prototype.clone = function () {
+    var result = {};
+    //TODO: make sure this doesn't take ungodly amounts of time.
+    result = jQuery.extend(true, result, this);
+    result.pui = this.pui;
+    result.id = ID();
+    result.children = [result.sky, result.sun, result.sun2, result.grass];
+    return result;
+};
+
+var MAIN_SELECTOR = "#original";
+var ALTERNATIVES_SELECTOR = "#particles";
+// TODO: once you've figured everything out, move to module patternN
+function PUI() {
+    // Initialize the UI here
+    this.alternatives = [];
+    this.weights = [];
+    this.snaps = [];
+    this.probabilities = [];
+    this.eventHandlers = {};
+    for (var i = 0; i < N_PARTICLES; i++) {
+        var s = Snap();
+        s.attr({ viewBox: "0 0 375 500", width: 76, height: 100});
+        this.snaps.push(s);
+    }
+    var mainUI = new UI(this);
+    this.addAlternative(mainUI);
+    var addHandlers = function(dom_el, pui) {
+        var offset = $(dom_el).position();
+        var getPos = function(e) {
+            return {x: e.clientX - offset.left, y: e.clientY - offset.top};
+        };
+        var lastX = 0;
+        var lastY = 0;
+        dom_el.onmousedown = function(e) {
+            var pos = getPos(e);
+            lastX = pos.x;
+            lastY = pos.y;
+            pui.eventHandlers['down'].forEach(function(el_fn){
+                if (el_fn.fn(pos.x,pos.y,e)) {
+                    el_fn.el.setAmbiguous();
+                }
+                // TODO: gotta do something clever here about measuring...not sure what yet
+            });
+            pui.measure(pos.x, pos.y, "down");
+            pui.invalidate();
+        };
+        dom_el.onmousemove = function(e) {
+            var pos = getPos(e);
+            var dx = pos.x - lastX;
+            var dy = pos.y - lastY;
+            // TODO: I need to actually also include the object in the handler because I need to clone it.
+            pui.eventHandlers['move'].forEach(function(el_fn){
+                if (el_fn.fn(dx,dy)) {
+                    el_fn.el.setAmbiguous();
+                }
+            });
+            pui.measure(pos.x, pos.y, "move");
+            pui.invalidate();
+        };
+        dom_el.onmouseup = function() {
+            pui.eventHandlers['up'].forEach(function(el_fn){
+                if (el_fn.fn()) {
+                    el_fn.el.setAmbiguous();
+                }
+            });
+            pui.invalidate();
+        }
+    };
+    addHandlers($(MAIN_SELECTOR)[0], this);
+}
+
+PUI.prototype.addAlternative = function(ui) {
+    this.alternatives.push(ui);
+    this.weights.push(Math.random());
+    var weightSum = this.weights.reduce(function (prev, cur) {
+        return prev + cur
+    });
+    this.probabilities = this.weights.map(function (x) {
+        return x / weightSum;
+    });
+}
+
+PUI.prototype.addEventHandler = function(name, ui, el, fn) {
+    if (! (name in this.eventHandlers)) {
+        this.eventHandlers[name] = [];
+    }
+    this.eventHandlers[name].push({ui:ui, el:el, fn:fn});
+    if(this.alternatives.indexOf(ui) < 0) {
+        this.addAlternative(ui);
+    }
+
+};
+
+PUI.prototype.removeEventHandler = function(toRemove) {
+    for (var name in this.eventHandlers) {
+        this.eventHandlers[name].forEach(function(el_fn, i, handlers) {
+            if(el_fn.fn === toRemove) {
+                delete handlers[i];
+            }
+        })
+    }
+}
+
+// TODO: Should just sort the interfaces by probability every time you update
+PUI.prototype.getMostLikely = function() {
+    return this.alternatives[enumerate(this.probabilities).sort(function(a,b){return b.v - a.v})[0].i];
+};
+/**
+ * Draw the most likely interface
+ */
+PUI.prototype.drawMain = function () {
+    // draw the most likely interface
+//    this.drawFusion5(Snap(MAIN_SELECTOR));
+    this.getMostLikely().draw(Snap(MAIN_SELECTOR));
+};
+
+
+PUI.prototype.measure = function(x,y, name) {
+    var me = this;
+    this.weights = this.alternatives.map(function(alternative, i){ return alternative.measure(x,y, me.weights[i], name) });
+    var weightSum = this.weights.reduce(function (prev, cur) { return prev + cur });
+    this.probabilities = this.weights.map(function (x) { return x / weightSum; });
+    for(var j = this.probabilities.length - 1; j >= 0; j--) {
+        if(this.probabilities[j] > 0.0000001) {
+            continue;
+        }
+        this.weights.splice(j,1);
+//        this.alternatives[j].removeHandlers();
+        this.alternatives.splice(j,1);
+        this.probabilities.splice(j,1);
+    }
+};
+
+PUI.prototype.drawAlternatives = function (div_selector) {
+    var alternativesJQ = $(div_selector);
+    $(div_selector + " > div").remove();
+    var me = this;
+    this.alternatives.forEach(function (el, i) {
+        var s = me.snaps[i];
+        el.draw(s);
+        s.id = el.id;
+        alternativesJQ.append(
+            $("<div/>").append(
+                $("<div>").text(round(me.probabilities[i],2).toString()))
+                .append(s.node)
+        );
+    });
+};
+
+
+PUI.prototype.drawOverlay = function (s, useOpacity, removeDirty) {
+    // default value
+    useOpacity = typeof useOpacity !== 'undefined' ? useOpacity : false;
+    removeDirty = typeof removeDirty !== 'undefined' ? removeDirty : true;
+
+    s.attr({viewBox: "0 0 375 500"});
+    this.getMostLikely().draw(s);
+
+    var fuzedGroup = s.g().attr({class: "fuzedGroup"});
+
+    // Assumes alternatives have been drawn. Not necessary!
+    var rootDescendants = s.selectAll("*");
+    var me = this;
+    this.alternatives.forEach(function (el, i) {
+        var s2 = me.snaps[i];
+        var alternativeDescendants = s2.selectAll("*");
+        alternativeDescendants.forEach(function (el2, i2) {
+            if (el2.attr("ambiguous")) {
+                var el2s = el2.clone();
+                if(useOpacity) {
+                    el2s.attr({opacity: me.probabilities[i]});
+                }
+                fuzedGroup.append(el2s);
+                rootDescendants[i2].attr({class: "dirty"});
+            }
+        });
+    });
+    // TODO: we need to set ambiguous groups using something like an AMBIGUOUS_ID
+    var dirty = s.select(".dirty");
+    if(dirty) {
+        dirty.before(fuzedGroup);
+        if(removeDirty) {
+            dirty.remove();
+        }
+    }
+};
+
+function enumerate(a) {
+    return a.map(function(v, i){return {i:i, v:v}});
+}
+
+PUI.prototype.drawFusion4 = function(s) {
+    s.attr({viewBox: "0 0 375 500"});
+    var particleIndexWithLikelihood = enumerate(this.probabilities);
+    particleIndexWithLikelihood.sort(function(a,b){ return b.v - a.v});
+    var topN = 3;
+    var topNParticles = [];
+    this.alternatives[particleIndexWithLikelihood[0].i].draw(s);
+    for(var i = 1; i < topN + 1 && i < particleIndexWithLikelihood.length - 1; i++) {
+        var particle = this.alternatives[particleIndexWithLikelihood[i].i];
+        var s2 = this.snaps[particleIndexWithLikelihood[i].i].clone();
+        topNParticles.push(s2);
+        particle.draw(s2);
+    }
+
+    var particleGroup = s.g();
+    topNParticles.forEach(function(v,i) {
+        // g is the subgroup containing the snapshot of the possible interface
+        var g = particleGroup.g().attr({transform: "translate(" + (20 + i * 120) + ",320) scale(0.25, 0.25) "});
+        g.attr({stroke: "#ffffff", "stroke-width": "10px"});
+        // add all svg elements to this snapshot without actually adding the svg
+        for(var j = v.node.children.length - 1; j > 0; j--) {
+            g.node.insertBefore(v.node.children[j], g.node.firstChild);
+        }
+        // don't add the <svg> element intself
+        v.node.remove();
+        // add the snapshot to the particle group itself.
+        particleGroup.add(g);
+    });
+};
+
+
+
+PUI.prototype.invalidate = function() {
+    // NOTE: right now, we must draw the Alternative FIRST because of how we do fusion (using the SVGs themselves).
+    this.drawAlternatives("#particles");
+    this.drawMain();
+    this.drawFusion1(Snap("#fuzed_overlay"));
+    this.drawFusion2(Snap("#fuzed_alpha"));
+    this.drawFusion3(Snap("#fuzed_mouseover"));
+    this.drawFusion4(Snap("#fuzed_nbest"));
+};
+
+PUI.prototype.drawFusion1 = function (s) {
+    this.drawOverlay(s, false, true);
+};
+
+PUI.prototype.drawFusion2 = function (s) {
+    this.drawOverlay(s, true, true);
+};
+
+PUI.prototype.drawFusion3 = function (s) {
+    this.drawOverlay(s, true, false);
+
+    var fuzedGroup = s.select(".fuzedGroup");
+    var dirty = s.select(".dirty");
+
+    var f = s.filter(Snap.filter.blur(2, 5));
+    if(dirty) {
+        dirty.attr({filter: f});
+        fuzedGroup.attr({opacity: 0.0});
+        var animDurationMs = 100;
+        dirty.mouseover(function () {
+            dirty.animate({opacity: 0.0}, animDurationMs);
+            fuzedGroup.animate({opacity: 1.0}, animDurationMs);
+        })
+        .mouseout(function () {
+            dirty.animate({opacity: 1.0}, animDurationMs);
+            fuzedGroup.animate({opacity: 0.0}, animDurationMs);
+        });
+
+    }
+
+};
+
+PUI.prototype.drawFusion5 = function(s) {
+    this.drawOverlay(s, true, true);
+}
+
+function onLoad() {
+    var pui = new PUI();
+    pui.invalidate();
+}
+
+$(onLoad);
+
+function resetWindow() {
+    onLoad();
+}
+</script>
+</body>
+</html>
