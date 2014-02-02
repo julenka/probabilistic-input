@@ -3,9 +3,14 @@
   <component name="AnalysisUIOptions">
     <option name="SCOPE_TYPE" value="3" />
   </component>
+  <component name="BookmarkManager">
+    <bookmark url="file://$PROJECT_DIR$/experiments/ui_pf/ui_pf1.html" line="309" />
+  </component>
   <component name="ChangeListManager">
     <list default="true" id="7cf94037-4565-4c58-9e2f-584dc4778775" name="Default" comment="Kalman filter use snapsvg instead of canvas.&#10;&#10;# Please enter the commit message for your changes. Lines starting&#10;# with '#' will be ignored, and an empty message aborts the commit.&#10;# On branch master&#10;# Changes to be committed:&#10;#   (use &quot;git reset HEAD &lt;file&gt;...&quot; to unstage)&#10;#&#10;#&#9;modified:   keyboard_pf/keyboard_pf.js&#10;#&#9;modified:   keyboard_pf/particle_filter.js&#10;#&#10;">
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/experiments/svg_fusion/svg_fusion2.html" afterPath="$PROJECT_DIR$/experiments/svg_fusion/svg_fusion2.html" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/experiments/drag_demo/create_alternatives.html" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/experiments/ui_pf/ui_pf1.html" afterPath="$PROJECT_DIR$/experiments/ui_pf/ui_pf1.html" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
     </list>
     <ignored path="pi.iws" />
     <ignored path=".idea/workspace.xml" />
@@ -44,19 +49,41 @@
       <file leaf-file-name="utils.js" pinned="false" current="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/experiments/libs/utils.js">
           <provider selected="true" editor-type-id="text-editor">
-            <state line="10" column="14" selection-start="263" selection-end="263" vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="2295">
+            <state line="51" column="0" selection-start="1175" selection-end="1175" vertical-scroll-proportion="0.0" vertical-offset="270" max-vertical-offset="2295">
               <folding />
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="svg_fusion2.html" pinned="false" current="true" current-in-tab="true">
+      <file leaf-file-name="svg_fusion2.html" pinned="false" current="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/experiments/svg_fusion/svg_fusion2.html">
           <provider selected="true" editor-type-id="text-editor">
-            <state line="29" column="9" selection-start="709" selection-end="709" vertical-scroll-proportion="-5.6577415" vertical-offset="5295" max-vertical-offset="6705">
+            <state line="18" column="25" selection-start="517" selection-end="517" vertical-scroll-proportion="-5.4" vertical-offset="0" max-vertical-offset="7125">
               <folding>
-                <element signature="e#5631#5683#0" expanded="false" />
+                <element signature="e#6147#6199#0" expanded="false" />
               </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="ui_pf1.html" pinned="false" current="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/experiments/ui_pf/ui_pf1.html">
+          <provider selected="true" editor-type-id="text-editor">
+            <state line="480" column="0" selection-start="14691" selection-end="14691" vertical-scroll-proportion="-9.25" vertical-offset="6558" max-vertical-offset="7305">
+              <folding>
+                <element signature="e#13376#14687#0" expanded="false" />
+                <element signature="e#14730#15093#0" expanded="false" />
+                <element signature="e#15306#15948#0" expanded="false" />
+              </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="create_alternatives.html" pinned="false" current="true" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/experiments/drag_demo/create_alternatives.html">
+          <provider selected="true" editor-type-id="text-editor">
+            <state line="0" column="0" selection-start="0" selection-end="0" vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="8175">
+              <folding />
             </state>
           </provider>
         </entry>
@@ -93,13 +120,14 @@
         <option value="$PROJECT_DIR$/experiments/libs/snap.svg.js" />
         <option value="$PROJECT_DIR$/experiments/svg_fusion/svg_fusion1.html" />
         <option value="$PROJECT_DIR$/experiments/svg_fusion/svg_fusion2.html" />
+        <option value="$PROJECT_DIR$/experiments/ui_pf/ui_pf1.html" />
       </list>
     </option>
   </component>
   <component name="ProjectFrameBounds">
     <option name="y" value="22" />
-    <option name="width" value="1279" />
-    <option name="height" value="1414" />
+    <option name="width" value="1440" />
+    <option name="height" value="874" />
   </component>
   <component name="ProjectInspectionProfilesVisibleTreeState">
     <entry key="Project Default">
@@ -138,7 +166,7 @@
     <option name="STATE" value="0" />
   </component>
   <component name="ProjectView">
-    <navigator proportions="" version="1" splitterProportion="0.5">
+    <navigator currentView="ProjectPane" proportions="" version="1" splitterProportion="0.5">
       <flattenPackages />
       <showMembers />
       <showModules />
@@ -149,7 +177,97 @@
       <autoscrollFromSource />
       <sortByType />
     </navigator>
-    <panes />
+    <panes>
+      <pane id="ProjectPane">
+        <subPane>
+          <PATH>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="pi" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
+            </PATH_ELEMENT>
+          </PATH>
+          <PATH>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="pi" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="pi" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+          </PATH>
+          <PATH>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="pi" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="pi" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="experiments" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+          </PATH>
+          <PATH>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="pi" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="pi" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="experiments" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="ui_pf" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+          </PATH>
+          <PATH>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="pi" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="pi" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="experiments" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="svg_fusion" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+          </PATH>
+          <PATH>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="pi" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="pi" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="experiments" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="drag_demo" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+          </PATH>
+        </subPane>
+      </pane>
+      <pane id="Scope" />
+    </panes>
   </component>
   <component name="PropertiesComponent">
     <property name="WebServerToolWindowFactoryState" value="false" />
@@ -179,6 +297,12 @@
     <property name="DefaultHtmlFileTemplate" value="Html5" />
     <property name="LayoutCode.rearrangeEntriesHTML" value="false" />
     <property name="last_opened_file_path" value="$PROJECT_DIR$/experiments/libs/snap.svg.js" />
+  </component>
+  <component name="RecentsManager">
+    <key name="CopyFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$/experiments/drag_demo" />
+      <recent name="$PROJECT_DIR$/experiments/ui_pf" />
+    </key>
   </component>
   <component name="RunManager" selected="JavaScript Debug.mouse_kalman.html">
     <configuration default="false" name="mouse_kalman.html" type="JavascriptDebugType" factoryName="JavaScript Debug" singleton="true" temporary="true" uri="http://localhost:63342/pi/experiments/mouse_kalman/mouse_kalman.html">
@@ -290,15 +414,15 @@
     </todo-panel>
   </component>
   <component name="ToolWindowManager">
-    <frame x="0" y="22" width="1279" height="1414" extended-state="0" />
+    <frame x="0" y="22" width="1440" height="874" extended-state="0" />
     <editor active="true" />
     <layout>
       <window_info id="Changes" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.3286445" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Terminal" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.19052224" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.14803626" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
-      <window_info id="Find" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.31089258" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
-      <window_info id="Structure" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.21701112" sideWeight="0.4990476" order="1" side_tool="false" content_ui="tabs" />
-      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.10510689" sideWeight="0.4990476" order="0" side_tool="false" content_ui="combo" />
+      <window_info id="Find" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.2915601" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
+      <window_info id="Structure" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.19238901" sideWeight="0.4990476" order="1" side_tool="false" content_ui="tabs" />
+      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.16208598" sideWeight="0.4990476" order="0" side_tool="false" content_ui="combo" />
       <window_info id="Debug" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.2927383" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="Favorites" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.18181819" sideWeight="0.50095236" order="2" side_tool="true" content_ui="tabs" />
       <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="7" side_tool="true" content_ui="tabs" />
@@ -331,7 +455,7 @@
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
-      <option name="time" value="5" />
+      <option name="time" value="6" />
     </breakpoint-manager>
   </component>
   <component name="editorHistoryManager">
@@ -357,7 +481,7 @@
       <provider selected="true" editor-type-id="text-editor">
         <state line="315" column="19" selection-start="9077" selection-end="9077" vertical-scroll-proportion="0.0" vertical-offset="4725" max-vertical-offset="6570">
           <folding>
-            <element signature="e#5631#5683#0" expanded="false" />
+            <element signature="e#6147#6199#0" expanded="false" />
           </folding>
         </state>
       </provider>
@@ -384,7 +508,7 @@
       <provider selected="true" editor-type-id="text-editor">
         <state line="152" column="19" selection-start="4129" selection-end="4129" vertical-scroll-proportion="0.0" vertical-offset="1996" max-vertical-offset="4770">
           <folding>
-            <element signature="e#5631#5683#0" expanded="false" />
+            <element signature="e#6147#6199#0" expanded="false" />
           </folding>
         </state>
       </provider>
@@ -560,15 +684,6 @@
         <state line="0" column="0" selection-start="0" selection-end="0" vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="429" />
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/experiments/mouse_kalman/mouse_kalman.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="21" column="22" selection-start="504" selection-end="504" vertical-scroll-proportion="0.33289126" vertical-offset="64" max-vertical-offset="3855">
-          <folding>
-            <element signature="n#!!doc" expanded="false" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/experiments/mouse_kalman/mouse_kalman.css">
       <provider selected="true" editor-type-id="text-editor">
         <state line="33" column="14" selection-start="446" selection-end="446" vertical-scroll-proportion="0.6564987" vertical-offset="0" max-vertical-offset="754" />
@@ -601,15 +716,6 @@
     <entry file="file://$PROJECT_DIR$/experiments/libs/filters.js">
       <provider selected="true" editor-type-id="text-editor">
         <state line="84" column="19" selection-start="2458" selection-end="2458" vertical-scroll-proportion="0.8209549" vertical-offset="596" max-vertical-offset="1350" />
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/experiments/keyboard_pf/particle_filter.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="301" column="22" selection-start="9712" selection-end="9712" vertical-scroll-proportion="-16.26923" vertical-offset="4092" max-vertical-offset="5010">
-          <folding>
-            <element signature="n#!!doc" expanded="false" />
-          </folding>
-        </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/experiments/keyboard_pf/keyboard_pf.js">
@@ -650,9 +756,16 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/experiments/libs/utils.js">
+    <entry file="file://$PROJECT_DIR$/experiments/mouse_kalman/mouse_kalman.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="10" column="14" selection-start="263" selection-end="263" vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="2295">
+        <state line="160" column="9" selection-start="4393" selection-end="4393" vertical-scroll-proportion="0.33295584" vertical-offset="2061" max-vertical-offset="3810">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/experiments/keyboard_pf/particle_filter.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="301" column="9" selection-start="9699" selection-end="9699" vertical-scroll-proportion="0.5356473" vertical-offset="3929" max-vertical-offset="4995">
           <folding />
         </state>
       </provider>
@@ -668,12 +781,37 @@
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/experiments/libs/utils.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="51" column="0" selection-start="1175" selection-end="1175" vertical-scroll-proportion="0.0" vertical-offset="270" max-vertical-offset="2295">
+          <folding />
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/experiments/svg_fusion/svg_fusion2.html">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="29" column="9" selection-start="709" selection-end="709" vertical-scroll-proportion="-5.6577415" vertical-offset="5295" max-vertical-offset="6705">
+        <state line="18" column="25" selection-start="517" selection-end="517" vertical-scroll-proportion="-5.4" vertical-offset="0" max-vertical-offset="7125">
           <folding>
-            <element signature="e#5631#5683#0" expanded="false" />
+            <element signature="e#6147#6199#0" expanded="false" />
           </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/experiments/ui_pf/ui_pf1.html">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="480" column="0" selection-start="14691" selection-end="14691" vertical-scroll-proportion="-9.25" vertical-offset="6558" max-vertical-offset="7305">
+          <folding>
+            <element signature="e#13376#14687#0" expanded="false" />
+            <element signature="e#14730#15093#0" expanded="false" />
+            <element signature="e#15306#15948#0" expanded="false" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/experiments/drag_demo/create_alternatives.html">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="0" column="0" selection-start="0" selection-end="0" vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="8175">
+          <folding />
         </state>
       </provider>
     </entry>
