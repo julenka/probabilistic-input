@@ -11,11 +11,11 @@
     <!-- Misc Utils -->
     <script type="text/javascript" src="../libs/utils.js"></script>
     <style>
-        #original, #fuzed_overlay, #fuzed_alpha, #fuzed_mouseover, #fuzed_nbest {
+        #original {
             border: 1px solid black;
         }
 
-        #particles, #fusions {
+        #particles {
             width: 390px;
         }
 
@@ -47,9 +47,8 @@
 <body>
 <table>
     <tr>
-        <th>Main UI (drag me!)</th>
-        <th>Particles (drag the circles!)</th>
-        <th>Fusions</th>
+        <th>Interactive Area</th>
+        <th>Internal representation of interface particles (not user-visible).</th>
     </tr>
     <tr>
         <td>
@@ -59,33 +58,13 @@
             <div id="particles">
             </div>
         </td>
-        <td>
-            <div id="fusions">
-                <div class="fusions_cell">
-                    <div>Overlay</div>
-                    <svg id="fuzed_overlay" width="187px" height="250px"></svg>
-                </div>
-                <div class="fusions_cell">
-                    <div>Opacity = Probability</div>
-                    <svg id="fuzed_alpha" width="187px" height="250px"></svg>
-                </div>
-                <div class="fusions_cell">
-                    <div>Mouse Over</div>
-                    <svg id="fuzed_mouseover" width="187px" height="250px"></svg>
-                </div>
-                <div class="fusions_cell">
-                    <div>Top 3</div>
-                    <svg id="fuzed_nbest" width="187px" height="250px"></svg>
-                </div>
-            </div>
-        </td>
     </tr>
 </table>
 
 <script type="text/javascript">
 
 
-// TODO: remove this. this is just to get rid of errors about "Snap" being undeclared in Webstorm
+// This is to get rid of errors about "Snap" being undeclared in Webstorm
 var Snap;
 // http://stackoverflow.com/questions/13957354/how-to-have-foreach-available-on-pseudo-arrays-returned-by-queryselectorall
 NodeList.prototype.forEach = HTMLCollection.prototype.forEach = Array.prototype.forEach;
@@ -118,7 +97,7 @@ UIDraggableCircle.prototype = {
     draw: function(s) {
         s.el('circle', this.snap_circle);
     },
-    measure: function(x,y,prev){
+    measure: function(x,y){
         var dx = x - this.snap_circle.cx;
         var dy = y - this.snap_circle.cy;
         var d = Math.sqrt(dx * dx + dy * dy);
@@ -135,8 +114,8 @@ UIDraggableCircle.prototype = {
         var r = Math.sqrt(rx * rx + ry * ry);
         return r < this.snap_circle.r ;
     },
-    onMouseDown: function(x,y) {
-        if(this.hitTest(x,y)) {
+    onMouseDown: function(e) {
+        if(this.hitTest(e.x, e.y)) {
             this.state = "down";
             this.start_fill = this.snap_circle.fill;
             this.snap_circle.fill = "red";
@@ -146,10 +125,10 @@ UIDraggableCircle.prototype = {
         }
         return 0;
     },
-    onMouseMove: function (dx,dy) {
+    onMouseMove: function (e) {
         if(this.state === "down"){
-            this.snap_circle.cx = this.ox + dx;
-            this.snap_circle.cy = this.oy + dy;
+            this.snap_circle.cx = this.ox + e.dx;
+            this.snap_circle.cy = this.oy + e.dy;
             return 1;
         }
         return 0;
@@ -176,8 +155,6 @@ UIRectangle.prototype = {
     }
 };
 
-// UI objectr
-// TODO: make everything a module
 function UI(pui) {
     this.pui = pui;
     this.sun =  new UIDraggableCircle(100, 100, 50, "#FEDC57");
@@ -186,38 +163,36 @@ function UI(pui) {
     this.sky = new UIRectangle(0,0,UI_WIDTH, UI_HEIGHT / 2, "#00b4f0");
     this.children = [this.sky, this.sun, this.sun2, this.grass];
     this.id = ID();
-    this.handlers = [];
+    this.eventHandlers= [];
+    this.handled = false;
     this.addHandlers();
 }
 
-// call this when you are finalizing stuff
-UI.prototype.removeHandlers = function() {
-    var me = this;
-    // TODO: figure out how to remove these handlers, GAH
-    this.handlers.forEach(function(el){
-        me.pui.removeEventHandler(el);
-    });
+UI.prototype.addEventHandler = function(name, fn) {
+    if ( ! (name in this.eventHandlers)) {
+        this.eventHandlers[name] = [];
+    }
+    this.eventHandlers[name].push(fn);
 };
+
 
 UI.prototype.addHandlers  = function(){
     var me = this;
-
     this.children.forEach(function(el, i){
-        var clone = me.clone();
-        var fn1 = function(dx,dy) {return clone.children[i].onMouseMove(dx,dy)};
-        var fn2 = function(x,y) { return clone.children[i].onMouseDown(x,y)};
-        var fn3 = function() { return clone.children[i].onMouseUp()};
-        me.handlers.push(fn1);
-        me.handlers.push(fn2);
-        me.handlers.push(fn3);
+        // assume that we are executing in the right context ('this' points to the correct UI).
+        // we will be taking advantage of the 'call' method in JavaScript to set the context correctly
+        var moveFn = function(i) { return function(e) { return this.children[i].onMouseMove(e)} };
+        var downFn = function(i) { return function(e) { return this.children[i].onMouseDown(e)} };
+        var upFn = function(i) { return function(e) { return this.children[i].onMouseUp()} };
+
         if("onMouseMove" in el) {
-            me.pui.addEventHandler("move", clone, clone.children[i], fn1);
+            me.addEventHandler("move", moveFn(i));
         }
         if("onMouseDown" in el) {
-            me.pui.addEventHandler("down", clone, clone.children[i], fn2);
+            me.addEventHandler("down", downFn(i));
         }
         if("onMouseUp" in el) {
-            me.pui.addEventHandler("up", clone, clone.children[i], fn3);
+            me.addEventHandler("up", upFn(i));
         }
     });
 };
@@ -227,8 +202,8 @@ UI.prototype.draw = function (s) {
     s.selectAll("defs *").remove();
     s.el('desc');
     this.sky.draw(s);
-    this.sun.draw(s);
     this.sun2.draw(s);
+    this.sun.draw(s);
     this.grass.draw(s);
 };
 
@@ -267,14 +242,12 @@ UI.prototype.clone = function () {
 
 var MAIN_SELECTOR = "#original";
 var ALTERNATIVES_SELECTOR = "#particles";
-// TODO: once you've figured everything out, move to module patternN
 function PUI() {
     // Initialize the UI here
     this.alternatives = [];
     this.weights = [];
     this.snaps = [];
     this.probabilities = [];
-    this.eventHandlers = {};
     for (var i = 0; i < N_PARTICLES; i++) {
         var s = Snap();
         s.attr({ viewBox: "0 0 375 500", width: 76, height: 100});
@@ -282,50 +255,72 @@ function PUI() {
     }
     var mainUI = new UI(this);
     this.addAlternative(mainUI);
-    var addHandlers = function(dom_el, pui) {
+
+    var addHandlers= function(dom_el, pui) {
         var offset = $(dom_el).position();
         var getPos = function(e) {
             return {x: e.clientX - offset.left, y: e.clientY - offset.top};
         };
         var lastX = 0;
         var lastY = 0;
-        dom_el.onmousedown = function(e) {
+        var handleEvent = function(e, name) {
             var pos = getPos(e);
-            lastX = pos.x;
-            lastY = pos.y;
-            pui.eventHandlers['down'].forEach(function(el_fn){
-                if (el_fn.fn(pos.x,pos.y,e)) {
-                    el_fn.el.setAmbiguous();
-                }
-                // TODO: gotta do something clever here about measuring...not sure what yet
+            if(name === 'down') {
+                lastX = pos.x;
+                lastY = pos.y;
+            }
+            var eventToDispatch = {
+                x: pos.x,
+                y: pos.y,
+                dx: pos.x - lastX,
+                dy: pos.y - lastY,
+                name: name
+            };
+            pui.alternatives.forEach(function(alternative) {
+                // Want to clone this, and not the alternative itself because the alternative will
+                // change once it handles an event.
+                var alternativeClone = alternative.clone();
+                var handlers = alternative.eventHandlers[name];
+                handlers.forEach(function(eh){
+
+                    if (alternative.handled) {
+                        var clone = alternativeClone.clone();
+                        if(eh.call(clone, eventToDispatch)) {
+                            pui.addAlternative(clone);
+                        }
+                    } else {
+                        alternative.handled = eh.call(alternative, eventToDispatch);
+                    }
+                });
+                // reset handled bit
+                alternative.handled = 0;
             });
-            pui.measure(pos.x, pos.y, "down");
+            // TODO: MEASURE!!!
+            //            pui.measure(pos.x, pos.y, "down");
             pui.invalidate();
+        };
+
+        dom_el.onmousedown = function(e) {
+            handleEvent(e,"down");
         };
         dom_el.onmousemove = function(e) {
-            var pos = getPos(e);
-            var dx = pos.x - lastX;
-            var dy = pos.y - lastY;
-            // TODO: I need to actually also include the object in the handler because I need to clone it.
-            pui.eventHandlers['move'].forEach(function(el_fn){
-                if (el_fn.fn(dx,dy)) {
-                    el_fn.el.setAmbiguous();
-                }
-            });
-            pui.measure(pos.x, pos.y, "move");
-            pui.invalidate();
+            handleEvent(e, "move");
         };
         dom_el.onmouseup = function() {
-            pui.eventHandlers['up'].forEach(function(el_fn){
-                if (el_fn.fn()) {
-                    el_fn.el.setAmbiguous();
-                }
-            });
-            pui.invalidate();
+            // TODO: don't send a dummy event!
+            handleEvent({x:0, y:0}, "up");
         }
     };
+
     addHandlers($(MAIN_SELECTOR)[0], this);
 }
+
+PUI.prototype.reset = function() {
+    this.alternatives = [];
+    this.weights = [];
+    this.probabilities = [];
+    this.addAlternative(new UI(this));
+};
 
 PUI.prototype.addAlternative = function(ui) {
     this.alternatives.push(ui);
@@ -336,7 +331,7 @@ PUI.prototype.addAlternative = function(ui) {
     this.probabilities = this.weights.map(function (x) {
         return x / weightSum;
     });
-}
+};
 
 PUI.prototype.addEventHandler = function(name, ui, el, fn) {
     if (! (name in this.eventHandlers)) {
@@ -349,27 +344,12 @@ PUI.prototype.addEventHandler = function(name, ui, el, fn) {
 
 };
 
-PUI.prototype.removeEventHandler = function(toRemove) {
-    for (var name in this.eventHandlers) {
-        this.eventHandlers[name].forEach(function(el_fn, i, handlers) {
-            if(el_fn.fn === toRemove) {
-                delete handlers[i];
-            }
-        })
-    }
-}
-
-// TODO: Should just sort the interfaces by probability every time you update
-PUI.prototype.getMostLikely = function() {
-    return this.alternatives[enumerate(this.probabilities).sort(function(a,b){return b.v - a.v})[0].i];
-};
 /**
  * Draw the most likely interface
  */
 PUI.prototype.drawMain = function () {
     // draw the most likely interface
-//    this.drawFusion5(Snap(MAIN_SELECTOR));
-    this.getMostLikely().draw(Snap(MAIN_SELECTOR));
+    this.alternatives[0].draw(Snap(MAIN_SELECTOR));
 };
 
 
@@ -382,8 +362,8 @@ PUI.prototype.measure = function(x,y, name) {
         if(this.probabilities[j] > 0.0000001) {
             continue;
         }
+        // splice does the same thing as remove
         this.weights.splice(j,1);
-//        this.alternatives[j].removeHandlers();
         this.alternatives.splice(j,1);
         this.probabilities.splice(j,1);
     }
@@ -405,135 +385,26 @@ PUI.prototype.drawAlternatives = function (div_selector) {
     });
 };
 
-
-PUI.prototype.drawOverlay = function (s, useOpacity, removeDirty) {
-    // default value
-    useOpacity = typeof useOpacity !== 'undefined' ? useOpacity : false;
-    removeDirty = typeof removeDirty !== 'undefined' ? removeDirty : true;
-
-    s.attr({viewBox: "0 0 375 500"});
-    this.getMostLikely().draw(s);
-
-    var fuzedGroup = s.g().attr({class: "fuzedGroup"});
-
-    // Assumes alternatives have been drawn. Not necessary!
-    var rootDescendants = s.selectAll("*");
-    var me = this;
-    this.alternatives.forEach(function (el, i) {
-        var s2 = me.snaps[i];
-        var alternativeDescendants = s2.selectAll("*");
-        alternativeDescendants.forEach(function (el2, i2) {
-            if (el2.attr("ambiguous")) {
-                var el2s = el2.clone();
-                if(useOpacity) {
-                    el2s.attr({opacity: me.probabilities[i]});
-                }
-                fuzedGroup.append(el2s);
-                rootDescendants[i2].attr({class: "dirty"});
-            }
-        });
-    });
-    // TODO: we need to set ambiguous groups using something like an AMBIGUOUS_ID
-    var dirty = s.select(".dirty");
-    if(dirty) {
-        dirty.before(fuzedGroup);
-        if(removeDirty) {
-            dirty.remove();
-        }
-    }
-};
-
 function enumerate(a) {
     return a.map(function(v, i){return {i:i, v:v}});
 }
-
-PUI.prototype.drawFusion4 = function(s) {
-    s.attr({viewBox: "0 0 375 500"});
-    var particleIndexWithLikelihood = enumerate(this.probabilities);
-    particleIndexWithLikelihood.sort(function(a,b){ return b.v - a.v});
-    var topN = 3;
-    var topNParticles = [];
-    this.alternatives[particleIndexWithLikelihood[0].i].draw(s);
-    for(var i = 1; i < topN + 1 && i < particleIndexWithLikelihood.length - 1; i++) {
-        var particle = this.alternatives[particleIndexWithLikelihood[i].i];
-        var s2 = this.snaps[particleIndexWithLikelihood[i].i].clone();
-        topNParticles.push(s2);
-        particle.draw(s2);
-    }
-
-    var particleGroup = s.g();
-    topNParticles.forEach(function(v,i) {
-        // g is the subgroup containing the snapshot of the possible interface
-        var g = particleGroup.g().attr({transform: "translate(" + (20 + i * 120) + ",320) scale(0.25, 0.25) "});
-        g.attr({stroke: "#ffffff", "stroke-width": "10px"});
-        // add all svg elements to this snapshot without actually adding the svg
-        for(var j = v.node.children.length - 1; j > 0; j--) {
-            g.node.insertBefore(v.node.children[j], g.node.firstChild);
-        }
-        // don't add the <svg> element intself
-        v.node.remove();
-        // add the snapshot to the particle group itself.
-        particleGroup.add(g);
-    });
-};
-
-
 
 PUI.prototype.invalidate = function() {
     // NOTE: right now, we must draw the Alternative FIRST because of how we do fusion (using the SVGs themselves).
     this.drawAlternatives("#particles");
     this.drawMain();
-    this.drawFusion1(Snap("#fuzed_overlay"));
-    this.drawFusion2(Snap("#fuzed_alpha"));
-    this.drawFusion3(Snap("#fuzed_mouseover"));
-    this.drawFusion4(Snap("#fuzed_nbest"));
 };
-
-PUI.prototype.drawFusion1 = function (s) {
-    this.drawOverlay(s, false, true);
-};
-
-PUI.prototype.drawFusion2 = function (s) {
-    this.drawOverlay(s, true, true);
-};
-
-PUI.prototype.drawFusion3 = function (s) {
-    this.drawOverlay(s, true, false);
-
-    var fuzedGroup = s.select(".fuzedGroup");
-    var dirty = s.select(".dirty");
-
-    var f = s.filter(Snap.filter.blur(2, 5));
-    if(dirty) {
-        dirty.attr({filter: f});
-        fuzedGroup.attr({opacity: 0.0});
-        var animDurationMs = 100;
-        dirty.mouseover(function () {
-            dirty.animate({opacity: 0.0}, animDurationMs);
-            fuzedGroup.animate({opacity: 1.0}, animDurationMs);
-        })
-        .mouseout(function () {
-            dirty.animate({opacity: 1.0}, animDurationMs);
-            fuzedGroup.animate({opacity: 0.0}, animDurationMs);
-        });
-
-    }
-
-};
-
-PUI.prototype.drawFusion5 = function(s) {
-    this.drawOverlay(s, true, true);
-}
 
 function onLoad() {
-    var pui = new PUI();
+    window.pui = new PUI();
     pui.invalidate();
 }
 
 $(onLoad);
 
 function resetWindow() {
-    onLoad();
+    window.pui.reset();
+    window.pui.invalidate();
 }
 </script>
 </body>
