@@ -11,6 +11,9 @@
     <!-- Misc Utils -->
     <script type="text/javascript" src="../libs/utils.js"></script>
     <style>
+        #main {
+            width: 800px;
+        }
         #original {
             border: 1px solid black;
         }
@@ -18,11 +21,17 @@
         #particles {
             width: 390px;
         }
-
+        h1 {
+            font-family: sans-serif;
+        }
+        h4 {
+            font-weight: normal;
+            font-family: sans-serif;
+        }
         th {
             text-align: center;
             font-family: sans-serif;
-            font-size: 18pt;
+            font-size: 12pt;
         }
 
         .fusions_cell {
@@ -41,25 +50,31 @@
         body {
             text-align: center;
         }
+
     </style>
-    <title>UI PF 1</title>
+    <title>Drag Demo - Create Alternatives</title>
 </head>
 <body>
-<table>
-    <tr>
-        <th>Interactive Area</th>
-        <th>Internal representation of interface particles (not user-visible).</th>
-    </tr>
-    <tr>
-        <td>
-            <svg id="original" width="375px" height="500px" viewBox="0 0 375 500"></svg>
-        </td>
-        <td>
-            <div id="particles">
-            </div>
-        </td>
-    </tr>
-</table>
+<div id="main">
+    <h1>Drag Demo - Create Alternatives</h1>
+    <h4>Try dragging the yellow, then the orange circle. Then, press in between! Interface resets itself on mouse up.</h4>
+    <table>
+        <tr>
+            <th>Interactive Area</th>
+            <th>Internal representation of interface particles (not user-visible).</th>
+        </tr>
+        <tr>
+            <td width="375px">
+                <svg id="original" width="375px" height="500px" viewBox="0 0 375 500"></svg>
+            </td>
+            <td width="375px">
+                <div id="particles">
+                </div>
+            </td>
+        </tr>
+    </table>
+
+</div>
 
 <script type="text/javascript">
 
