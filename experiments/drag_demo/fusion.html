@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <!-- JQuery -->
+    <script type="text/javascript"  src="../libs/jquery.min.js">
+    </script>
+
+    <!-- Snap SVG library -->
+    <script type="text/javascript" src="../libs/snap.svg.js"></script>
+    <style>
+        #main {
+            width: 1125px;
+        }
+        #original,#fuzed_overlay,#fuzed_alpha,#fuzed_mouseover, #fuzed_nbest{
+            border: 1px solid black;
+        }
+        #particles, #fusions{
+            width: 390px;
+        }
+        h1 {
+             font-family: sans-serif;
+         }
+        h4 {
+            font-weight: normal;
+            font-family: sans-serif;
+        }
+        th {
+            text-align: center;
+            font-family: sans-serif;
+            font-size: 12pt;
+        }
+
+        .fusions_cell {
+            float: left;
+        }
+        .fusions_cell div {
+            text-align: center;
+            font-family: sans-serif;
+        }
+        body {
+            text-align: center;
+        }
+    </style>
+    <title>Drag Demo - Fusion</title>
+</head>
+<body>
+<div id="main">
+    <h1>Drag Demo - Fuse Alternatives</h1>
+    <h4>Given renderings of alternative interfaces, fuzes into one interface. Try dragging the circles in the interface alternatives.</h4>
+    <table>
+        <tr>
+            <th>Original</th>
+            <th>Internal representation of interface alternatives (not user-visible).</th>
+            <th>Fuzed Interfaces</th>
+        </tr>
+        <tr>
+            <td><svg id="original" width="375px" height="500px" /></td>
+            <td>
+                <div id="particles">
+                </div>
+            </td>
+            <td>
+                <div id="fusions">
+                    <div class="fusions_cell">
+                        <div>Overlay</div>
+                        <svg id="fuzed_overlay" width="187px" height="250px" />
+                    </div>
+                    <div class="fusions_cell">
+                        <div>Opacity = Probability </div>
+                        <svg id="fuzed_alpha" width="187px" height="250px" />
+                    </div>
+                    <div class="fusions_cell">
+                        <div>Mouse Over</div>
+                        <svg id="fuzed_mouseover" width="187px" height="250px" />
+                    </div>
+                    <div class="fusions_cell">
+                        <div>Top 3</div>
+                        <svg id="fuzed_nbest" width="187px" height="250px" />
+                    </div>
+                </div>
+            </td>
+        </tr>
+    </table>
+
+</div>
+
+<script type="text/javascript">
+    // http://stackoverflow.com/questions/13957354/how-to-have-foreach-available-on-pseudo-arrays-returned-by-queryselectorall
+    NodeList.prototype.forEach = HTMLCollection.prototype.forEach = Array.prototype.forEach;
+
+
+    /**
+     * @return a Snap object wrapping resultSelector, with original cloned in
+     */
+    function cloneOriginal(originalSnap, resultSelector) {
+        var fuzedJQ = $(resultSelector);
+        var clone = originalSnap.clone().attr({width: fuzedJQ.width(), height: fuzedJQ.height(), viewBox:"0 0 375 500"});
+        fuzedJQ.after(clone.node);
+        var id = fuzedJQ[0].id;
+        fuzedJQ.remove();
+        clone.attr({id: id});
+        return clone;
+    };
+
+    /**
+     *
+     * @param original Snap object of original SVG
+     * @param fuzed_id id of svg containing fuzed SVG
+     * @param particles list of SVG instances to fuse
+     */
+    function fuzeOverlay(originalSnap, fuzedSelector, particles, useAlpha, removeDirty) {
+        // Definition of default values
+        useAlpha = typeof useAlpha !== 'undefined' ? useAlpha : false;
+        removeDirty = typeof removeDirty !== 'undefined' ? removeDirty : true;
+
+        var fuzedSnap = cloneOriginal(originalSnap, fuzedSelector);
+        var fuzedJQ = $(fuzedSelector);
+        var fuzedGroup = fuzedSnap.g().attr({class: "fuzedGroup"});
+
+        // walk across particles, label in master everything that is ambiguous
+        var toFuze = particles.children();
+        var fuzedDescendants = fuzedJQ.find("*");
+        toFuze.each(function(i,v){
+            var probability = parseFloat($(v).find("desc")[0].textContent.split(":")[1]);
+            var particleDescendants = $(v).find("*");
+            particleDescendants.each(function(j,v2){
+                if(v2.className.baseVal.indexOf("ambiguous") >= 0) {
+                    var v2s = Snap(v2).clone();
+                    if(useAlpha)
+                        v2s.attr({opacity: Math.log(1 + probability) * 3});
+                    fuzedGroup.append(v2s);
+                    fuzedDescendants[j].setAttribute("class", "dirty");
+                }
+            });
+        });
+
+        // Assume for now only one part is ambiguous
+        // Remove all the dirty parts
+        var dirty = fuzedSnap.select(".dirty");
+        // Add the fuzed group before the dirty element
+        dirty.before(fuzedGroup);
+        if(removeDirty) {
+            // remove the dirty element
+            dirty.remove();
+        }
+    }
+
+    function fuzeInteractive(originalSnap, fuzedSelector, particles) {
+        fuzeOverlay(originalSnap, fuzedSelector, particles, true, false);
+        var fuzedSnap = Snap(fuzedSelector);
+        var fuzedGroup = fuzedSnap.select(".fuzedGroup");
+        var dirty = fuzedSnap.select(".dirty");
+        var f = fuzedSnap.filter(Snap.filter.blur(5, 10));
+        dirty.attr({filter: f});
+
+        fuzedGroup.attr({opacity: 0.0});
+        var animDurationMs = 100;
+        dirty.mouseover(function() {
+            dirty.animate({opacity: 0.0}, animDurationMs);
+           fuzedGroup.animate({opacity: 1.0}, animDurationMs);
+        })
+        .mouseout(function() {
+           dirty.animate({opacity: 1.0}, animDurationMs);
+           fuzedGroup.animate({opacity: 0.0}, animDurationMs);
+        });
+    }
+
+    function fuzetopN(originalSnap, fuzedSelector, particles, n) {
+        // sort particles according to their probability
+        var particleElements = particles.children();
+        var particleIndexWithLikelihood = [];
+        particleElements.each(function(i, v) {
+            var probability = parseFloat($(v).find("desc")[0].textContent.split(":")[1]);
+            particleIndexWithLikelihood.push({index: i, probability: probability});
+        });
+
+        particleIndexWithLikelihood.sort(function(a,b) {
+           return b.probability - a.probability;
+        });
+
+        var particlesToInclude = [];
+        for(var i = 0; i < n; i++) {
+            particlesToInclude.push(Snap(particleElements[particleIndexWithLikelihood[i].index]).clone());
+        }
+        var fuzedJQ = $(fuzedSelector);
+        var fuzedSnap = cloneOriginal(originalSnap, fuzedSelector);
+        var particleGroup = fuzedSnap.g();
+        particlesToInclude.forEach(function(v,i){
+            var g = particleGroup.g().attr({transform: "translate(" + (20 + i * 120) + ",320) scale(0.25, 0.25) "});
+            g.attr({stroke: "#ffffff", "stroke-width": "10px"});
+            for(var i = v.node.children.length - 1; i > 0; i--) {
+                g.node.insertBefore(v.node.children[i], g.node.firstChild);
+            }
+            v.node.remove();
+            particleGroup.add(g);
+        });
+        particleGroup.attr({transform: "translate(0, 50)"});
+    }
+
+    function fuze() {
+        var s = Snap("#original");
+        var particles = $("#particles");
+        // Step 1: fuze using just overlay, no alpha
+        fuzeOverlay(s, "#fuzed_overlay", particles);
+        // Step 2: fuze with opacity
+        fuzeOverlay(s, "#fuzed_alpha", particles, true);
+        // Step 3: When you mouseover the circle, render all values
+        fuzeInteractive(s, "#fuzed_mouseover", particles, true);
+        // step 4: Show n-best list
+        fuzetopN(s, "#fuzed_nbest", particles, 3);
+    }
+
+    function makeOriginal() {
+        var s = Snap("#original");
+        var sbb = s.node.getBoundingClientRect();
+        s.rect(0,0,sbb.width,sbb.height/2).attr({fill:"#00b4f0"});
+        s.circle(100,100,50).attr({fill: "#FEDC57"});
+        s.rect(0,sbb.height/2,sbb.width,sbb.height/2).attr({fill:"#77cc33"});
+    }
+
+    function makeParticles() {
+        var s = Snap("#original");
+        var particles = $("#particles");
+        var numParticles = 20;
+
+        var particleWeights = []
+        for(var i = 0; i < numParticles; i++){
+            var dx =  i * 375 / numParticles - 100;
+            var dy = 250 - 250 * Math.sin(i / numParticles * (Math.PI)) - 100;
+            var dst = Math.sqrt(dx * dx + dy * dy);
+            particleWeights.push(1/dst);
+        }
+        var weightSum = particleWeights.reduce(function(prev,cur,index,array){ return prev + cur });
+
+        for(var i = 0; i < numParticles; i++) {
+            var id = "particle-" + i;
+            var clone = s.clone().attr({id: id, viewBox:"0 0 375 500",width:76, height: 100});
+            var probability = particleWeights[i] / weightSum;
+            clone.select("desc").node.textContent = "probability: " + probability;
+            var ambiguous = clone.select("circle");
+            ambiguous.attr({class: "ambiguous", cx: i * 375 / numParticles, cy: 250 - 250 * Math.sin(i / numParticles * (Math.PI))});
+            ambiguous.drag();
+            eve.on('snap.drag.end.' + ambiguous.id, function() {
+                fuze();
+            });
+            particles.append(clone.node);
+        }
+    }
+
+    function onLoad() {
+        makeOriginal();
+        makeParticles();
+        fuze();
+    }
+
+    $(onLoad);
+
+</script>
+</body>
+</html>
