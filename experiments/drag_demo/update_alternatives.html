@@ -180,7 +180,7 @@ UI.prototype.measure = function (x,y, prev, name) {
     var dy = y - this.sun.snap_circle.cy;
     var d = Math.sqrt(dx * dx + dy * dy);
     if (name === "down") {
-        if (d > this.sun.snap_circle * 1.5) return prev;
+        if (d > this.sun.snap_circle * 1.5) return 0;
         return Math.gaussian(0, this.sun.snap_circle.r * 2, d);
     } else if (name === "move") {
         return prev;
