@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <!-- JQuery -->
+    <script type="text/javascript" src="../libs/jquery.js">
+    </script>
+
+    <!-- Snap SVG library -->
+    <script type="text/javascript" src="../libs/snap.svg.js"></script>
+
+    <!-- Misc Utils -->
+    <script type="text/javascript" src="../libs/utils.js"></script>
+    <style>
+        #main {
+            width: 1125px;
+        }
+        #original,#fuzed_overlay,#fuzed_alpha,#fuzed_mouseover, #fuzed_nbest{
+            border: 1px solid black;
+        }
+        #particles, #fusions{
+            width: 390px;
+        }
+        h1 {
+            font-family: sans-serif;
+        }
+        h4 {
+            font-weight: normal;
+            font-family: sans-serif;
+        }
+        th {
+            text-align: center;
+            font-family: sans-serif;
+            font-size: 12pt;
+        }
+
+        .fusions_cell {
+            float: left;
+        }
+        #particles > div {
+            float: left;
+        }
+        .fusions_cell  div {
+            text-align: center;
+            font-family: sans-serif;
+        }
+        body {
+            text-align: center;
+        }
+    </style>
+    <title>Drag Demo - Update Alternatives</title>
+</head>
+<body>
+<div id="main">
+    <h1>Drag Demo - Update Alternatives</h1>
+    <h4>As new input events arrive, these get sent to interface alternatives, which update accordingly. Only the circles underneath the mouse position get dragged.</h4>
+    <table>
+        <tr>
+            <th>Interactive Area</th>
+            <th>Internal representation of interface alternatives (not user-visible).</th>
+        </tr>
+        <tr>
+            <td>
+                <svg id="original" width="375px" height="500px" viewBox="0 0 375 500"></svg>
+            </td>
+            <td>
+                <div id="particles">
+                </div>
+            </td>
+        </tr>
+    </table>
+
+</div>
+
+<script type="text/javascript">
+
+
+// TODO: remove this. this is just to get rid of errors about "Snap" being undeclared in Webstorm
+var Snap;
+// http://stackoverflow.com/questions/13957354/how-to-have-foreach-available-on-pseudo-arrays-returned-by-queryselectorall
+NodeList.prototype.forEach = HTMLCollection.prototype.forEach = Array.prototype.forEach;
+
+// eugh, a global :(
+N_PARTICLES = 10;
+
+// These units must (for now) match what is in the original SVG
+UI_WIDTH = 375;
+UI_HEIGHT = 500;
+
+
+idgen = 0;
+// toString(36) converts number to base 36
+idprefix = "S" + (+new Date).toString(36);
+
+/**
+ * @return String id
+ */
+function ID() {
+    return idprefix + (idgen++).toString(36);
+}
+
+UIDraggableCircle = function(cx, cy, r, fill) {
+    this.snap_circle = {cx: cx, cy: cy, r: r, fill: fill};
+    this.state = "start";
+};
+
+UIDraggableCircle.prototype = {
+    draw: function(s) {
+        s.el('circle', this.snap_circle);
+    },
+
+    hitTest: function(x,y) {
+        var rx = x - this.snap_circle.cx;
+        var ry = y - this.snap_circle.cy;
+        var r = Math.sqrt(rx * rx + ry * ry);
+        return r < this.snap_circle.r ;
+    },
+    onMouseDown: function(x,y) {
+        if(this.hitTest(x,y)) {
+            this.state = "down";
+            this.start_fill = this.snap_circle.fill;
+            this.snap_circle.fill = "red";
+            this.ox = this.snap_circle.cx;
+            this.oy = this.snap_circle.cy;
+            return 1;
+        }
+        return 0;
+    },
+    onMouseMove: function (dx,dy) {
+        if(this.state === "down"){
+            this.snap_circle.cx = this.ox + dx;
+            this.snap_circle.cy = this.oy + dy;
+            return 1;
+        }
+        return 0;
+    },
+    onMouseUp: function() {
+        if(this.state === "down") {
+            this.state = "start";
+            this.snap_circle.fill = this.start_fill;
+            return 1;
+        }
+        return 0;
+    }
+};
+
+
+UIRectangle = function(x,y,width,height,fill) {
+    this.snap_rect = {x:x, y:y, width: width, height: height, fill: fill};
+
+};
+UIRectangle.prototype = {
+    draw: function(s) {
+        s.el('rect', this.snap_rect);
+    }
+};
+
+// UI objectr
+// TODO: make everything a module
+function UI(snap) {
+    this.sun =  new UIDraggableCircle(100, 100, 50, "#FEDC57");
+    this.grass = new UIRectangle(0,UI_HEIGHT/2, UI_WIDTH, UI_HEIGHT / 2, "#77cc33");
+    this.sky = new UIRectangle(0,0,UI_WIDTH, UI_HEIGHT / 2, "#00b4f0");
+    this.children = [this.sky, this.sun, this.grass];
+    this.id = ID();
+    this.snap = snap;
+}
+
+UI.prototype.draw = function (s) {
+    s.selectAll(":not(defs)").remove();
+    s.selectAll("defs *").remove();
+    s.el('desc');
+    this.sky.draw(s);
+    this.sun.draw(s);
+    this.grass.draw(s);
+};
+
+// return measurement probability given that event was at X,Y
+UI.prototype.measure = function (x,y, prev, name) {
+    var dx = x - this.sun.snap_circle.cx;
+    var dy = y - this.sun.snap_circle.cy;
+    var d = Math.sqrt(dx * dx + dy * dy);
+    if (name === "down") {
+        if (d > this.sun.snap_circle * 1.5) return prev;
+        return Math.gaussian(0, this.sun.snap_circle.r * 2, d);
+    } else if (name === "move") {
+        return prev;
+    } else if (name === "up") {
+        return prev;
+    }
+    return 0;
+};
+
+UI.prototype.onMouseDown = function (x,y,e) {
+    //noinspection FunctionWithInconsistentReturnsJS
+    this.children.forEach(function(el) {
+       if(typeof el.onMouseDown !== 'undefined') {
+           return el.onMouseDown(x,y,e);
+       }
+    });
+    return 0;
+};
+
+UI.prototype.onMouseMove = function (dx,dy,x,y,e) {
+    // TODO: should I have an element that's 'in focus'?
+    //noinspection FunctionWithInconsistentReturnsJS
+    this.children.forEach(function(el) {
+        if(typeof el.onMouseMove !== 'undefined') {
+            return el.onMouseMove(dx,dy,x,y,e);
+        }
+    });
+    return 0;
+};
+function isUndefined(f) {
+    return typeof f() !== 'undefined';
+}
+UI.prototype.onMouseUp = function (e) {
+    // TODO: should I have an element that's 'in focus'?
+    //noinspection FunctionWithInconsistentReturnsJS
+    this.children.forEach(function(el){
+       if( typeof el.onMouseUp !== 'undefined') {
+           return el.onMouseUp(e);
+       }
+    });
+    return 0;
+};
+
+UI.prototype.clone = function () {
+    var result = {};
+    result = jQuery.extend(true, result, this);
+    result.id = ID();
+    result.children = [result.sky, result.sun, result.grass];
+    return result;
+};
+
+var MAIN_SELECTOR = "#original";
+var ALTERNATIVES_SELECTOR = "#particles";
+// TODO: once you've figured everything out, move to module patternN
+function PUI() {
+    // Initialize the UI here
+    this.alternatives = [];
+    this.weights = [];
+    this.snaps = [];
+    this.probabilities = [];
+    for (var i = 0; i < N_PARTICLES; i++) {
+        var s = Snap();
+        var clone = new UI(s);
+
+        // TODO: probably should have alternatives be of form {alt: v, ui:v, prob:v...} instead of separate arrays...
+        s.attr({id: clone.id, viewBox: "0 0 375 500", width: 76, height: 100});
+        this.snaps.push(s);
+        clone.snap = undefined;
+        clone.sun.snap_circle.cx = i * 375 / N_PARTICLES;
+        clone.sun.snap_circle.cy = 250 - 250 * Math.sin(i / N_PARTICLES * (Math.PI));
+        clone.sun.snap_circle.ambiguous = true;
+        this.alternatives.push(clone);
+        // todo: change the location of the circle here and update the weight
+        this.weights.push(Math.random());
+    }
+    var weightSum = this.weights.reduce(function (prev, cur) {
+        return prev + cur
+    });
+    this.probabilities = this.weights.map(function (x) {
+        return x / weightSum;
+    });
+    var addHandlers = function(dom_el, pui) {
+        var offset = $(dom_el).position();
+        var getPos = function(e) {
+            return {x: e.clientX - offset.left, y: e.clientY - offset.top};
+        };
+        var lastX = 0;
+        var lastY = 0;
+        dom_el.onmousedown = function(e) {
+            var pos = getPos(e);
+            lastX = pos.x;
+            lastY = pos.y;
+            pui.alternatives.forEach(function(el){
+                el.onMouseDown(pos.x,pos.y,e);
+            });
+            pui.measure(pos.x, pos.y, "down");
+            pui.invalidate();
+        };
+        dom_el.onmousemove = function(e) {
+            var pos = getPos(e);
+            var dx = pos.x - lastX;
+            var dy = pos.y - lastY;
+            pui.alternatives.forEach(function(el){
+                el.onMouseMove(dx, dy,pos.x,pos.y,e);
+            });
+            pui.measure(pos.x, pos.y, "move");
+            pui.invalidate();
+        };
+        dom_el.onmouseup = function() {
+            pui.alternatives.forEach(function(el){
+                el.onMouseUp();
+            });
+            pui.invalidate();
+        }
+    };
+    addHandlers($(MAIN_SELECTOR)[0], this);
+}
+
+// TODO: Should just sort the interfaces by probability every time you update
+PUI.prototype.getMostLikely = function() {
+    return this.alternatives[enumerate(this.probabilities).sort(function(a,b){return b.v - a.v})[0].i];
+};
+/**
+ * Draw the most likely interface
+ */
+PUI.prototype.drawMain = function () {
+    // draw the most likely interface
+    this.getMostLikely().draw(Snap(MAIN_SELECTOR));
+};
+
+PUI.prototype.measure = function(x,y, name) {
+    var me = this;
+    this.weights = this.alternatives.map(function(alternative, i){ return alternative.measure(x,y, me.weights[i], name) });
+    var weightSum = this.weights.reduce(function (prev, cur) { return prev + cur });
+    this.probabilities = this.weights.map(function (x) { return x / weightSum; });
+};
+
+PUI.prototype.drawAlternatives = function (div_selector) {
+    var alternativesJQ = $(div_selector);
+    $(div_selector + " > div").remove();
+    var me = this;
+    this.alternatives.forEach(function (el, i) {
+        var s = me.snaps[i];
+        el.draw(s);
+        alternativesJQ.append(
+            $("<div/>").append(
+                $("<div>").text(round(me.probabilities[i],2).toString()))
+                .append(s.node)
+        );
+    });
+};
+
+function enumerate(a) {
+    return a.map(function(v, i){return {i:i, v:v}});
+}
+
+PUI.prototype.drawFusion4 = function(s) {
+    s.attr({viewBox: "0 0 375 500"});
+    var particleIndexWithLikelihood = enumerate(this.probabilities);
+    particleIndexWithLikelihood.sort(function(a,b){ return b.v - a.v});
+    var topN = 3;
+    var topNParticles = [];
+    this.alternatives[particleIndexWithLikelihood[0].i].draw(s);
+    for(var i = 1; i < topN + 1; i++) {
+        var particle = this.alternatives[particleIndexWithLikelihood[i].i];
+        var s2 = Snap("#" + particle.id).clone();
+        topNParticles.push(s2);
+        particle.draw(s2);
+    }
+
+    var particleGroup = s.g();
+    topNParticles.forEach(function(v,i) {
+        // g is the subgroup containing the snapshot of the possible interface
+        var g = particleGroup.g().attr({transform: "translate(" + (20 + i * 120) + ",320) scale(0.25, 0.25) "});
+        g.attr({stroke: "#ffffff", "stroke-width": "10px"});
+        // add all svg elements to this snapshot without actually adding the svg
+        for(var j = v.node.children.length - 1; j > 0; j--) {
+            g.node.insertBefore(v.node.children[j], g.node.firstChild);
+        }
+        // don't add the <svg> element intself
+        v.node.remove();
+        // add the snapshot to the particle group itself.
+        particleGroup.add(g);
+    });
+};
+
+
+
+PUI.prototype.invalidate = function() {
+    // NOTE: right now, we must draw the Alternative FIRST because of how we do fusion (using the SVGs themselves).
+    this.drawAlternatives("#particles");
+    this.drawMain();
+};
+
+function onLoad() {
+    var pui = new PUI();
+    pui.invalidate();
+}
+
+$(onLoad);
+
+</script>
+</body>
+</html>
