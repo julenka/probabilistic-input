@@ -4,12 +4,13 @@
     <option name="SCOPE_TYPE" value="3" />
   </component>
   <component name="BookmarkManager">
-    <bookmark url="file://$PROJECT_DIR$/experiments/ui_pf/ui_pf1.html" line="309" />
+    <bookmark url="file://$PROJECT_DIR$/experiments/drag_demo/create_alternatives.html" line="193" />
+    <bookmark url="file://$PROJECT_DIR$/experiments/drag_demo/create_alternatives.html" line="293" />
   </component>
   <component name="ChangeListManager">
     <list default="true" id="7cf94037-4565-4c58-9e2f-584dc4778775" name="Default" comment="Kalman filter use snapsvg instead of canvas.&#10;&#10;# Please enter the commit message for your changes. Lines starting&#10;# with '#' will be ignored, and an empty message aborts the commit.&#10;# On branch master&#10;# Changes to be committed:&#10;#   (use &quot;git reset HEAD &lt;file&gt;...&quot; to unstage)&#10;#&#10;#&#9;modified:   keyboard_pf/keyboard_pf.js&#10;#&#9;modified:   keyboard_pf/particle_filter.js&#10;#&#10;">
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/experiments/drag_demo/create_alternatives.html" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/experiments/ui_pf/ui_pf1.html" afterPath="$PROJECT_DIR$/experiments/ui_pf/ui_pf1.html" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/experiments/drag_demo/create_alternatives.html" afterPath="$PROJECT_DIR$/experiments/drag_demo/create_alternatives.html" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/experiments/drag_demo/update_alternatives.html" afterPath="$PROJECT_DIR$/experiments/drag_demo/update_alternatives.html" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
     </list>
     <ignored path="pi.iws" />
@@ -33,56 +34,10 @@
   </component>
   <component name="FileEditorManager">
     <leaf>
-      <file leaf-file-name="snap.svg.js" pinned="false" current="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/experiments/libs/snap.svg.js">
-          <provider selected="true" editor-type-id="text-editor">
-            <state line="762" column="8" selection-start="23334" selection-end="23338" vertical-scroll-proportion="0.0" vertical-offset="10687" max-vertical-offset="48975">
-              <folding>
-                <element signature="e#23353#135110#0" expanded="false" />
-                <element signature="e#67439#96781#0" expanded="false" />
-                <element signature="e#97111#97669#0" expanded="false" />
-              </folding>
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="utils.js" pinned="false" current="false" current-in-tab="false">
+      <file leaf-file-name="utils.js" pinned="false" current="true" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/experiments/libs/utils.js">
           <provider selected="true" editor-type-id="text-editor">
-            <state line="51" column="0" selection-start="1175" selection-end="1175" vertical-scroll-proportion="0.0" vertical-offset="270" max-vertical-offset="2295">
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="svg_fusion2.html" pinned="false" current="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/experiments/svg_fusion/svg_fusion2.html">
-          <provider selected="true" editor-type-id="text-editor">
-            <state line="18" column="25" selection-start="517" selection-end="517" vertical-scroll-proportion="-5.4" vertical-offset="0" max-vertical-offset="7125">
-              <folding>
-                <element signature="e#6147#6199#0" expanded="false" />
-              </folding>
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="ui_pf1.html" pinned="false" current="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/experiments/ui_pf/ui_pf1.html">
-          <provider selected="true" editor-type-id="text-editor">
-            <state line="480" column="0" selection-start="14691" selection-end="14691" vertical-scroll-proportion="-9.25" vertical-offset="6558" max-vertical-offset="7305">
-              <folding>
-                <element signature="e#13376#14687#0" expanded="false" />
-                <element signature="e#14730#15093#0" expanded="false" />
-                <element signature="e#15306#15948#0" expanded="false" />
-              </folding>
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="create_alternatives.html" pinned="false" current="true" current-in-tab="true">
-        <entry file="file://$PROJECT_DIR$/experiments/drag_demo/create_alternatives.html">
-          <provider selected="true" editor-type-id="text-editor">
-            <state line="0" column="0" selection-start="0" selection-end="0" vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="8175">
+            <state line="41" column="17" selection-start="920" selection-end="920" vertical-scroll-proportion="0.4563492" vertical-offset="270" max-vertical-offset="2295">
               <folding />
             </state>
           </provider>
@@ -121,6 +76,9 @@
         <option value="$PROJECT_DIR$/experiments/svg_fusion/svg_fusion1.html" />
         <option value="$PROJECT_DIR$/experiments/svg_fusion/svg_fusion2.html" />
         <option value="$PROJECT_DIR$/experiments/ui_pf/ui_pf1.html" />
+        <option value="$PROJECT_DIR$/experiments/drag_demo/fusion.html" />
+        <option value="$PROJECT_DIR$/experiments/drag_demo/update_alternatives.html" />
+        <option value="$PROJECT_DIR$/experiments/drag_demo/create_alternatives.html" />
       </list>
     </option>
   </component>
@@ -414,15 +372,14 @@
     </todo-panel>
   </component>
   <component name="ToolWindowManager">
-    <frame x="0" y="22" width="1440" height="874" extended-state="0" />
+    <frame x="0" y="22" width="1440" height="874" extended-state="6" />
     <editor active="true" />
     <layout>
       <window_info id="Changes" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.3286445" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Terminal" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.19052224" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.14803626" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
-      <window_info id="Find" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.2915601" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
-      <window_info id="Structure" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.19238901" sideWeight="0.4990476" order="1" side_tool="false" content_ui="tabs" />
-      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.16208598" sideWeight="0.4990476" order="0" side_tool="false" content_ui="combo" />
+      <window_info id="Structure" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.19238901" sideWeight="0.4990476" order="1" side_tool="false" content_ui="tabs" />
+      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.16208598" sideWeight="0.4990476" order="0" side_tool="false" content_ui="combo" />
       <window_info id="Debug" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.2927383" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="Favorites" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.18181819" sideWeight="0.50095236" order="2" side_tool="true" content_ui="tabs" />
       <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="7" side_tool="true" content_ui="tabs" />
@@ -430,11 +387,12 @@
       <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.21028744" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Cvs" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="4" side_tool="false" content_ui="tabs" />
       <window_info id="Message" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
+      <window_info id="Find" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.2915601" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Ant Build" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Messages" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.3286445" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Commander" active="false" anchor="right" auto_hide="false" internal_type="SLIDING" type="SLIDING" visible="false" weight="0.4" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
-      <window_info id="Hierarchy" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="2" side_tool="false" content_ui="combo" />
       <window_info id="Inspection" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.23657289" sideWeight="0.5" order="5" side_tool="false" content_ui="tabs" />
+      <window_info id="Hierarchy" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="2" side_tool="false" content_ui="combo" />
     </layout>
   </component>
   <component name="Vcs.Log.UiProperties">
@@ -459,98 +417,55 @@
     </breakpoint-manager>
   </component>
   <component name="editorHistoryManager">
-    <entry file="file://$PROJECT_DIR$/experiments/libs/snap.svg.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="2213" column="21" selection-start="67420" selection-end="67440" vertical-scroll-proportion="0.0" vertical-offset="33195" max-vertical-offset="103950">
-          <folding>
-            <element signature="e#23353#135110#0" expanded="false" />
-            <element signature="e#67439#96781#0" expanded="false" />
-            <element signature="e#97111#97669#0" expanded="false" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/experiments/svg_fusion/svg_fusion1.html">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="147" column="11" selection-start="5184" selection-end="5184" vertical-scroll-proportion="0.0" vertical-offset="1870" max-vertical-offset="3750">
-          <folding />
-        </state>
+        <state line="147" column="11" selection-start="5184" selection-end="5184" vertical-scroll-proportion="0.0" vertical-offset="1870" max-vertical-offset="3750" />
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/experiments/svg_fusion/svg_fusion2.html">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="315" column="19" selection-start="9077" selection-end="9077" vertical-scroll-proportion="0.0" vertical-offset="4725" max-vertical-offset="6570">
-          <folding>
-            <element signature="e#6147#6199#0" expanded="false" />
-          </folding>
-        </state>
+        <state line="315" column="19" selection-start="9077" selection-end="9077" vertical-scroll-proportion="0.0" vertical-offset="4725" max-vertical-offset="6570" />
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/experiments/libs/snap.svg.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="3223" column="8" selection-start="99482" selection-end="99482" vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="103950">
-          <folding>
-            <element signature="e#23353#135110#0" expanded="false" />
-            <element signature="e#67439#96781#0" expanded="false" />
-            <element signature="e#97111#97669#0" expanded="false" />
-          </folding>
-        </state>
+        <state line="3223" column="8" selection-start="99482" selection-end="99482" vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="103950" />
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/experiments/svg_fusion/svg_fusion1.html">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="147" column="11" selection-start="5184" selection-end="5184" vertical-scroll-proportion="0.0" vertical-offset="1910" max-vertical-offset="3750">
-          <folding />
-        </state>
+        <state line="147" column="11" selection-start="5184" selection-end="5184" vertical-scroll-proportion="0.0" vertical-offset="1910" max-vertical-offset="3750" />
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/experiments/svg_fusion/svg_fusion2.html">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="152" column="19" selection-start="4129" selection-end="4129" vertical-scroll-proportion="0.0" vertical-offset="1996" max-vertical-offset="4770">
-          <folding>
-            <element signature="e#6147#6199#0" expanded="false" />
-          </folding>
-        </state>
+        <state line="152" column="19" selection-start="4129" selection-end="4129" vertical-scroll-proportion="0.0" vertical-offset="1996" max-vertical-offset="4770" />
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/experiments/libs/snap.svg.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="2694" column="35" selection-start="82163" selection-end="82163" vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="103950">
-          <folding>
-            <element signature="e#23353#135110#0" expanded="false" />
-            <element signature="e#67439#96781#0" expanded="false" />
-            <element signature="e#97111#97669#0" expanded="false" />
-          </folding>
-        </state>
+        <state line="2694" column="35" selection-start="82163" selection-end="82163" vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="103950" />
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/experiments/svg_fusion/svg_fusion1.html">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="114" column="48" selection-start="3977" selection-end="3977" vertical-scroll-proportion="0.0" vertical-offset="1995" max-vertical-offset="3750">
-          <folding />
-        </state>
+        <state line="114" column="48" selection-start="3977" selection-end="3977" vertical-scroll-proportion="0.0" vertical-offset="1995" max-vertical-offset="3750" />
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/experiments/keyboard_pf/keyboard_pf.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="144" column="25" selection-start="4310" selection-end="4310" vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="3000">
-          <folding />
-        </state>
+        <state line="144" column="25" selection-start="4310" selection-end="4310" vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="3000" />
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/experiments/keyboard_pf/keyboard_pf.css">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="25" column="0" selection-start="280" selection-end="280" vertical-scroll-proportion="0.0" vertical-offset="375" max-vertical-offset="1665">
-          <folding />
-        </state>
+        <state line="25" column="0" selection-start="280" selection-end="280" vertical-scroll-proportion="0.0" vertical-offset="375" max-vertical-offset="1665" />
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/experiments/keyboard_pf/particle_filter.js">
       <provider selected="true" editor-type-id="text-editor">
         <state line="190" column="0" selection-start="6208" selection-end="6208" vertical-scroll-proportion="0.0" vertical-offset="15" max-vertical-offset="5010">
-          <folding>
-            <element signature="n#!!doc" expanded="false" />
-          </folding>
+          <folding />
         </state>
       </provider>
     </entry>
@@ -566,24 +481,18 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/experiments/keyboard_pf/keyboard_pf.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="144" column="25" selection-start="4254" selection-end="4254" vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="2850">
-          <folding />
-        </state>
+        <state line="144" column="25" selection-start="4254" selection-end="4254" vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="2850" />
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/experiments/keyboard_pf/keyboard_pf.css">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="69" column="5" selection-start="800" selection-end="800" vertical-scroll-proportion="0.0" vertical-offset="641" max-vertical-offset="1395">
-          <folding />
-        </state>
+        <state line="69" column="5" selection-start="800" selection-end="800" vertical-scroll-proportion="0.0" vertical-offset="641" max-vertical-offset="1395" />
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/experiments/keyboard_pf/particle_filter.js">
       <provider selected="true" editor-type-id="text-editor">
         <state line="278" column="2" selection-start="8893" selection-end="8893" vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="4335">
-          <folding>
-            <element signature="n#!!doc" expanded="false" />
-          </folding>
+          <folding />
         </state>
       </provider>
     </entry>
@@ -594,24 +503,18 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/experiments/keyboard_pf/keyboard_pf.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="122" column="0" selection-start="3717" selection-end="3717" vertical-scroll-proportion="0.0" vertical-offset="1830" max-vertical-offset="2850">
-          <folding />
-        </state>
+        <state line="122" column="0" selection-start="3717" selection-end="3717" vertical-scroll-proportion="0.0" vertical-offset="1830" max-vertical-offset="2850" />
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/experiments/keyboard_pf/keyboard_pf.css">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="69" column="5" selection-start="800" selection-end="800" vertical-scroll-proportion="0.0" vertical-offset="641" max-vertical-offset="1395">
-          <folding />
-        </state>
+        <state line="69" column="5" selection-start="800" selection-end="800" vertical-scroll-proportion="0.0" vertical-offset="641" max-vertical-offset="1395" />
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/experiments/keyboard_pf/particle_filter.js">
       <provider selected="true" editor-type-id="text-editor">
         <state line="290" column="10" selection-start="9350" selection-end="9350" vertical-scroll-proportion="0.0" vertical-offset="4350" max-vertical-offset="4740">
-          <folding>
-            <element signature="n#!!doc" expanded="false" />
-          </folding>
+          <folding />
         </state>
       </provider>
     </entry>
@@ -622,24 +525,18 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/experiments/keyboard_pf/keyboard_pf.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="60" column="32" selection-start="1917" selection-end="1917" vertical-scroll-proportion="0.0" vertical-offset="397" max-vertical-offset="2820">
-          <folding />
-        </state>
+        <state line="60" column="32" selection-start="1917" selection-end="1917" vertical-scroll-proportion="0.0" vertical-offset="397" max-vertical-offset="2820" />
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/experiments/keyboard_pf/keyboard_pf.css">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="69" column="5" selection-start="800" selection-end="800" vertical-scroll-proportion="0.0" vertical-offset="641" max-vertical-offset="1395">
-          <folding />
-        </state>
+        <state line="69" column="5" selection-start="800" selection-end="800" vertical-scroll-proportion="0.0" vertical-offset="641" max-vertical-offset="1395" />
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/experiments/keyboard_pf/particle_filter.js">
       <provider selected="true" editor-type-id="text-editor">
         <state line="142" column="42" selection-start="4699" selection-end="4699" vertical-scroll-proportion="0.0" vertical-offset="1654" max-vertical-offset="4710">
-          <folding>
-            <element signature="n#!!doc" expanded="false" />
-          </folding>
+          <folding />
         </state>
       </provider>
     </entry>
@@ -655,11 +552,7 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/experiments/mouse_kalman/mouse_kalman.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="24" column="14" selection-start="533" selection-end="533" vertical-scroll-proportion="0.0" vertical-offset="45" max-vertical-offset="4050">
-          <folding>
-            <element signature="n#!!doc" expanded="false" />
-          </folding>
-        </state>
+        <state line="24" column="14" selection-start="533" selection-end="533" vertical-scroll-proportion="0.0" vertical-offset="45" max-vertical-offset="4050" />
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/experiments/mouse_kalman/mouse_kalman.css">
@@ -708,9 +601,7 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/experiments/keyboard_pf/keyboard_pf.css">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="25" column="0" selection-start="280" selection-end="280" vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="1665">
-          <folding />
-        </state>
+        <state line="25" column="0" selection-start="280" selection-end="280" vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="1665" />
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/experiments/libs/filters.js">
@@ -720,9 +611,7 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/experiments/keyboard_pf/keyboard_pf.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="144" column="25" selection-start="4310" selection-end="4310" vertical-scroll-proportion="0.0" vertical-offset="2017" max-vertical-offset="3000">
-          <folding />
-        </state>
+        <state line="144" column="25" selection-start="4310" selection-end="4310" vertical-scroll-proportion="0.0" vertical-offset="2017" max-vertical-offset="3000" />
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/experiments/keyboard_pf/keyboard_pf.html">
@@ -732,9 +621,7 @@
     </entry>
     <entry file="jar://$APPLICATION_HOME_DIR$/plugins/JavaScriptLanguage/lib/JavaScriptLanguage.jar!/com/intellij/lang/javascript/index/predefined/DOMCore.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="518" column="15" selection-start="9047" selection-end="9047" vertical-scroll-proportion="0.33333334" vertical-offset="7468" max-vertical-offset="16200">
-          <folding />
-        </state>
+        <state line="518" column="15" selection-start="9047" selection-end="9047" vertical-scroll-proportion="0.33333334" vertical-offset="7468" max-vertical-offset="16200" />
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/experiments/sandbox.html">
@@ -751,16 +638,12 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/experiments/svg_fusion/svg_fusion1.html">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="87" column="6" selection-start="2733" selection-end="2733" vertical-scroll-proportion="0.33333334" vertical-offset="1023" max-vertical-offset="3750">
-          <folding />
-        </state>
+        <state line="87" column="6" selection-start="2733" selection-end="2733" vertical-scroll-proportion="0.33333334" vertical-offset="1023" max-vertical-offset="3750" />
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/experiments/mouse_kalman/mouse_kalman.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="160" column="9" selection-start="4393" selection-end="4393" vertical-scroll-proportion="0.33295584" vertical-offset="2061" max-vertical-offset="3810">
-          <folding />
-        </state>
+        <state line="160" column="9" selection-start="4393" selection-end="4393" vertical-scroll-proportion="0.33295584" vertical-offset="2061" max-vertical-offset="3810" />
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/experiments/keyboard_pf/particle_filter.js">
@@ -772,45 +655,39 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/experiments/libs/snap.svg.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="762" column="8" selection-start="23334" selection-end="23338" vertical-scroll-proportion="0.0" vertical-offset="10687" max-vertical-offset="48975">
-          <folding>
-            <element signature="e#23353#135110#0" expanded="false" />
-            <element signature="e#67439#96781#0" expanded="false" />
-            <element signature="e#97111#97669#0" expanded="false" />
-          </folding>
+        <state line="762" column="8" selection-start="23334" selection-end="23338" vertical-scroll-proportion="0.0" vertical-offset="10687" max-vertical-offset="48975" />
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/experiments/ui_pf/ui_pf1.html">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="474" column="0" selection-start="14555" selection-end="14555" vertical-scroll-proportion="-9.25" vertical-offset="6483" max-vertical-offset="7305" />
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/experiments/drag_demo/fusion.html">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="52" column="85" selection-start="1322" selection-end="1391" vertical-scroll-proportion="0.0" vertical-offset="231" max-vertical-offset="3975" />
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/experiments/drag_demo/update_alternatives.html">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="56" column="10" selection-start="1530" selection-end="1530" vertical-scroll-proportion="0.0" vertical-offset="430" max-vertical-offset="5910" />
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/experiments/svg_fusion/svg_fusion2.html">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="36" column="7" selection-start="827" selection-end="881" vertical-scroll-proportion="0.73770493" vertical-offset="0" max-vertical-offset="7125" />
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/experiments/drag_demo/create_alternatives.html">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="203" column="40" selection-start="5739" selection-end="5739" vertical-scroll-proportion="-0.6272601" vertical-offset="3496" max-vertical-offset="6465">
+          <folding />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/experiments/libs/utils.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="51" column="0" selection-start="1175" selection-end="1175" vertical-scroll-proportion="0.0" vertical-offset="270" max-vertical-offset="2295">
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/experiments/svg_fusion/svg_fusion2.html">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="18" column="25" selection-start="517" selection-end="517" vertical-scroll-proportion="-5.4" vertical-offset="0" max-vertical-offset="7125">
-          <folding>
-            <element signature="e#6147#6199#0" expanded="false" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/experiments/ui_pf/ui_pf1.html">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="480" column="0" selection-start="14691" selection-end="14691" vertical-scroll-proportion="-9.25" vertical-offset="6558" max-vertical-offset="7305">
-          <folding>
-            <element signature="e#13376#14687#0" expanded="false" />
-            <element signature="e#14730#15093#0" expanded="false" />
-            <element signature="e#15306#15948#0" expanded="false" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/experiments/drag_demo/create_alternatives.html">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="0" column="0" selection-start="0" selection-end="0" vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="8175">
+        <state line="41" column="17" selection-start="920" selection-end="920" vertical-scroll-proportion="0.4563492" vertical-offset="270" max-vertical-offset="2295">
           <folding />
         </state>
       </provider>
