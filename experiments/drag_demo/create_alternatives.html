@@ -192,10 +192,11 @@ function UI(pui) {
     this.pui = pui;
     this.sun =  new UIDraggableCircle(100, 100, 50, "#FEDC57");
     this.sun2 = new UIDraggableCircle(150, 150, 50, "#FF6600");
+    this.sun3 = new UIDraggableCircle(75, 150, 50, "#aa33aa");
     this.grass = new UIRectangle(0,UI_HEIGHT/2, UI_WIDTH, UI_HEIGHT / 2, "#77cc33");
     this.sky = new UIRectangle(0,0,UI_WIDTH, UI_HEIGHT / 2, "#00b4f0");
     this.cursor = new Cursor();
-    this.children = [this.sky, this.sun2, this.sun,  this.grass, this.cursor];
+    this.children = [this.sky, this.sun2, this.sun, this.sun3,  this.grass, this.cursor];
     this.id = ID();
     this.eventHandlers= [];
     this.handled = false;
@@ -274,7 +275,7 @@ UI.prototype.clone = function () {
     result.pui = this.pui;
     result.id = ID();
     // TODO: clone children automatically
-    result.children = [result.sky, result.sun2,  result.sun, result.grass, result.cursor];
+    result.children = [result.sky, result.sun2,  result.sun, result.sun3, result.grass, result.cursor];
     return result;
 };
 
