@@ -7,6 +7,7 @@
 
     <!-- Snap SVG library -->
     <script type="text/javascript" src="../libs/snap.svg.js"></script>
+    <script type="text/javascript" src="../libs/utils.js"></script>
     <style>
         #main {
             width: 1125px;
@@ -29,7 +30,9 @@
             font-family: sans-serif;
             font-size: 12pt;
         }
-
+        #particles > div {
+            float: left;
+        }
         .fusions_cell {
             float: left;
         }
@@ -230,13 +233,14 @@
             var dst = Math.sqrt(dx * dx + dy * dy);
             particleWeights.push(1/dst);
         }
-        var weightSum = particleWeights.reduce(function(prev,cur,index,array){ return prev + cur });
+        var weightSum = particleWeights.reduce(function(prev,cur){ return prev + cur });
 
         for(var i = 0; i < numParticles; i++) {
             var id = "particle-" + i;
             var clone = s.clone().attr({id: id, viewBox:"0 0 375 500",width:76, height: 100});
             var probability = particleWeights[i] / weightSum;
             clone.select("desc").node.textContent = "probability: " + probability;
+            clone.text(50,450,round(probability,3).toString()).attr({'font-size':55});
             var ambiguous = clone.select("circle");
             ambiguous.attr({class: "ambiguous", cx: i * 375 / numParticles, cy: 250 - 250 * Math.sin(i / numParticles * (Math.PI))});
             ambiguous.drag();
@@ -245,6 +249,7 @@
             });
             particles.append(clone.node);
         }
+
     }
 
     function onLoad() {
