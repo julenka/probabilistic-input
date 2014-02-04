@@ -8,7 +8,9 @@
     <bookmark url="file://$PROJECT_DIR$/experiments/drag_demo/create_alternatives.html" line="293" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="7cf94037-4565-4c58-9e2f-584dc4778775" name="Default" comment="Kalman filter use snapsvg instead of canvas.&#10;&#10;# Please enter the commit message for your changes. Lines starting&#10;# with '#' will be ignored, and an empty message aborts the commit.&#10;# On branch master&#10;# Changes to be committed:&#10;#   (use &quot;git reset HEAD &lt;file&gt;...&quot; to unstage)&#10;#&#10;#&#9;modified:   keyboard_pf/keyboard_pf.js&#10;#&#9;modified:   keyboard_pf/particle_filter.js&#10;#&#10;" />
+    <list default="true" id="7cf94037-4565-4c58-9e2f-584dc4778775" name="Default" comment="Kalman filter use snapsvg instead of canvas.&#10;&#10;# Please enter the commit message for your changes. Lines starting&#10;# with '#' will be ignored, and an empty message aborts the commit.&#10;# On branch master&#10;# Changes to be committed:&#10;#   (use &quot;git reset HEAD &lt;file&gt;...&quot; to unstage)&#10;#&#10;#&#9;modified:   keyboard_pf/keyboard_pf.js&#10;#&#9;modified:   keyboard_pf/particle_filter.js&#10;#&#10;">
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/experiments/drag_demo/update_alternatives.html" afterPath="$PROJECT_DIR$/experiments/drag_demo/update_alternatives.html" />
+    </list>
     <ignored path="pi.iws" />
     <ignored path=".idea/workspace.xml" />
     <option name="TRACKING_ENABLED" value="true" />
@@ -39,28 +41,19 @@
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="fusion.html" pinned="false" current="true" current-in-tab="true">
-        <entry file="file://$PROJECT_DIR$/experiments/drag_demo/fusion.html">
-          <provider selected="true" editor-type-id="text-editor">
-            <state line="233" column="40" selection-start="8727" selection-end="8727" vertical-scroll-proportion="0.4410876" vertical-offset="3057" max-vertical-offset="4050">
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
       <file leaf-file-name="snap.svg.js" pinned="false" current="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/experiments/libs/snap.svg.js">
           <provider selected="true" editor-type-id="text-editor">
-            <state line="3637" column="19" selection-start="112093" selection-end="112097" vertical-scroll-proportion="-14.961538" vertical-offset="53656" max-vertical-offset="103440">
+            <state line="3113" column="23" selection-start="96762" selection-end="96762" vertical-scroll-proportion="-152.07692" vertical-offset="42231" max-vertical-offset="103440">
               <folding />
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="update_alternatives.html" pinned="false" current="false" current-in-tab="false">
+      <file leaf-file-name="update_alternatives.html" pinned="false" current="true" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/experiments/drag_demo/update_alternatives.html">
           <provider selected="true" editor-type-id="text-editor">
-            <state line="329" column="8" selection-start="9828" selection-end="9999" vertical-scroll-proportion="-21.458334" vertical-offset="4420" max-vertical-offset="5910">
+            <state line="111" column="23" selection-start="2858" selection-end="2858" vertical-scroll-proportion="0.39107883" vertical-offset="1288" max-vertical-offset="6210">
               <folding />
             </state>
           </provider>
@@ -99,9 +92,9 @@
         <option value="$PROJECT_DIR$/experiments/svg_fusion/svg_fusion1.html" />
         <option value="$PROJECT_DIR$/experiments/svg_fusion/svg_fusion2.html" />
         <option value="$PROJECT_DIR$/experiments/ui_pf/ui_pf1.html" />
-        <option value="$PROJECT_DIR$/experiments/drag_demo/update_alternatives.html" />
         <option value="$PROJECT_DIR$/experiments/drag_demo/create_alternatives.html" />
         <option value="$PROJECT_DIR$/experiments/drag_demo/fusion.html" />
+        <option value="$PROJECT_DIR$/experiments/drag_demo/update_alternatives.html" />
       </list>
     </option>
   </component>
@@ -189,6 +182,24 @@
             </PATH_ELEMENT>
             <PATH_ELEMENT>
               <option name="myItemId" value="experiments" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+          </PATH>
+          <PATH>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="pi" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="pi" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="experiments" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="drag_demo" />
               <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
             </PATH_ELEMENT>
           </PATH>
@@ -683,6 +694,13 @@
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/experiments/drag_demo/fusion.html">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="16" column="9" selection-start="488" selection-end="488" vertical-scroll-proportion="0.24169184" vertical-offset="0" max-vertical-offset="4050">
+          <folding />
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/experiments/libs/utils.js">
       <provider selected="true" editor-type-id="text-editor">
         <state line="10" column="14" selection-start="258" selection-end="263" vertical-scroll-proportion="-5.769231" vertical-offset="0" max-vertical-offset="2295">
@@ -690,23 +708,16 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/experiments/drag_demo/update_alternatives.html">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="329" column="8" selection-start="9828" selection-end="9999" vertical-scroll-proportion="-21.458334" vertical-offset="4420" max-vertical-offset="5910">
-          <folding />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/experiments/libs/snap.svg.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="3637" column="19" selection-start="112093" selection-end="112097" vertical-scroll-proportion="-14.961538" vertical-offset="53656" max-vertical-offset="103440">
+        <state line="3113" column="23" selection-start="96762" selection-end="96762" vertical-scroll-proportion="-152.07692" vertical-offset="42231" max-vertical-offset="103440">
           <folding />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/experiments/drag_demo/fusion.html">
+    <entry file="file://$PROJECT_DIR$/experiments/drag_demo/update_alternatives.html">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="233" column="40" selection-start="8727" selection-end="8727" vertical-scroll-proportion="0.4410876" vertical-offset="3057" max-vertical-offset="4050">
+        <state line="111" column="23" selection-start="2858" selection-end="2858" vertical-scroll-proportion="0.39107883" vertical-offset="1288" max-vertical-offset="6210">
           <folding />
         </state>
       </provider>

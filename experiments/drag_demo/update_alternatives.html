@@ -100,6 +100,24 @@ function ID() {
     return idprefix + (idgen++).toString(36);
 }
 
+Cursor = function(image_uri) {
+    this.image_uri = image_uri;
+    this.x = 0;
+    this.y = 0;
+    this.width = 50;
+    this.height = 50;
+}
+
+Cursor.prototype = {
+    draw: function(s) {
+        s.circle(this.x, this.y, 10).attr({stroke:"red", 'fill-opacity': 0});
+    },
+    onMouseMove: function(dx, dy, x, y) {
+        this.x = x;
+        this.y = y;
+    }
+}
+
 UIDraggableCircle = function(cx, cy, r, fill) {
     this.snap_circle = {cx: cx, cy: cy, r: r, fill: fill};
     this.state = "start";
@@ -162,7 +180,8 @@ function UI(snap) {
     this.sun =  new UIDraggableCircle(100, 100, 50, "#FEDC57");
     this.grass = new UIRectangle(0,UI_HEIGHT/2, UI_WIDTH, UI_HEIGHT / 2, "#77cc33");
     this.sky = new UIRectangle(0,0,UI_WIDTH, UI_HEIGHT / 2, "#00b4f0");
-    this.children = [this.sky, this.sun, this.grass];
+    this.cursor = new Cursor("target.png")
+    this.children = [this.sky, this.sun, this.grass, this.cursor];
     this.id = ID();
     this.snap = snap;
 }
@@ -174,6 +193,7 @@ UI.prototype.draw = function (s) {
     this.sky.draw(s);
     this.sun.draw(s);
     this.grass.draw(s);
+    this.cursor.draw(s);
 };
 
 // return measurement probability given that event was at X,Y
@@ -230,7 +250,7 @@ UI.prototype.clone = function () {
     var result = {};
     result = jQuery.extend(true, result, this);
     result.id = ID();
-    result.children = [result.sky, result.sun, result.grass];
+    result.children = [result.sky, result.sun, result.grass, result.cursor];
     return result;
 };
 
