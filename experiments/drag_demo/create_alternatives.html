@@ -103,6 +103,24 @@ function ID() {
     return idprefix + (idgen++).toString(36);
 }
 
+Cursor = function() {
+    this.x = 0;
+    this.y = 0;
+    this.width = 50;
+    this.height = 50;
+}
+
+Cursor.prototype = {
+    draw: function(s) {
+        s.circle(this.x, this.y, 10).attr({stroke:"red", 'fill-opacity': 0});
+    },
+    onMouseMove: function(e) {
+        this.x = e.x;
+        this.y = e.y;
+    }
+}
+
+
 UIDraggableCircle = function(cx, cy, r, fill) {
     this.snap_circle = {cx: cx, cy: cy, r: r, fill: fill, ambiguous: true};
     this.state = "start";
@@ -176,7 +194,8 @@ function UI(pui) {
     this.sun2 = new UIDraggableCircle(150, 150, 50, "#FF6600");
     this.grass = new UIRectangle(0,UI_HEIGHT/2, UI_WIDTH, UI_HEIGHT / 2, "#77cc33");
     this.sky = new UIRectangle(0,0,UI_WIDTH, UI_HEIGHT / 2, "#00b4f0");
-    this.children = [this.sky, this.sun, this.sun2, this.grass];
+    this.cursor = new Cursor();
+    this.children = [this.sky, this.sun2, this.sun,  this.grass, this.cursor];
     this.id = ID();
     this.eventHandlers= [];
     this.handled = false;
@@ -192,8 +211,9 @@ UI.prototype.addEventHandler = function(name, fn) {
 
 
 UI.prototype.addHandlers  = function(){
-    var me = this;
-    this.children.forEach(function(el, i){
+    var children = this.children;
+    for(var i = children.length - 1; i >=0; i--) {
+        var el = children[i];
         // assume that we are executing in the right context ('this' points to the correct UI).
         // we will be taking advantage of the 'call' method in JavaScript to set the context correctly
         var moveFn = function(i) { return function(e) { return this.children[i].onMouseMove(e)} };
@@ -201,14 +221,17 @@ UI.prototype.addHandlers  = function(){
         var upFn = function(i) { return function(e) { return this.children[i].onMouseUp()} };
 
         if("onMouseMove" in el) {
-            me.addEventHandler("move", moveFn(i));
+            this.addEventHandler("move", moveFn(i));
         }
         if("onMouseDown" in el) {
-            me.addEventHandler("down", downFn(i));
+            this.addEventHandler("down", downFn(i));
         }
         if("onMouseUp" in el) {
-            me.addEventHandler("up", upFn(i));
+            this.addEventHandler("up", upFn(i));
         }
+    }
+    this.children.forEach(function(el, i){
+
     });
 };
 
@@ -216,10 +239,9 @@ UI.prototype.draw = function (s) {
     s.selectAll(":not(defs)").remove();
     s.selectAll("defs *").remove();
     s.el('desc');
-    this.sky.draw(s);
-    this.sun2.draw(s);
-    this.sun.draw(s);
-    this.grass.draw(s);
+    this.children.forEach(function(el) {
+        el.draw(s);
+    });
 };
 
 // return measurement probability given that event was at X,Y
@@ -251,7 +273,8 @@ UI.prototype.clone = function () {
     result = jQuery.extend(true, result, this);
     result.pui = this.pui;
     result.id = ID();
-    result.children = [result.sky, result.sun, result.sun2, result.grass];
+    // TODO: clone children automatically
+    result.children = [result.sky, result.sun2,  result.sun, result.grass, result.cursor];
     return result;
 };
 
