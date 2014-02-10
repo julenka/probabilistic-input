@@ -333,7 +333,8 @@ PUI.prototype.reset = function() {
 
 PUI.prototype.addAlternative = function(ui) {
     this.alternatives.push(ui);
-    this.weights.push(Math.random());
+    // all weights are equivalent because we don't have measure function yet.
+    this.weights.push(1);
     var weightSum = this.weights.reduce(function (prev, cur) {
         return prev + cur
     });
