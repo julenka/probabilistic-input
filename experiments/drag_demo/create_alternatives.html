@@ -122,24 +122,13 @@ Cursor.prototype = {
 
 
 UIDraggableCircle = function(cx, cy, r, fill) {
-    this.snap_circle = {cx: cx, cy: cy, r: r, fill: fill, ambiguous: true};
+    this.snap_circle = {cx: cx, cy: cy, r: r, fill: fill};
     this.state = "start";
 };
 
 UIDraggableCircle.prototype = {
     draw: function(s) {
         s.el('circle', this.snap_circle);
-    },
-    measure: function(x,y){
-        var dx = x - this.snap_circle.cx;
-        var dy = y - this.snap_circle.cy;
-        var d = Math.sqrt(dx * dx + dy * dy);
-        if(d > 1.5 * this.snap_circle.r) return 0;
-        return Math.gaussian(0,this.snap_circle.r, d);
-    },
-    setAmbiguous: function(){
-        this.ambiguous = true;
-        this.snap_circle.ambiguous = true;
     },
     hitTest: function(x,y) {
         var rx = x - this.snap_circle.cx;
@@ -243,25 +232,6 @@ UI.prototype.draw = function (s) {
     this.children.forEach(function(el) {
         el.draw(s);
     });
-};
-
-// return measurement probability given that event was at X,Y
-UI.prototype.measure = function (x,y, prev, name) {
-    if(name==="move" || name ==="up") {
-        return prev;
-    }
-    if(name==="down"){
-        var result = 0.01;
-        this.children.forEach(function(el)
-        {
-            if(el.ambiguous) {
-                result += el.measure(x,y,prev);
-            }
-        });
-        return result;
-    }
-
-    return 0;
 };
 
 function isUndefined(f) {
@@ -391,22 +361,6 @@ PUI.prototype.drawMain = function () {
     this.alternatives[0].draw(Snap(MAIN_SELECTOR));
 };
 
-
-PUI.prototype.measure = function(x,y, name) {
-    var me = this;
-    this.weights = this.alternatives.map(function(alternative, i){ return alternative.measure(x,y, me.weights[i], name) });
-    var weightSum = this.weights.reduce(function (prev, cur) { return prev + cur });
-    this.probabilities = this.weights.map(function (x) { return x / weightSum; });
-    for(var j = this.probabilities.length - 1; j >= 0; j--) {
-        if(this.probabilities[j] > 0.0000001) {
-            continue;
-        }
-        // splice does the same thing as remove
-        this.weights.splice(j,1);
-        this.alternatives.splice(j,1);
-        this.probabilities.splice(j,1);
-    }
-};
 
 PUI.prototype.drawAlternatives = function (div_selector) {
     var alternativesJQ = $(div_selector);
