@@ -6,14 +6,6 @@ if(!jQuery) {
     throw{name:"FatalError", message:"using utils.js, but jQuery is not loaded! Did you forget to load jQuery?"};
 }
 
-function get2DContextForId(id) {
-    return document.getElementById(id).getContext('2d');
-}
-
-function get2DContextForJQueryCanvas(canvas) {
-    return canvas[0].getContext('2d');
-}
-
 
 
 // extracts a random sample from list of weighted samples
@@ -23,7 +15,7 @@ function get2DContextForJQueryCanvas(canvas) {
 //    value_2: weight_2,
 // }
 // assumes that the weights all sum to 1
-function weighted_random_sample(map) {
+Math.weighted_random_sample(map) {
     var r = Math.random();
     var sum = 0;
     var last = undefined;

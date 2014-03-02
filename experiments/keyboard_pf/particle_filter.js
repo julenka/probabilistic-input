@@ -103,7 +103,7 @@ Particle.prototype.inRegionMeasure = function(e) {
  * @returns {Particle}
  */
 Particle.prototype.updateLetterFreq = function() {
-    var random_letter = weighted_random_sample(LETTER_FREQUENCIES);
+    var random_letter = Math.weighted_random_sample(LETTER_FREQUENCIES);
     // http://stackoverflow.com/questions/94037/convert-character-to-ascii-code-in-javascript
     // 97 is char code of 'a'
     return new Particle(this.num_rows, this.cols_per_row, this.particle_filter, letters.indexOf(random_letter)  );
@@ -121,7 +121,7 @@ Particle.prototype.updateOneGram = function() {
     var lastLetter = textEntered[textEntered.length - 1];
     // http://stackoverflow.com/questions/94037/convert-character-to-ascii-code-in-javascript
     // 97 is char code of 'a'
-    var random_letter = weighted_random_sample(ONE_GRAM[lastLetter]);
+    var random_letter = Math.weighted_random_sample(ONE_GRAM[lastLetter]);
     var target_index = letters.indexOf(random_letter);
     return new Particle(this.num_rows, this.cols_per_row, this.particle_filter, target_index);
 };
