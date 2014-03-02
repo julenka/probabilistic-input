@@ -348,7 +348,7 @@ PUI.prototype.drawAlternatives = function (div_selector) {
         el.draw(s);
         alternativesJQ.append(
             $("<div/>").append(
-                $("<div>").text(round(me.probabilities[i],2).toString()))
+                $("<div>").text(Math.roundWithSignificance(me.probabilities[i],2).toString()))
                 .append(s.node)
         );
     });

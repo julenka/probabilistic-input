@@ -41,7 +41,7 @@ function updateState() {
     dbg.append('<div> visualization mode: <em>' + visualizationModes[currentVisualizationMode] + "</em></div>");
     dbg.append("<div> filter: <em>" + filters[currentFilter] + "</em></div>");
     for(var i = 0; i < filters.length; i++) {
-        $("#debug").append("<div> " + filters[i] + " error: " + round(errors[i].error, 2) + " count: " + errors[i].count);
+        $("#debug").append("<div> " + filters[i] + " error: " + Math.roundWithSignificance(errors[i].error, 2) + " count: " + errors[i].count);
     }
 }
 

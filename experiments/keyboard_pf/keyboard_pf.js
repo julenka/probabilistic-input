@@ -53,7 +53,7 @@ function updateParticleTable() {
         $("#particles-table").find('tbody')
             .append($('<tr>')
                 .append($('<td>')
-                    .text('' + round(particleFilter.reducedParticles[i].weight, 4))
+                    .text('' + Math.roundWithSignificance(particleFilter.reducedParticles[i].weight, 4))
                 )
                 .append($('<td>')
                     .append(svg)

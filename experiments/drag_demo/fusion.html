@@ -240,7 +240,7 @@
             var clone = s.clone().attr({id: id, viewBox:"0 0 375 500",width:76, height: 100});
             var probability = particleWeights[i] / weightSum;
             clone.select("desc").node.textContent = "probability: " + probability;
-            clone.text(50,450,round(probability,3).toString()).attr({'font-size':55});
+            clone.text(50,450,Math.roundWithSignificance(probability,3).toString()).attr({'font-size':55});
             var ambiguous = clone.select("circle");
             ambiguous.attr({class: "ambiguous", cx: i * 375 / numParticles, cy: 250 - 250 * Math.sin(i / numParticles * (Math.PI))});
             ambiguous.drag();

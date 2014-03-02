@@ -1,4 +1,10 @@
+// Contains a collection of utilities that I use commonly
 // This module depends on jquery, make sure this is loaded first!
+
+// Check if jquery is loaded. If not, pop up a dialog
+if(!jQuery) {
+    throw{name:"FatalError", message:"using utils.js, but jQuery is not loaded! Did you forget to load jQuery?"};
+}
 
 function get2DContextForId(id) {
     return document.getElementById(id).getContext('2d');
@@ -8,9 +14,7 @@ function get2DContextForJQueryCanvas(canvas) {
     return canvas[0].getContext('2d');
 }
 
-function round(n, sig) {
-    return Math.round(n * Math.pow(10, sig)) / Math.pow(10,sig);
-}
+
 
 // extracts a random sample from list of weighted samples
 // samples are in the form:
@@ -34,6 +38,10 @@ function weighted_random_sample(map) {
 }
 
 // Augemnting Math
+
+Math.roundWithSignificance = function(n, sig) {
+    return Math.round(n * Math.pow(10, sig)) / Math.pow(10,sig);
+}
 
 Math.randint = function(min, max) {
     return Math.round(Math.random() * (max - min) + min);
