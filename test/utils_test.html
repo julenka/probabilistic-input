@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Utils Unit Tests</title>
+    <link rel="stylesheet" href="qunit-1.14.0.css">
+</head>
+<body>
+<div id="qunit"></div>
+<div id="qunit-fixture"></div>
+<script src="../experiments/libs/jquery.js"></script>
+<script src="../experiments/libs/utils.js"></script>
+<script src="qunit-1.14.0.js"></script>
+<script>
+    test("Math.roundWithSignificance", function () {
+        // TODO: write this test
+        equal(Math.roundWithSignificance(0.5,0), 1, "0.5 rounds to 1, 0 sig figs");
+    });
+
+    test("Inheritance", function () {
+        ok(Object.subClass, "Object.subClass exists");
+        var Person = Object.subClass({
+            init: function (isDancing) {
+                this.dancing = isDancing;
+            },
+            dance: function () {
+                return this.dancing;
+            }
+        });
+
+        var Ninja = Person.subClass({
+            init: function () {
+                this._super(false);
+            },
+            dance: function () {
+                console.log("ninjas don't dance.");
+                return this._super();
+            },
+            swingSword: function () {
+                return true;
+            }
+        });
+        var person = new Person(true);
+        ok(person.dance(), "the person dances");
+
+        var ninja = new Ninja();
+        ok(ninja.swingSword(), "the sword is swinging");
+
+        ok(!ninja.dance(), "the ninja is not dancing");
+
+        ok(person instanceof Person, "person is a Person");
+
+        ok(ninja instanceof Ninja &&
+        ninja instanceof Person, "ninja is a Ninja and a Person");
+    });
+</script>
+</body>
+</html>
