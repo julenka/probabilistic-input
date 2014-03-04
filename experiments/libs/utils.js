@@ -61,6 +61,11 @@ if(!jQuery) {
         return Class;
     };
 })();
+
+//
+// Math
+//
+
 // extracts a random sample from list of weighted samples
 // samples are in the form:
 // { 
@@ -81,8 +86,6 @@ Math.weighted_random_sample = function(map) {
     }
     return last;
 }
-
-// Augemnting Math
 
 Math.roundWithSignificance = function(n, sig) {
     return Math.round(n * Math.pow(10, sig)) / Math.pow(10,sig);
@@ -107,7 +110,11 @@ Math.gaussian = function(mu, sigma, x) {
     return this.exp(- this.pow(mu - x, 2) / this.pow(sigma, 2) / 2) / this.sqrt(2 * this.PI * this.pow(sigma, 2));
 };
 
-// Augmenting Array
+//
+// Array
+//
+
+
 Array.prototype.pop_front = function() {
     var rslt = this.splice(0,1);
     return rslt[0];
@@ -121,6 +128,8 @@ Array.prototype.min = function() {
   return Math.min.apply(null, this);
 };
 
+
+// TODO: put this in a prototype somewhere.
 function remap(v, i_min, i_max, o_min, o_max) {
     if(v < i_min) v = i_min;
     if (v > i_max) v = i_max;
