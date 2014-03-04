@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <link rel="stylesheet" href="qunit-1.14.0.css">
+</head>
+<body>
+<div id="qunit"></div>
+<div id="qunit-fixture"></div>
+<script src="../experiments/libs/jquery.js"></script>
+<script src="../experiments/libs/utils.js"></script>
+<script src="qunit-1.14.0.js"></script>
+
+<div id="opacity" style="opacity: 0.5;filter:alpha(opacity=50)"></div>
+
+<script type="text/javascript">
+    function getOpacity(elem) {
+        var filter = elem.style.filter;
+        return filter ?
+                filter.indexOf("opacity=") >= 0 ?
+                        (parseFloat(filter.match(/opacity=([^)]+)/)[1]) / 100 ) + "" :
+                        "" :
+                elem.style.opacity;
+    }
+    window.onload = function () {
+        test("regex1", function () {
+            ok(getOpacity(document.getElementById("opacity")) == "0.5", "getOpacity works");
+        });
+    }
+</script>
+</body>
+</html>
