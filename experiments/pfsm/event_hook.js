@@ -10,12 +10,15 @@
 // *** This code requires utils.js ***
 
 // TODO: may want to have a global 'pUI' object and access eventHook through that
-function EventHook() {
+function EventHook(el) {
+    if(typeof el === 'undefined') {
+        el = window;
+    }
     this.listeners = [];
 
     var me = this;
     ['mousedown', 'mousemove', 'mouseup', 'keydown', 'keyup', 'click', 'keypress'].forEach(function (type) {
-        window.addEventListener(type, bind(me, "handleEvent"), true);
+        el.addEventListener(type, bind(me, "handleEvent"), true);
     });
 }
 
@@ -29,6 +32,7 @@ EventHook.prototype.handleEvent = function (e) {
         fn(e);
     });
     // To stop propagation, do the following:
+    // TODO: Check if duplicate move events get sent because of this. If so, will need to stop propagation
 //    e.preventDefault();
 //    e.stopPropagation();
 };

@@ -29,37 +29,43 @@ var PMouseEvent = PEvent.subClass({
         this.sigma_x = sigma_x;
         this.sigma_y = sigma_y;
         this.type = e.type;
+        this.source = "mouse";
     },
     getSamples: function (n) {
-        // generate a single event
-        // have parent point to this
-        // set the location according to sigma
-        // change clientX, clientY
+        var left = this.base_event.currentTarget.offsetLeft;
+        var top = this.base_event.currentTarget.offsetTop;
         var result = [];
         for (var i = 0; i < n; i++) {
             var sample_x = Math.sampleFromGaussian(this.sigma_x);
             var sample_y = Math.sampleFromGaussian(this.sigma_y);
-            result.push(new PMouseEventSample(1 / n, e, sample_x, sample_y));
+            result.push(new PMouseEventSample(1 / n, this,
+                this.base_event.clientX + sample_x,
+                this.base_event.clientY + sample_y,
+                this.base_event.clientX + sample_x - left,
+                this.base_event.clientY + sample_y - top));
         }
         return result;
     }
 });
 
 var PMouseEventSample = PEvent.subClass({
-    init: function (identity_p, e, screen_x, screen_y) {
+    init: function (identity_p, e, client_x, client_y, element_x, element_y) {
         this._super(identity_p, e);
-        this.screen_x = screen_x;
-        this.screen_y = screen_y;
+        this.client_x = client_x;
+        this.client_y = client_y;
+        this.element_x = element_x;
+        this.element_y = element_y;
+        this.type = e.type;
     }
 });
 
 // when document is ready, set up the PEvent handlers
 var PEventHook = Object.subClass({
-    init: function () {
+    init: function (el) {
         this.listeners = [];
         this.variance_x_px = 100;
         this.variance_y_px = 100;
-        var eventHook = new EventHook();
+        var eventHook = new EventHook(el);
         var me = this;
         eventHook.addEventListener(function(e) {
             var type = e.type;
