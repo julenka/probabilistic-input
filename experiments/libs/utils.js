@@ -110,6 +110,16 @@ Math.gaussian = function(mu, sigma, x) {
     return this.exp(- this.pow(mu - x, 2) / this.pow(sigma, 2) / 2) / this.sqrt(2 * this.PI * this.pow(sigma, 2));
 };
 
+Math.remap = function(v, i_min, i_max, o_min, o_max) {
+    if(v < i_min) {
+        v = i_min;
+    }
+    if (v > i_max){
+        v = i_max;
+    }
+    return (v - i_min) / (i_max - i_min) * (o_max - o_min) + o_min;
+};
+
 //
 // Array
 //
@@ -129,12 +139,7 @@ Array.prototype.min = function() {
 };
 
 
-// TODO: put this in a prototype somewhere.
-function remap(v, i_min, i_max, o_min, o_max) {
-    if(v < i_min) v = i_min;
-    if (v > i_max) v = i_max;
-    return (v - i_min) / (i_max - i_min) * (o_max - o_min) + o_min;
-}
+
 
 // Logging
 function Logger(level) {

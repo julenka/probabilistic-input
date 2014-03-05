@@ -117,7 +117,7 @@ function drawDot(x, c) {
 function drawDot2(x, P, c) {
     var locationUncertainty = P.minor(1,1,2,2);
     var maxUncertainty = locationUncertainty.max();
-    c.a = 1 -  remap(maxUncertainty, 2, 4, 0.0, 0.9);
+    c.a = 1 -  Math.remap(maxUncertainty, 2, 4, 0.0, 0.9);
     snap.circle(x.e(1,1), x.e(2,1), maxUncertainty * dotScale).attr( {
        fill: getFillStyle(c)
     });
@@ -131,7 +131,7 @@ function drawDot2(x, P, c) {
 function drawDot3(x, P) {
     var locationUncertainty = P.minor(1,1,2,2);
     var maxUncertainty = locationUncertainty.max();
-    var hue = remap(maxUncertainty, 2, 4, 0.66, 0.0);
+    var hue = Math.remap(maxUncertainty, 2, 4, 0.66, 0.0);
     var c = hsvToRgb(hue, 1, 1);
     c.a = 0.5;
     snap.circle(x.e(1, 1), x.e(2, 1), maxUncertainty * dotScale).attr ( {
@@ -145,7 +145,7 @@ function drawDot3(x, P) {
 function drawCov(x, P) {
     var cov = P.minor(1,1,2,2); // covariance matrix for location
     var maxUncertainty = cov.max();
-    var hue = remap(maxUncertainty, 2, 4, 0.66, 0.0);
+    var hue = Math.remap(maxUncertainty, 2, 4, 0.66, 0.0);
     var c = hsvToRgb(hue, 1, 1);
     c.a = 0.5;
     

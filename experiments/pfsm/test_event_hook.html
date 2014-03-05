@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Event Hook Test</title>
+    <script type="text/javascript" src="eventhook.js"></script>
+</head>
+<body>
+<script type="text/javascript">
+
+    // your code goes here
+    eventHook.addEventListener(function logEvent(e) {
+        if(e.type == "mousemove") {
+            console.log("move");
+            return;
+        }
+        ea = [];
+        for(var p in e) {
+            ea.push(p + ":" + e[p]);
+        }
+        console.log("captured " + e.type + " : " + ea.join("\n"));
+    });
+
+</script>
+<h2>Instructions</h2>
+<ul>
+    <li>Mouse down, move, up should be captured and displayed in console</li>
+    <li>key down, up shoudl be captured and displayed in console</li>
+</ul>
+<button class="no_hook" onclick="alert('button clicked');">click me, should still fire</button>
+<div onclick="alert('div clicked')" onmousedown="console.log('div mouse down');">click on me, should still fire</div>
+</body>
+</html>
