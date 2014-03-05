@@ -62,6 +62,13 @@ if(!jQuery) {
     };
 })();
 
+// Wraps a call to a method within the context of another.
+var bind = function (context, name) {
+    return function () {
+        return context[name].apply(context, arguments);
+    };
+};
+
 //
 // Math
 //
@@ -73,6 +80,7 @@ if(!jQuery) {
 //    value_2: weight_2,
 // }
 // assumes that the weights all sum to 1
+// TODO: refactor to match naming convention
 Math.weighted_random_sample = function(map) {
     var r = Math.random();
     var sum = 0;
@@ -120,6 +128,24 @@ Math.remap = function(v, i_min, i_max, o_min, o_max) {
     return (v - i_min) / (i_max - i_min) * (o_max - o_min) + o_min;
 };
 
+/// Generates a random sample from a gaussian distribution
+/// centered around 0 standard deviation sigma.
+/// Method take from http://www.bearcave.com/misl/misl_tech/wavelets/hurst/random.html.
+/// Has been tested independently so I'm fairly sure it works.
+Math.sampleFromGaussian = function(sigma) {
+    var x1, x2, w, y1;
+
+    do{
+        x1 = 2 * this.random() - 1;
+        x2 = 2 * this.random() -1;
+        w = x1 * x1 + x2 * x2;
+    } while(w >= 1);
+
+    w = this.sqrt(-2 * this.log(w) / w);
+    y1 = x1 * w;
+    return y1 * sigma;
+};
+
 //
 // Array
 //
@@ -146,10 +172,10 @@ function Logger(level) {
 	this.level = level;
 }
 
-LOG_LEVEL_VERBOSE = 4;
-LOG_LEVEL_DEBUG = 3;
-LOG_LEVEL_INFO = 2;
-LOG_LEVEL_ERROR = 1;
+var LOG_LEVEL_VERBOSE = 4;
+var LOG_LEVEL_DEBUG = 3;
+var LOG_LEVEL_INFO = 2;
+var LOG_LEVEL_ERROR = 1;
 
 Logger.prototype.log = function(level, msg) {
 	if (this.level >= level) {
