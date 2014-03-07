@@ -52,6 +52,24 @@
         ok(ninja instanceof Ninja &&
         ninja instanceof Person, "ninja is a Ninja and a Person");
     });
+
+    test("Array.extend", function() {
+        var a1 = [1,2,3];
+        var a2 = [4,5,6];
+        var a3 = [1,2,3,4,5,6];
+        var a4 = [];
+        a1.extend(a2);
+        deepEqual(a1, a3, "[1,2,3].extend([4,5,6]) gives " + a1);
+
+        a1.extend(a4);
+        deepEqual(a1, a3, "[1,2,3,4,5,6].extend([]) gives " + a1);
+    });
+
+    test("Array.shuffle", function() {
+        var a1 = [1,2,3,4,5,6,7,8,9];
+        a1.shuffle();
+        ok(true, "shuffling 1 - 8 gives: " + a1.join(','));
+    })
 </script>
 </body>
 </html>

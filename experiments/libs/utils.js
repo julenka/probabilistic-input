@@ -164,7 +164,22 @@ Array.prototype.min = function() {
   return Math.min.apply(null, this);
 };
 
+Array.prototype.extend = function(ar2) {
+    this.push.apply(this, ar2);
+};
 
+Array.prototype.shuffle = function() {
+    var currentIndex = this.length - 1,
+        temp,
+        randomIndex;
+    while(currentIndex >= 0) {
+        randomIndex = Math.floor(Math.random() * currentIndex);
+        temp = this[currentIndex];
+        this[currentIndex] = this[randomIndex];
+        this[randomIndex] = temp;
+        currentIndex--;
+    }
+};
 
 
 // Logging
