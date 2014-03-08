@@ -8,7 +8,7 @@
     <!-- Snap SVG library -->
     <script type="text/javascript" src="../libs/snap.svg.js"></script>
     <script type="text/javascript" src="../libs/utils.js"></script>
-    <script type="text/javascript" src="event_hook.js"></script>
+    <script type="text/javascript" src="pevent.js"></script>
     <script type="text/javascript" src="pevent_hook.js"></script>
     <style>
         svg {
@@ -36,34 +36,34 @@
     var snap = Snap("#sandbox");
     var snapLeft = $("#sandbox");
     var snapTop = $("#san")
-    var peventHook = new PEventHook(snap.node);
     var txtNumSamples = $("#numSamples");
     var txtXVariance = $("#sampleVarianceX");
     var txtYVariance = $("#sampleVarianceY");
-    peventHook.addEventListener(function (e) {
-        if (e.source !== "mouse") {
-            return;
-        }
+    var peventHook = new PEventHook(snap.node,
+            function (e) {
+                if (e.source !== "mouse") {
+                    return;
+                }
 
-        // clear the current snap
-        // for each sample
-        snap.clear();
-        var samples = e.getSamples(parseInt(txtNumSamples.val()));
-        samples.forEach(function (sample) {
-            peventHook.variance_x_px = parseInt(txtXVariance.val());
-            peventHook.variance_y_px = parseInt(txtYVariance.val());
-            var color = "#ff0000";
-            var r = 5;
-            if(sample.type === "mousemove") {
-                color = "#00ff00";
-            } else if(sample.type === "mouseup") {
-                color = "#0000ff";
-            } else if (sample.type === "click") {
-                r = 30;
-            }
-            snap.circle({cx: sample.element_x, cy: sample.element_y, r: r, opacity: 0.2, fill: color});
-        });
-    });
+                // clear the current snap
+                // for each sample
+                snap.clear();
+                var samples = e.getSamples(parseInt(txtNumSamples.val()));
+                samples.forEach(function (sample) {
+                    peventHook.variance_x_px = parseInt(txtXVariance.val());
+                    peventHook.variance_y_px = parseInt(txtYVariance.val());
+                    var color = "#ff0000";
+                    var r = 5;
+                    if (sample.type === "mousemove") {
+                        color = "#00ff00";
+                    } else if (sample.type === "mouseup") {
+                        color = "#0000ff";
+                    } else if (sample.type === "click") {
+                        r = 30;
+                    }
+                    snap.circle({cx: sample.element_x, cy: sample.element_y, r: r, opacity: 0.2, fill: color});
+                });
+            });
 </script>
 </body>
 </html>

@@ -4,16 +4,12 @@
     <title>PEvent Hook Test</title>
     <script type="text/javascript" src="../libs/jquery.js"></script>
     <script type="text/javascript" src="../libs/utils.js"></script>
-    <script type="text/javascript" src="event_hook.js"></script>
+    <script type="text/javascript" src="pevent.js"></script>
     <script type="text/javascript" src="pevent_hook.js"></script>
-
 </head>
 <body>
 <script type="text/javascript">
-    var peventHook = new PEventHook();
-
-    // your code goes here
-    peventHook.addEventListener(function(e) {
+    var peventHook = new PEventHook(window, function(e) {
         ea = [];
         for(var p in e) {
             if(typeof e[p] === "function") {
