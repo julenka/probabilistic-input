@@ -54,3 +54,20 @@ var PMouseEventSample = PEvent.subClass({
         this.type = e.type;
     }
 });
+
+var PKeyEvent = PEvent.subClass({
+    init: function(identity_p, e) {
+        this._super(identity_p, e);
+        this.keyCode = e.keyCode;
+        this.source="keyboard";
+        this.type = e.type;
+    },
+    getSamples: function(n) {
+        var i;
+        var result = [];
+        for(i = 0; i < n; i++) {
+            result.push(new PKeyEvent(1/n, this.base_event));
+        }
+        return result;
+    }
+});

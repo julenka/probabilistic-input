@@ -28,7 +28,7 @@ function PEventHook(el, fn, event_types) {
         if(type === "click" || type === "mousedown" || type === "mousemove" || type === "mouseup") {
             pEvent = new PMouseEvent(1, e, me.variance_x_px, me.variance_y_px);
         } else {
-            pEvent = new PEvent(1, e);
+            pEvent = new PKeyEvent(1, e);
         }
         fn(pEvent);
     };

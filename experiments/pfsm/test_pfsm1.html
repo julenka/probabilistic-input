@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Dispatcher Test</title>
+    <!-- JQuery -->
+    <script type="text/javascript" src="../libs/jquery.min.js"></script>
+
+    <script type="text/javascript" src="../libs/utils.js"></script>
+
+    <!-- PFSM modules -->
+    <script type="text/javascript" src="pevent.js"></script>
+    <script type="text/javascript" src="pevent_hook.js"></script>
+    <script type="text/javascript" src="dispatcher.js"></script>
+    <script type="text/javascript" src="sketch.js"></script>
+    <style type="text/css">
+        .sketch_div {
+            float: left;
+            margin-bottom: 10px;
+            margin-right: 20px;
+        }
+        .event_div {
+            border-top: 10px dashed black;
+            clear:both
+        }
+    </style>
+</head>
+<body>
+
+<div id="dispatch_history">
+</div>
+
+<script type="text/javascript">
+
+    var TestControl = Control.subClass({
+        init: function (sketch) {
+            this._super(sketch);
+            this.past_colors = [];
+            var is_space_fn = function(e) { return e.keyCode === 32};
+            var turn_color = function(c) { this.past_colors.push(this.color); this.color = c};
+            this.color = "white";
+            this.current_state = "white";
+            // TODO: make it easy to apply common properties
+            this.fsm_description = {
+                white: [
+                    {
+                        to: "red",
+                        source: "keyboard",
+                        type: "keypress",
+                        predicate: is_space_fn,
+                        update: turn_color.curry("red"),
+                        handles_event: true
+                    },
+                    {
+                        to: "blue",
+                        source: "keyboard",
+                        type: "keypress",
+                        predicate: is_space_fn,
+                        update: turn_color.curry("blue"),
+                        handles_event: true
+                    },
+                ],
+                red: [
+                    {
+                        to: "green",
+                        source: "keyboard",
+                        type: "keypress",
+                        predicate: is_space_fn,
+                        update: turn_color.curry("green"),
+                        handles_event: true
+                    },
+                ],
+                green: [
+                    {
+                        to: "white",
+                        source: "keyboard",
+                        type: "keypress",
+                        predicate: is_space_fn,
+                        update: turn_color.curry("white"),
+                        handles_event: true
+                    },
+                ],
+                blue: [
+                    {
+                        to: "white",
+                        source: "keyboard",
+                        type: "keypress",
+                        predicate: is_space_fn,
+                        update: turn_color.curry("white"),
+                        handles_event: true
+                    },
+                ]
+            };
+        },
+        draw: function ($el) {
+            var new_div = $("<div></div>").css({"border": "2px solid black", "background-color": this.color, "width": 100, "height": 100});
+            this.past_colors.forEach(function(color) {
+                var d2 = $("<div></div>").css({"width":100,"height":10, "background-color": color, "border-bottom": "1px solid black"});
+                new_div.append(d2);
+            })
+            $el.append(new_div);
+        },
+        clone: function() {
+            var result = new TestControl(this.sketch);
+            this.clone_impl(result);
+            result.color = this.color;
+            result.past_colors = [];
+            this.past_colors.forEach(function(c){result.past_colors.push(c)});
+            return result;
+        },
+    });
+    var sketch = new Sketch();
+    var control = new TestControl();
+
+    sketch.addChild(control);
+
+    var eventNumber = 0;
+    var $dispatchHistory = $("#dispatch_history");
+    var dispatcher = new Dispatcher(sketch, function dispatchCompleted(new_sketches) {
+        eventNumber++;
+        var newDiv = $("<div class='event_div'></div>");
+        newDiv.append($("<span>event " + eventNumber + "</span>"));
+        new_sketches.forEach(function (sketch) {
+            var sketchDiv = $("<div class='sketch_div'></div>");
+            sketch.draw(sketchDiv);
+            newDiv.append(sketchDiv);
+        });
+        $dispatchHistory.prepend(newDiv);
+    });
+    dispatcher.nSamplesPerEvent = 1;
+    var pEventHook = new PEventHook(window, function (p_event) {
+        if(p_event.type !== "keypress") {
+            return;
+        }
+        dispatcher.dispatchEvent(p_event);
+    });
+</script>
+</body>
+</html>
