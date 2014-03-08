@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Dispatcher Test</title>
+    <!-- JQuery -->
+    <script type="text/javascript" src="../libs/jquery.min.js"></script>
+
+    <script type="text/javascript" src="../libs/utils.js"></script>
+
+    <!-- PFSM modules -->
+    <script type="text/javascript" src="event_hook.js"></script>
+    <script type="text/javascript" src="pevent_hook.js"></script>
+    <script type="text/javascript" src="dispatcher.js"></script>
+    <style>
+        svg {
+            border: 1px solid black;
+        }
+    </style>
+</head>
+<body>
+
+<div id="dispatch_history">
+</div>
+
+<script type="text/javascript">
+    var PTestEvent = PEvent.subClass({
+        init: function (identity_p, e, n) {
+            this._super(identity_p, e);
+            this.value = n;
+            this.source = "test";
+        },
+        getSamples: function (n) {
+            var result = [];
+            for (var i = 0; i < n; i++) {
+                result.push(new PTestEvent(1/n, this, n + Math.random()));
+            }
+            return result;
+        }
+    });
+
+    var TestSketch = Sketch.subClass({
+        init: function(props){
+            this.value = -1;
+            // call super after initializing values, because super sets properties that will override these
+            this._super(props);
+
+        },
+        /**
+         *
+         * @param e event sample, in this case a PTestEvent
+         * @returns new sketches
+         */
+        dispatchEvent: function(e) {
+            // make a copy with the random event
+            // handle the event
+            var result = this.clone();
+            result.value = e.value;
+            return {
+                new_sketches: [result]
+            };
+        },
+        draw: function($el) {
+            $el.append("<div> testSketch event value: " + this.value + "</div>")
+
+        },
+        clone: function() {
+            return new TestSketch({
+               value: this.value
+            });
+        }
+
+    });
+
+    var sketch = new TestSketch();
+    var eventNumber = 0;
+    var $dispatchHistory = $("#dispatch_history");
+    var dispatcher = new Dispatcher(sketch, function dispatchCompleted(new_sketches) {
+        eventNumber++;
+        var newDiv = $("<div></div>");
+        newDiv.append($("<div>event " + eventNumber + "</div>"));
+        new_sketches.forEach(function(sketch) {
+            var sketchDiv = $("<div></div>");
+            sketch.draw(sketchDiv);
+            newDiv.append(sketchDiv);
+        });
+        $dispatchHistory.prepend(newDiv);
+    });
+    var eventHook = new EventHook(window, (function(e) {
+        var type = e.type;
+        if(type === "keypress" && e.keyCode == 32) {
+            var pEvent = new PTestEvent(1, e, eventNumber);
+            dispatcher.dispatchEvent(pEvent);
+        }
+    });
+</script>
+</body>
+</html>

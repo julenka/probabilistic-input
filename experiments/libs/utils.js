@@ -182,6 +182,7 @@ Array.prototype.shuffle = function() {
 };
 
 
+
 // Logging
 function Logger(level) {
 	this.level = level;
