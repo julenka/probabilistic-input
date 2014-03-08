@@ -69,7 +69,18 @@
         var a1 = [1,2,3,4,5,6,7,8,9];
         a1.shuffle();
         ok(true, "shuffling 1 - 8 gives: " + a1.join(','));
+    });
+
+    test("Function.curry", function() {
+        var add = function(a,b) {return a + b};
+        var plusTwo = add.curry(2);
+        var plusThree = add.curry(3);
+        var twoPlusThree = add.curry(2,3);
+        equal(plusTwo(2), 4, "plusTwo(2) is four!");
+        equal(plusThree(2), 5, "plusThree(2) is five!");
+        equal(twoPlusThree(), 5, "twoPlusThree() is five!");
     })
+
 </script>
 </body>
 </html>
