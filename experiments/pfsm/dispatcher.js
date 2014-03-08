@@ -19,6 +19,7 @@ Dispatcher.prototype.dispatchEvent = function(e) {
     var new_sketches = [];
     // declare outside of loop to remind me of scope
     var sketch, sample, responses, i, j, k, nothing_happened;
+    var start_sketch_size = this.sketches.length, post_dispatch_size,post_resample_size;
     // for each sample, dispatch to each sketch
     for(i = 0; i < this.sketches.length; i++) {
         nothing_happened = true;
@@ -46,6 +47,9 @@ Dispatcher.prototype.dispatchEvent = function(e) {
         }
     }
 
+    post_dispatch_size = new_sketches.length;
+
+    // TODO: log size before/after dispatching and downsampling
     // downsample
     this.sketches = [];
     new_sketches.shuffle();
@@ -54,7 +58,7 @@ Dispatcher.prototype.dispatchEvent = function(e) {
         new_sketches[i].probability = 1/n;
         this.sketches.push(new_sketches[i]);
     }
-
+    post_resample_size = this.sketches.length;
     // call dispatch completed
-    this.dispatchCompleted(this.sketches);
+    this.dispatchCompleted(this.sketches, start_sketch_size, post_dispatch_size, post_resample_size);
 };
