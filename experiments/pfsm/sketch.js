@@ -84,10 +84,6 @@ var Sketch = Object.subClass({
         return new Sketch({children: new_children});
     },
     draw: function($el) {
-        // redraw every time
-        $el.empty();
-
-        $el.append("Sketch " + Math.roundWithSignificance(this.probability,2));
         var i;
         for (i = 0; i < this.children.length; i++) {
             this.children[i].draw($el);
