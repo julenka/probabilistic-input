@@ -62,6 +62,9 @@ var Sketch = Object.subClass({
                        sketches_to_dispatch.push({sketch: new_sketch, dispatch_index: i + 1});
                    }
                 }
+                if(response.length > 0) {
+                    break;
+                }
             }
         }
 
@@ -161,10 +164,9 @@ var Control = Object.subClass({
         for(i = 0; i < transitions.length; i++) {
             transition = transitions[i];
             if(transition.source === e.source && transition.type === e.type && transition.predicate(e)) {
-                console.log(transition.to);
                 new_control = this.clone();
                 new_control.current_state = transition.to;
-                response.push({control: new_control, handled: control.handles_event,
+                response.push({control: new_control, handled: transition.handles_event,
                     action: transition.action, feedback: transition.feedback, update: transition.update});
             }
         }

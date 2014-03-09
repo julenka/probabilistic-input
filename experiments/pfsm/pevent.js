@@ -30,6 +30,12 @@ var PMouseEvent = PEvent.subClass({
     getSamples: function (n) {
         var left = this.base_event.currentTarget.offsetLeft;
         var top = this.base_event.currentTarget.offsetTop;
+        if(isNaN(left)) {
+            left = 0 ;
+        }
+        if(isNaN(top)) {
+            top = 0;
+        }
         var result = [];
         for (var i = 0; i < n; i++) {
             var sample_x = Math.sampleFromGaussian(this.sigma_x);
@@ -51,6 +57,7 @@ var PMouseEventSample = PEvent.subClass({
         this.client_y = client_y;
         this.element_x = element_x;
         this.element_y = element_y;
+        this.source = "mouse";
         this.type = e.type;
     }
 });

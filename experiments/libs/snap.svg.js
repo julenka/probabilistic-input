@@ -3205,7 +3205,7 @@ function Paper(w, h) {
         desc,
         defs,
         proto = Paper.prototype;
-    if (w && w.tagName == "svg") {
+    if (w && w.tagName == "svg" || w.tagName == "SVG") {
         if (w.snap in hub) {
             return hub[w.snap];
         }
@@ -3244,7 +3244,7 @@ function wrap(dom) {
     if (dom instanceof Element || dom instanceof Fragment) {
         return dom;
     }
-    if (dom.tagName == "svg") {
+    if (dom.tagName == "svg" || dom.tagName == "SVG") {
         return new Paper(dom);
     }
     return new Element(dom);
@@ -4355,7 +4355,7 @@ Snap.getElementByPoint = function (x, y) {
     var paper = this,
         svg = paper.canvas,
         target = glob.doc.elementFromPoint(x, y);
-    if (glob.win.opera && target.tagName == "svg") {
+    if (glob.win.opera && target.tagName == "svg" || target.tagName == "SVG") {
         var so = getOffset(target),
             sr = target.createSVGRect();
         sr.x = x - so.x;

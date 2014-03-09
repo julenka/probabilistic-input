@@ -35,7 +35,7 @@ Dispatcher.prototype.dispatchEvent = function(e) {
             responses.forEach(function(response){
                 // TODO: execute update action
                 if(typeof response.update !== 'undefined' && typeof response.new_control != 'undefined') {
-                    response.update.call(response.new_control, e);
+                    response.update.call(response.new_control, sample);
                 }
                 // TODO: execute feedback action
                 // TODO: execute final action

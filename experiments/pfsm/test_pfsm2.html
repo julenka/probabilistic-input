@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Dispatcher Test</title>
+    <!-- JQuery -->
+    <script type="text/javascript" src="../libs/jquery.min.js"></script>
+
+    <!-- Snap -->
+    <script type="text/javascript" src="../libs/snap.svg.js"></script>
+
+    <script type="text/javascript" src="../libs/utils.js"></script>
+
+    <!-- PFSM modules -->
+    <script type="text/javascript" src="pevent.js"></script>
+    <script type="text/javascript" src="pevent_hook.js"></script>
+    <script type="text/javascript" src="dispatcher.js"></script>
+    <script type="text/javascript" src="sketch.js"></script>
+    <style type="text/css">
+        svg {
+            border: 1px solid black;
+        }
+    </style>
+</head>
+<body>
+<div id="sketches"></div>
+
+<script type="text/javascript">
+
+    var Cursor = Control.subClass({
+        init: function (sketch) {
+            this._super(sketch);
+            this.color = "black";
+            this.x = 0;
+            this.y = 0;
+            this.current_state = "start";
+            var update_cursor = function(c, e) { this.color = c; this.x = e.element_x; this.y = e.element_y;};
+            var t = function() { return true; }
+            // TODO: make it easy to apply common properties
+            this.fsm_description = {
+                start: [
+                    {
+                        to: "start",
+                        source: "mouse",
+                        type: "mousedown",
+                        predicate: t,
+                        update: update_cursor.curry("red"),
+                        handles_event: true
+                    },
+                    {
+                        to: "start",
+                        source: "mouse",
+                        type: "mousemove",
+                        predicate: t,
+                        update: update_cursor.curry("green"),
+                        handles_event: true
+                    },
+                    {
+                        to: "start",
+                        source: "mouse",
+                        type: "mouseup",
+                        predicate: t,
+                        update: update_cursor.curry("blue"),
+                        handles_event: true
+                    }
+                ]
+            };
+        },
+        draw: function ($el) {
+            // in this case $el will be an SVG element
+            var s = Snap($el[0]);
+            s.circle(this.x, this.y, 100).attr({fill: this.color});
+        },
+        clone: function() {
+            var result = new Cursor(this.sketch);
+            this.clone_impl(result);
+            result.color = this.color;
+            result.x = this.x;
+            result.y = this.y;
+            return result;
+        }
+    });
+    var sketch = new Sketch();
+    var cursor = new Cursor();
+    sketch.addChild(cursor);
+
+    var dispatcher = new Dispatcher(sketch, function dispatchCompleted(new_sketches) {
+        var w = $(window).width();
+        var h = $(window).height();
+        var $sketches = $("#sketches");
+        $sketches.empty();
+        new_sketches.forEach(function(new_sketch, i) {
+            var snap = Snap(w / new_sketches.length, h / new_sketches.length);
+            var snap_dom = snap.node;
+            // HACK: snap assumes svg is "svg" not SVG error
+            snap_dom.setAttribute("viewBox", [0,0,w,h].join(' '))
+//            $svg[0].setAttribute("width", w / new_sketches.length);
+//            $svg[0].setAttribute("height", h / new_sketches.length);
+            snap_dom.setAttribute("id", "sketch-" + i);
+            $sketches.append(snap_dom);
+            new_sketch.draw($(snap_dom));
+
+        });
+    });
+
+    dispatcher.nSamplesPerEvent = 2;
+    var pEventHook = new PEventHook(window, function(p_event) {
+        if(p_event.source !== "mouse" || p_event.type === "click") {
+            return;
+        }
+        dispatcher.dispatchEvent(p_event);
+    });
+
+</script>
+</body>
+</html>
