@@ -18,6 +18,9 @@ var Sketch = Object.subClass({
             this[name] = props[name];
         }
     },
+    equals: function(other) {
+
+    },
     dispatchEvent: function(e) {
         // by default, just copy yourself over
         // for each child
@@ -90,10 +93,6 @@ var Sketch = Object.subClass({
         }
     },
 
-    /**
-     *
-     * @param child Interactor that has a state machine and variables and clone method
-     */
     addChild: function(child) {
         this.children.push(child);
     }
@@ -167,5 +166,8 @@ var Control = Object.subClass({
             }
         }
         return response;
+    },
+    equals: function(other) {
+
     }
 });

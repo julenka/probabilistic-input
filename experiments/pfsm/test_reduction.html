@@ -19,12 +19,6 @@
         svg {
             border: 1px solid black;
         }
-
-        .float-left {
-            float: left
-        }
-
-
     </style>
 </head>
 <body>
@@ -40,19 +34,7 @@
 <div>
     circle radius: <input type="text" id="circleRadius" value="10"/>
 </div>
-<table>
-    <tr>
-        <td>
-            <svg id="sketch" width="500" height="700"></svg>
-        </td>
-        <td>
-            <div id="sketches"></div>
-        </td>
-
-    </tr>
-</table>
-
-
+<svg id="sketch"></svg>
 
 <script type="text/javascript">
 
@@ -123,23 +105,12 @@
     var txtNumSamples = $("#numSamples");
     var txtCursorRadius = $("#circleRadius");
     var $sketch = $("#sketch");
-    var $sketches = $("#sketches");
+
     var dispatcher = new Dispatcher(sketch, function dispatchCompleted(new_sketches) {
         $sketch.empty();
-        $sketches.empty();
-        var w = $sketch.width();
-        var h = $sketch.height();
         new_sketches.forEach(function(new_sketch, i) {
             // HACK: snap assumes svg is "svg" not SVG error
             new_sketch.draw($sketch);
-            var d = $("<div class='float-left'></div>");
-            d.append(["<div>","sketch", i, ":", 1/new_sketches.length, "</div>"].join(" "));
-            var s = Snap(w / 10, h / 10);
-            var s_dom = s.node;
-            s_dom.setAttribute("viewBox", [0, 0, w, h].join(" "));
-            d.append(s_dom);
-            new_sketch.draw($(s_dom));
-            $sketches.append(d);
         });
     });
 

@@ -29,8 +29,12 @@
 </head>
 <body>
 <div>
-    number of samples: <input type="text" id="numSamples" value="10"/>
+    number of event samples: <input type="text" id="numSamples" value="10"/>
 </div>
+<div>
+    number of sketch samples: <input type="text" id="numSketchSamples" value="10"/>
+</div>
+
 <div>
     sample x variance: <input type="text" id="sampleVarianceX" value="10"/>
 </div>
@@ -53,7 +57,6 @@
 </table>
 
 
-
 <script type="text/javascript">
 
     var Cursor = Control.subClass({
@@ -64,50 +67,88 @@
             this.y = 0;
             this.radius = 10;
             this.current_state = "start";
-            var update_cursor = function(c, e) { this.color = c; this.x = e.element_x; this.y = e.element_y;};
-            var t = function() { return true; }
+            this.path = [];
+            var t = function () {
+                return true;
+            }
             // TODO: make it easy to apply common properties
             this.fsm_description = {
                 start: [
                     {
                         to: "start",
                         source: "mouse",
-                        type: "mousedown",
-                        predicate: t,
-                        update: update_cursor.curry("red"),
-                        handles_event: true
-                    },
-                    {
-                        to: "start",
-                        source: "mouse",
                         type: "mousemove",
                         predicate: t,
-                        update: update_cursor.curry("green"),
+                        update: function (e) {
+                            this.updateLoc(e);
+                            this.color = "red";
+                        },
                         handles_event: true
                     },
                     {
-                        to: "start",
+                        to: "down",
+                        source: "mouse",
+                        type: "mousedown",
+                        predicate: t,
+                        update: function (e) {
+                            this.updateLoc(e);
+                            if (Math.random() > 0.5) {
+                                this.color = "green";
+                            } else {
+                                this.color = "blue";
+                            }
+                            this.path.push(this.x + "," + this.y);
+                        },
+                        handles_event: true
+                    }
+                ],
+                down: [
+                    {
+                        source: "mouse",
+                        type: "mousemove",
+                        to: "down",
+                        predicate: t,
+                        update: function (e) {
+                            this.updateLoc(e);
+                            this.path.push(this.x + "," + this.y)
+                        },
+                        handles_event: true
+                    },
+                    {
                         source: "mouse",
                         type: "mouseup",
+                        to: "start",
                         predicate: t,
-                        update: update_cursor.curry("blue"),
-                        handles_event: true
+                        update: function (e) {
+                            this.updateLoc(e);
+                            this.color = "green";
+                            this.path = []
+                        }
                     }
                 ]
             };
+        },
+        updateLoc: function (e) {
+            this.x = e.element_x;
+            this.y = e.element_y;
         },
         draw: function ($el) {
             // in this case $el will be an SVG element
             var s = Snap($el[0]);
             s.circle(this.x, this.y, this.radius).attr({fill: this.color, opacity: 0.2});
+            if (this.path.length > 1) {
+                s.path("M" + this.path.join("L")).attr({stroke: this.color, fill: "none", "stroke-width": this.radius, opacity: 0.1});
+            }
         },
-        clone: function() {
+        clone: function () {
             var result = new Cursor(this.sketch);
             this.clone_impl(result);
             result.color = this.color;
             result.x = this.x;
             result.y = this.y;
             result.radius = this.radius;
+            result.path = [];
+            result.path.extend(this.path);
             return result;
         }
     });
@@ -121,6 +162,7 @@
     var txtXVariance = $("#sampleVarianceX");
     var txtYVariance = $("#sampleVarianceY");
     var txtNumSamples = $("#numSamples");
+    var txtNumSketchSamples = $("#numSketchSamples");
     var txtCursorRadius = $("#circleRadius");
     var $sketch = $("#sketch");
     var $sketches = $("#sketches");
@@ -129,12 +171,13 @@
         $sketches.empty();
         var w = $sketch.width();
         var h = $sketch.height();
-        new_sketches.forEach(function(new_sketch, i) {
+        new_sketches.forEach(function (new_sketch, i) {
             // HACK: snap assumes svg is "svg" not SVG error
             new_sketch.draw($sketch);
             var d = $("<div class='float-left'></div>");
-            d.append(["<div>","sketch", i, ":", 1/new_sketches.length, "</div>"].join(" "));
-            var s = Snap(w / 10, h / 10);
+            var l = new_sketches.length;
+            d.append(["<div>", "sketch", i, ":", 1 / l, "</div>"].join(" "));
+            var s = Snap(w / Math.max(2, l / 2), h / Math.max(2, l / 2));
             var s_dom = s.node;
             s_dom.setAttribute("viewBox", [0, 0, w, h].join(" "));
             d.append(s_dom);
@@ -143,12 +186,13 @@
         });
     });
 
-    var pEventHook = new PEventHook($sketch[0], function(p_event) {
+    var pEventHook = new PEventHook($sketch[0], function (p_event) {
         dispatcher.nSamplesPerEvent = parseInt(txtNumSamples.val());
+        dispatcher.nSketchSamples = parseInt(txtNumSketchSamples.val());
         pEventHook.variance_x_px = parseInt(txtXVariance.val());
         pEventHook.variance_y_px = parseInt(txtYVariance.val());
         cursor.radius = parseInt(txtCursorRadius.val());
-        if(p_event.source !== "mouse" || p_event.type === "click") {
+        if (p_event.source !== "mouse" || p_event.type === "click") {
             return;
         }
         dispatcher.dispatchEvent(p_event);

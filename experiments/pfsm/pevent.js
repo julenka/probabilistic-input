@@ -28,8 +28,9 @@ var PMouseEvent = PEvent.subClass({
         this.source = "mouse";
     },
     getSamples: function (n) {
-        var left = this.base_event.currentTarget.offsetLeft;
-        var top = this.base_event.currentTarget.offsetTop;
+        var offset = $(this.base_event.currentTarget).offset();
+        var left = offset.left;
+        var top = offset.top;
         if(isNaN(left)) {
             left = 0 ;
         }
