@@ -18,29 +18,21 @@ Dispatcher.prototype.dispatchEvent = function(e) {
     var samples = e.getSamples(this.nSamplesPerEvent);
     var new_sketches = [];
     // declare outside of loop to remind me of scope
-    var sketch, sample, responses, i, j, k, nothing_happened;
+    var sketch, sample, responses, i, j, k;
     var start_sketch_size = this.sketches.length, post_dispatch_size,post_resample_size;
     // for each sample, dispatch to each sketch
     for(i = 0; i < this.sketches.length; i++) {
-        nothing_happened = true;
         sketch = this.sketches[i];
         for(j = 0; j < samples.length; j++) {
             sample = samples[j];
             // response:
             // [ {new_sketch: XXX, action_request: XXX, feedback_request: XXX} ]
             responses = sketch.dispatchEvent(sample);
-            if(nothing_happened && responses.length > 0) {
-                nothing_happened = false;
-            }
             responses.forEach(function(response){
-
-                // TODO: execute feedback action
-                // TODO: execute final action
+                // TODO: execute feedback action, if defined
+                // TODO: execute final action, if defined
                 new_sketches.push(response.new_sketch);
             });
-        }
-        if(nothing_happened) {
-            new_sketches.push(sketch);
         }
     }
 

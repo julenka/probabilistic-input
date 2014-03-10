@@ -35,13 +35,14 @@ var Sketch = Object.subClass({
         // if the event has been handled, stop
         // if the event has not been handled, then we need to keep dispatching the event. add this sketch sample to the list
         // of sketches you need to keep dispatching to
-        var i,j;
+        var i, j, added_to_response;
         var my_response = [];
         // [ {new_sketch: XXX, action_request: XXX, feedback_request: XXX} ]
         var sketches_to_dispatch = [ {sketch: this, dispatch_index: 0}];
         while(sketches_to_dispatch.length != 0) {
             var dispatch_info = sketches_to_dispatch.shift();
             var sketch_to_dispatch = dispatch_info.sketch;
+            added_to_response = false;
             for(i = dispatch_info.dispatch_index; i < sketch_to_dispatch.children.length; i++) {
                 // send the event to the child. the child returns a list of new sketches and also whether the event has been handled
                 // response: [ {control: control, handled: false, update: fn, action: fn, feedback: fn}]
@@ -58,16 +59,26 @@ var Sketch = Object.subClass({
                     // call the update method for this control
                     response.update.call(response.control, e);
 
-                    my_response.push(
-                        {
-                            new_sketch: new_sketch,
-                            action_request: response.action,
-                            feedback_request: response.feedback
-                        });
+
                    if(!response.handled) {
                        sketches_to_dispatch.push({sketch: new_sketch, dispatch_index: i + 1});
+                   } else {
+                       my_response.push(
+                           {
+                               new_sketch: new_sketch,
+                               action_request: response.action,
+                               feedback_request: response.feedback
+                           });
+                       added_to_response = true;
                    }
                 }
+            }
+            if(!added_to_response) {
+                my_response.push(
+                    {
+                        new_sketch: sketch_to_dispatch
+                    }
+                );
             }
         }
 
