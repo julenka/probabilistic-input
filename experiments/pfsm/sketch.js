@@ -44,29 +44,29 @@ var Sketch = Object.subClass({
             var sketch_to_dispatch = dispatch_info.sketch;
             for(i = dispatch_info.dispatch_index; i < sketch_to_dispatch.children.length; i++) {
                 // send the event to the child. the child returns a list of new sketches and also whether the event has been handled
-                // response: [ {control: control, handled: false, action: fn, feedback: fn}]
-                var response = sketch_to_dispatch.children[i].dispatchEvent(e);
-                for(j = 0; j < response.length; j++) {
+                // response: [ {control: control, handled: false, update: fn, action: fn, feedback: fn}]
+                var responses = sketch_to_dispatch.children[i].dispatchEvent(e);
+                for(j = 0; j < responses.length; j++) {
+                    var response = responses[j];
                     // clone the sketch
                     // put in the new control
-                    // if handled, add to sketches_to_dispatch
+                    // if not handled, add to sketches_to_dispatch
                     var new_sketch = this.clone();
-                    new_sketch.children[i] = response[j].control;
-                    response[j].control.sketch = new_sketch;
+                    new_sketch.children[i] = response.control;
+
+                    response.control.sketch = new_sketch;
+                    // call the update method for this control
+                    response.update.call(response.control, e);
+
                     my_response.push(
                         {
                             new_sketch: new_sketch,
-                            new_control: response[j].control,
-                            update: response[j].update,
-                            action_request: response[j].action,
-                            feedback_request: response[j].feedback
+                            action_request: response.action,
+                            feedback_request: response.feedback
                         });
                    if(!response.handled) {
                        sketches_to_dispatch.push({sketch: new_sketch, dispatch_index: i + 1});
                    }
-                }
-                if(response.length > 0) {
-                    break;
                 }
             }
         }

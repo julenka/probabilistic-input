@@ -27,16 +27,13 @@ Dispatcher.prototype.dispatchEvent = function(e) {
         for(j = 0; j < samples.length; j++) {
             sample = samples[j];
             // response:
-            // [ {new_sketch: XXX, new_control: XXX, action_request: XXX, feedback_request: XXX} ]
+            // [ {new_sketch: XXX, action_request: XXX, feedback_request: XXX} ]
             responses = sketch.dispatchEvent(sample);
             if(nothing_happened && responses.length > 0) {
                 nothing_happened = false;
             }
             responses.forEach(function(response){
-                // TODO: execute update action
-                if(typeof response.update !== 'undefined' && typeof response.new_control != 'undefined') {
-                    response.update.call(response.new_control, sample);
-                }
+
                 // TODO: execute feedback action
                 // TODO: execute final action
                 new_sketches.push(response.new_sketch);
