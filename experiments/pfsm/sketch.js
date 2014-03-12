@@ -35,19 +35,20 @@ var Sketch = Object.subClass({
         // if the event has been handled, stop
         // if the event has not been handled, then we need to keep dispatching the event. add this sketch sample to the list
         // of sketches you need to keep dispatching to
-        var i, j, added_to_response;
+        var i, j, response_received;
         var my_response = [];
         // [ {new_sketch: XXX, action_request: XXX, feedback_request: XXX} ]
-        var sketches_to_dispatch = [ {sketch: this, dispatch_index: 0}];
+        var sketches_to_dispatch = [ {sketch: this, dispatch_index: this.children.length - 1}];
         while(sketches_to_dispatch.length != 0) {
             var dispatch_info = sketches_to_dispatch.shift();
             var sketch_to_dispatch = dispatch_info.sketch;
-            added_to_response = false;
-            for(i = dispatch_info.dispatch_index; i < sketch_to_dispatch.children.length; i++) {
+            response_received = false;
+            for(i = dispatch_info.dispatch_index; i >= 0; i--) {
                 // send the event to the child. the child returns a list of new sketches and also whether the event has been handled
                 // response: [ {control: control, handled: false, update: fn, action: fn, feedback: fn}]
                 var responses = sketch_to_dispatch.children[i].dispatchEvent(e);
                 for(j = 0; j < responses.length; j++) {
+                    response_received = true;
                     var response = responses[j];
                     // clone the sketch
                     // put in the new control
@@ -57,11 +58,13 @@ var Sketch = Object.subClass({
 
                     response.control.sketch = new_sketch;
                     // call the update method for this control
-                    response.update.call(response.control, e);
+                    if(typeof response.update !== 'undefined') {
+                        response.update.call(response.control, e);
+                    }
 
 
                    if(!response.handled) {
-                       sketches_to_dispatch.push({sketch: new_sketch, dispatch_index: i + 1});
+                       sketches_to_dispatch.push({sketch: new_sketch, dispatch_index: i - 1});
                    } else {
                        my_response.push(
                            {
@@ -69,11 +72,11 @@ var Sketch = Object.subClass({
                                action_request: response.action,
                                feedback_request: response.feedback
                            });
-                       added_to_response = true;
+                       break;
                    }
                 }
             }
-            if(!added_to_response) {
+            if(!response_received) {
                 my_response.push(
                     {
                         new_sketch: sketch_to_dispatch
@@ -169,7 +172,7 @@ var Control = Object.subClass({
         var new_control;
         for(i = 0; i < transitions.length; i++) {
             transition = transitions[i];
-            if(transition.source === e.source && transition.type === e.type && transition.predicate(e)) {
+            if(transition.source === e.source && transition.type === e.type && transition.predicate.call(this, e)) {
                 new_control = this.clone();
                 new_control.current_state = transition.to;
                 response.push({control: new_control, handled: transition.handles_event,
