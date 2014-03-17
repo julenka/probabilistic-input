@@ -195,14 +195,14 @@
     var txtCursorRadius = $("#circleRadius");
     var $sketch = $("#sketch");
     var $sketches = $("#sketches");
-    var dispatcher = new Dispatcher(sketch, function dispatchCompleted(new_sketches) {
+    var dispatcher = new Dispatcher(sketch, function dispatchCompleted(dispatch_response) {
         $sketch.empty();
         $sketches.empty();
 
         var w = $sketch.width();
         var h = $sketch.height();
         var rows = 3;
-        new_sketches.forEach(function(sketch_and_prob, i) {
+        dispatch_response.forEach(function(sketch_and_prob, i) {
             // HACK: snap assumes svg is "svg" not SVG error
             sketch_and_prob.sketch.draw($sketch);
             var d = $("<div class='float-left'></div>");

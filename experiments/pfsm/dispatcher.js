@@ -14,6 +14,11 @@ function Dispatcher(sketch, dispatchCompleted) {
     this.nSamplesPerEvent = 100;
     this.nSketchSamples = 10;
 }
+
+/**
+ * Dispatches an event, aggregates results, TODO resolves actions, TODO shows feedback
+ * @param e probabilistic even to dispatch. must have getSamples() method
+ */
 Dispatcher.prototype.dispatchEvent = function(e) {
     var samples = e.getSamples(this.nSamplesPerEvent);
     var new_sketches = [];
@@ -63,12 +68,13 @@ Dispatcher.prototype.dispatchEvent = function(e) {
     var callback_sketches = []
     new_sketches.shuffle();
     var i, n = Math.min(new_sketches.length, this.nSketchSamples);
-    // TODO: weigthed resampling
+    // TODO: wighted resampling
     for(i = 0; i < n; i++) {
         this.sketches.push(new_sketches[i].sketch);
         callback_sketches.push(new_sketches[i]);
     }
     post_resample_size = this.sketches.length;
+
     // call dispatch completed
     this.dispatchCompleted(callback_sketches, start_sketch_size, post_dispatch_size, post_resample_size);
 };
