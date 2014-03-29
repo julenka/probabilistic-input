@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Julia Unit Tests</title>
+    <link rel="stylesheet" href="qunit-1.14.0.css">
+</head>
+<body>
+<div id="qunit"></div>
+<div id="qunit-fixture"></div>
+<script src="../lib/jquery.js"></script>
+<script src="qunit-1.14.0.js"></script>
+<script>
+    // test("Empty", function () {
+    //     equal(Math.roundWithSignificance(0.5,0), 1, "0.5 rounds to 1, 0 sig figs");
+    // });
+
+    // test("Inheritance", function () {
+    //     ok(Object.subClass, "Object.subClass exists");
+    //     var Person = Object.subClass({
+    //         init: function (isDancing) {
+    //             this.dancing = isDancing;
+    //         },
+    //         dance: function () {
+    //             return this.dancing;
+    //         }
+    //     });
+
+    //     var Ninja = Person.subClass({
+    //         init: function () {
+    //             this._super(false);
+    //         },
+    //         dance: function () {
+    //             console.log("ninjas don't dance.");
+    //             return this._super();
+    //         },
+    //         swingSword: function () {
+    //             return true;
+    //         }
+    //     });
+    //     var person = new Person(true);
+    //     ok(person.dance(), "the person dances");
+
+    //     var ninja = new Ninja();
+    //     ok(ninja.swingSword(), "the sword is swinging");
+
+    //     ok(!ninja.dance(), "the ninja is not dancing");
+
+    //     ok(person instanceof Person, "person is a Person");
+
+    //     ok(ninja instanceof Ninja &&
+    //     ninja instanceof Person, "ninja is a Ninja and a Person");
+    // });
+
+    // test("Array.extend", function() {
+    //     var a1 = [1,2,3];
+    //     var a2 = [4,5,6];
+    //     var a3 = [1,2,3,4,5,6];
+    //     var a4 = [];
+    //     a1.extend(a2);
+    //     deepEqual(a1, a3, "[1,2,3].extend([4,5,6]) gives " + a1);
+
+    //     a1.extend(a4);
+    //     deepEqual(a1, a3, "[1,2,3,4,5,6].extend([]) gives " + a1);
+    // });
+
+    // test("Array.shuffle", function() {
+    //     var a1 = [1,2,3,4,5,6,7,8,9];
+    //     a1.shuffle();
+    //     ok(true, "shuffling 1 - 8 gives: " + a1.join(','));
+    // });
+
+    // test("Function.curry", function() {
+    //     var add = function(a,b) {return a + b};
+    //     var plusTwo = add.curry(2);
+    //     var plusThree = add.curry(3);
+    //     var twoPlusThree = add.curry(2,3);
+    //     equal(plusTwo(2), 4, "plusTwo(2) is four!");
+    //     equal(plusThree(2), 5, "plusThree(2) is five!");
+    //     equal(twoPlusThree(), 5, "twoPlusThree() is five!");
+    // })
+
+</script>
+</body>
+</html>
