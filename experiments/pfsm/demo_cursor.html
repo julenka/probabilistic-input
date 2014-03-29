@@ -109,7 +109,13 @@
             result.y = this.y;
             result.radius = this.radius;
             return result;
-        }
+        },
+        equals: function(other) {
+            if(!this._super(other)) {
+                return false;
+            }
+            return this.x == other.x && this.y == other.y;
+        },
     });
 
 
@@ -124,21 +130,21 @@
     var txtCursorRadius = $("#circleRadius");
     var $sketch = $("#sketch");
     var $sketches = $("#sketches");
-    var dispatcher = new Dispatcher(sketch, function dispatchCompleted(new_sketches) {
+    var dispatcher = new Dispatcher(sketch, function dispatchCompleted(dispatcher_reply) {
         $sketch.empty();
         $sketches.empty();
         var w = $sketch.width();
         var h = $sketch.height();
-        new_sketches.forEach(function(new_sketch, i) {
+        dispatcher_reply.forEach(function(sketch_and_prob, i) {
             // HACK: snap assumes svg is "svg" not SVG error
-            new_sketch.draw($sketch);
+            sketch_and_prob.sketch.draw($sketch);
             var d = $("<div class='float-left'></div>");
-            d.append(["<div>","sketch", i, ":", 1/new_sketches.length, "</div>"].join(" "));
+            d.append(["<div>","sketch", i, ":", 1/dispatcher_reply.length, "</div>"].join(" "));
             var s = Snap(w / 10, h / 10);
             var s_dom = s.node;
             s_dom.setAttribute("viewBox", [0, 0, w, h].join(" "));
             d.append(s_dom);
-            new_sketch.draw($(s_dom));
+            sketch_and_prob.sketch.draw($(s_dom));
             $sketches.append(d);
         });
     });

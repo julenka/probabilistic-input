@@ -50,7 +50,6 @@ Dispatcher.prototype.dispatchEvent = function(e) {
                 }
                 // TODO: execute feedback action, if defined
                 // TODO: execute final action, if defined
-
             });
         }
     }
