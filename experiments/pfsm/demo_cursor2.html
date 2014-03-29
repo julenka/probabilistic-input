@@ -150,7 +150,10 @@
             result.path = [];
             result.path.extend(this.path);
             return result;
-        }
+        },
+        equals: function(other) {
+            return false;
+        },
     });
 
 
@@ -168,22 +171,22 @@
     var $sketches = $("#sketches");
 
 
-    var dispatcher = new Dispatcher(sketch, function dispatchCompleted(new_sketches) {
+    var dispatcher = new Dispatcher(sketch, function dispatchCompleted(dispatcher_reply) {
         $sketch.empty();
         $sketches.empty();
         var w = $sketch.width();
         var h = $sketch.height();
-        new_sketches.forEach(function (new_sketch, i) {
+        dispatcher_reply.forEach(function (sketch_and_prob, i) {
             // HACK: snap assumes svg is "svg" not SVG error
-            new_sketch.draw($sketch);
+            sketch_and_prob.sketch.draw($sketch);
             var d = $("<div class='float-left'></div>");
-            var l = new_sketches.length;
+            var l = dispatcher_reply.length;
             d.append(["<div>", "sketch", i, ":", 1 / l, "</div>"].join(" "));
             var s = Snap(w / Math.max(2, l / 2), h / Math.max(2, l / 2));
             var s_dom = s.node;
             s_dom.setAttribute("viewBox", [0, 0, w, h].join(" "));
             d.append(s_dom);
-            new_sketch.draw($(s_dom));
+            sketch_and_prob.sketch.draw($(s_dom));
             $sketches.append(d);
         });
     });

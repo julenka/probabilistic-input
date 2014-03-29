@@ -19,7 +19,14 @@ var Sketch = Object.subClass({
         }
     },
     equals: function(other) {
-
+        if(other.children.length !== this.children.length) return false;
+        var i;
+        for(i = 0; i < other.children.length; i++) {
+            if (!this.children[i].equals(other.children[i])) {
+                return false;
+            }
+        }
+        return true;
     },
     dispatchEvent: function(e) {
         // by default, just copy yourself over
@@ -70,7 +77,8 @@ var Sketch = Object.subClass({
                            {
                                new_sketch: new_sketch,
                                action_request: response.action,
-                               feedback_request: response.feedback
+                               feedback_request: response.feedback,
+                               transition_id : response.transition_id
                            });
                        break;
                    }
@@ -132,6 +140,7 @@ var Control = Object.subClass({
         this.fsm_description = {};
         this.current_state = undefined;
         this.sketch = sketch;
+        this.className = "Control"; // every control must define this
     },
     clone_impl: function(control) {
         control.current_state = this.current_state;
@@ -175,13 +184,19 @@ var Control = Object.subClass({
             if(transition.source === e.source && transition.type === e.type && transition.predicate.call(this, e)) {
                 new_control = this.clone();
                 new_control.current_state = transition.to;
-                response.push({control: new_control, handled: transition.handles_event,
+                response.push({control: new_control, handled: transition.handles_event, transition_id: this.current_state + "_" + new_control.current_state,
                     action: transition.action, feedback: transition.feedback, update: transition.update});
             }
         }
         return response;
     },
     equals: function(other) {
-
+        if(this.className !== other.className) {
+            return false;
+        }
+        if(this.current_state !== other.current_state) {
+            return false;
+        }
+        return true;
     }
 });

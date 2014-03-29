@@ -48,7 +48,7 @@
                         type: "keypress",
                         predicate: is_space_fn,
                         update: turn_color.curry("red"),
-                        handles_event: true
+                        handles_event: false
                     },
                     {
                         to: "blue",
@@ -56,7 +56,7 @@
                         type: "keypress",
                         predicate: is_space_fn,
                         update: turn_color.curry("blue"),
-                        handles_event: true
+                        handles_event: false
                     },
                 ],
                 red: [
@@ -66,7 +66,7 @@
                         type: "keypress",
                         predicate: is_space_fn,
                         update: turn_color.curry("green"),
-                        handles_event: true
+                        handles_event: false
                     },
                 ],
                 green: [
@@ -76,7 +76,7 @@
                         type: "keypress",
                         predicate: is_space_fn,
                         update: turn_color.curry("white"),
-                        handles_event: true
+                        handles_event: false
                     },
                 ],
                 blue: [
@@ -86,7 +86,7 @@
                         type: "keypress",
                         predicate: is_space_fn,
                         update: turn_color.curry("white"),
-                        handles_event: true
+                        handles_event: false
                     },
                 ]
             };
@@ -115,13 +115,13 @@
 
     var eventNumber = 0;
     var $dispatchHistory = $("#dispatch_history");
-    var dispatcher = new Dispatcher(sketch, function dispatchCompleted(new_sketches) {
+    var dispatcher = new Dispatcher(sketch, function dispatchCompleted(dispatch_response) {
         eventNumber++;
         var newDiv = $("<div class='event_div'></div>");
         newDiv.append($("<span>event " + eventNumber + "</span>"));
-        new_sketches.forEach(function (sketch) {
+        dispatch_response.forEach(function (sketch_prob) {
             var sketchDiv = $("<div class='sketch_div'></div>");
-            sketch.draw(sketchDiv);
+            sketch_prob.sketch.draw(sketchDiv);
             newDiv.append(sketchDiv);
         });
         $dispatchHistory.prepend(newDiv);

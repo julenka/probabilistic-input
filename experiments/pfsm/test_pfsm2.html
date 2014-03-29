@@ -77,29 +77,35 @@
             result.x = this.x;
             result.y = this.y;
             return result;
+        },
+        equals: function(other) {
+            if(!this._super(other)) {
+                return false;
+            }
+            return this.x == other.x && this.y == other.y;
         }
     });
     var sketch = new Sketch();
     var cursor = new Cursor();
     sketch.addChild(cursor);
 
-    var dispatcher = new Dispatcher(sketch, function dispatchCompleted(new_sketches) {
+    var dispatcher = new Dispatcher(sketch, function dispatchCompleted(dispatcher_response) {
         var w = $(window).width();
         var h = $(window).height();
         var $sketches = $("#sketches");
         $sketches.empty();
-        new_sketches.forEach(function(new_sketch, i) {
-            var snap = Snap(w / new_sketches.length, h / new_sketches.length);
+        dispatcher_response.forEach(function(new_sketch_and_prob, i) {
+            var snap = Snap(w / dispatcher_response.length, h / dispatcher_response.length);
             var snap_dom = snap.node;
             snap_dom.setAttribute("viewBox", [0,0,w,h].join(' '))
             snap_dom.setAttribute("id", "sketch-" + i);
             $sketches.append(snap_dom);
-            new_sketch.draw($(snap_dom));
+            new_sketch_and_prob.sketch.draw($(snap_dom));
 
         });
     });
 
-    dispatcher.nSamplesPerEvent = 2;
+    dispatcher.nSamplesPerEvent = 10;
     var pEventHook = new PEventHook(window, function(p_event) {
         if(p_event.source !== "mouse" || p_event.type === "click") {
             return;

@@ -8,9 +8,10 @@
     <script type="text/javascript" src="../libs/utils.js"></script>
 
     <!-- PFSM modules -->
-    <script type="text/javascript" src="event_hook.js"></script>
     <script type="text/javascript" src="pevent_hook.js"></script>
     <script type="text/javascript" src="dispatcher.js"></script>
+    <script type="text/javascript" src="pevent.js"></script>
+    <script type="text/javascript" src="sketch.js"></script>
     <style>
         svg {
             border: 1px solid black;
@@ -55,9 +56,8 @@
             // handle the event
             var result = this.clone();
             result.value = e.value;
-            return {
-                new_sketches: [result]
-            };
+            return [ {new_sketch: result, probability: 1} ];
+
         },
         draw: function($el) {
             $el.append("<div> testSketch event value: " + this.value + "</div>")
@@ -80,18 +80,18 @@
         newDiv.append($("<div>event " + eventNumber + "</div>"));
         new_sketches.forEach(function(sketch) {
             var sketchDiv = $("<div></div>");
-            sketch.draw(sketchDiv);
+            sketch.sketch.draw(sketchDiv);
             newDiv.append(sketchDiv);
         });
         $dispatchHistory.prepend(newDiv);
     });
-    var eventHook = new EventHook(window, (function(e) {
+    window.addEventListener("keypress", function(e){
         var type = e.type;
         if(type === "keypress" && e.keyCode == 32) {
             var pEvent = new PTestEvent(1, e, eventNumber);
             dispatcher.dispatchEvent(pEvent);
         }
-    });
+    }, true);
 </script>
 </body>
 </html>
