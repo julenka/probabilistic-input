@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Event Hook Test</title>
+    <script type="text/javascript" src="../lib/jquery.js"></script>
+    <script type="text/javascript" src="../julia.js"></script>
+</head>
+<body>
+<script type="text/javascript">
+    var eventHook = new PEventHook(window, function(e) {
+        ea = [];
+        for(var p in e) {
+            if(typeof e[p] === "function") {
+                continue;
+            }
+            ea.push(p + ":" + e[p]);
+        }
+        console.log("captured " + e.type + " : " + ea.join("\n"));
+    });
+
+</script>
+<h2>Instructions</h2>
+<ul>
+    <li>Mouse down, move, up should be captured and displayed in console as Events</li>
+    <li>key down, up should be captured and displayed in console as Events</li>
+</ul>
+</body>
+</html>
