@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>JS Sandbox</title>
+    <!-- JQuery -->
+    <script type="text/javascript" src="../lib/jquery.js"></script>
+
+    <!-- Snap SVG library -->
+    <script type="text/javascript" src="../lib/snap.svg.js"></script>
+    <script type="text/javascript" src="../julia.js"></script>
+    <style>
+        svg {
+            border: 1px solid black;
+
+        }
+    </style>
+</head>
+<body>
+
+<div>
+    number of samples: <input type="text" id="numSamples" value="10"/>
+</div>
+<div>
+    sample x variance: <input type="text" id="sampleVarianceX" value="10"/>
+</div>
+<div>
+    sample y variance: <input type="text" id="sampleVarianceY" value="10"/>
+</div>
+
+<svg id="sandbox"></svg>
+
+
+<script type="text/javascript">
+    var snap = Snap("#sandbox");
+    var snapLeft = $("#sandbox");
+    var snapTop = $("#san")
+    var txtNumSamples = $("#numSamples");
+    var txtXVariance = $("#sampleVarianceX");
+    var txtYVariance = $("#sampleVarianceY");
+    var peventHook = new PEventHook(snap.node,
+            function (e) {
+                if (e.source !== "mouse") {
+                    return;
+                }
+
+                // clear the current snap
+                // for each sample
+                snap.clear();
+                var samples = e.getSamples(parseInt(txtNumSamples.val()));
+                samples.forEach(function (sample) {
+                    peventHook.variance_x_px = parseInt(txtXVariance.val());
+                    peventHook.variance_y_px = parseInt(txtYVariance.val());
+                    var color = "#ff0000";
+                    var r = 5;
+                    if (sample.type === "mousemove") {
+                        color = "#00ff00";
+                    } else if (sample.type === "mouseup") {
+                        color = "#0000ff";
+                    } else if (sample.type === "click") {
+                        r = 30;
+                    }
+                    snap.circle({cx: sample.element_x, cy: sample.element_y, r: r, opacity: 0.2, fill: color});
+                });
+            });
+</script>
+</body>
+</html>
