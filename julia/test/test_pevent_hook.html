@@ -6,9 +6,15 @@
     <script type="text/javascript" src="../julia.js"></script>
 </head>
 <body>
+<div id="mouse" style="background-color: gray; width: 300px; height: 300px">
+    Mouse region
+</div>
 <script type="text/javascript">
-    var eventHook = new PEventHook(window, function(e) {
-        ea = [];
+    var mouseHook = new PMouseEventHook(document.getElementById("mouse"));
+    var keyHook = new PKeyEventHook();
+
+    var logEvent = function(e) {
+        var ea = [];
         for(var p in e) {
             if(typeof e[p] === "function") {
                 continue;
@@ -16,12 +22,15 @@
             ea.push(p + ":" + e[p]);
         }
         console.log("captured " + e.type + " : " + ea.join("\n"));
-    });
+    };
+
+    mouseHook.addListener(logEvent);
+    keyHook.addListener(logEvent);
 
 </script>
 <h2>Instructions</h2>
 <ul>
-    <li>Mouse down, move, up should be captured and displayed in console as Events</li>
+    <li>Mouse down, move, up in mouse region should be captured and displayed in console as Events</li>
     <li>key down, up should be captured and displayed in console as Events</li>
 </ul>
 </body>

@@ -11,7 +11,8 @@
 <script src="qunit-1.14.0.js"></script>
 <script src="../julia.js"></script>
 <script>
-    test("Empty", function () {
+//region Utils
+    test("RoundWithSignificance", function () {
          equal(Math.roundWithSignificance(0.5,0), 1, "0.5 rounds to 1, 0 sig figs");
     });
 
@@ -78,8 +79,52 @@
          equal(plusTwo(2), 4, "plusTwo(2) is four!");
          equal(plusThree(2), 5, "plusThree(2) is five!");
          equal(twoPlusThree(), 5, "twoPlusThree() is five!");
-    })
+    });
+//endregion
 
+    var PTestEvent = PEvent.subClass({
+        init: function (identity_p, e, n) {
+            this._super(identity_p, e);
+            this.value = n;
+            this.source = "test";
+        },
+        getSamples: function (n) {
+            var result = [];
+            for (var i = 0; i < n; i++) {
+                result.push(new PTestEvent(1/n, this, n + Math.random()));
+            }
+            return result;
+        }
+    });
+
+    //region Julia
+    test("Julia.initDispatchQueue, Julia.addToDispatchQueue", function() {
+        var julia = new Julia();
+        var testEvent = new PTestEvent(1, {}, 10);
+
+        // Test cross product
+        julia.nSamplesPerEvent = 100;
+        julia.alternatives = [{},{},{}];
+        julia.initDispatchQueue(testEvent);
+        equal(julia.dispatchQueue.length, 300, "initDispatchQueue does cross product correctly");
+
+        // Test that exception is thrown if dispatchqueue is empty
+        throws(function(){julia.initDispatchQueue(testEvent)}, "throws an error if trying to initDispatchQueue when queue is not empty");
+    });
+
+    test("Julia.setRootView", function() {
+        var julia = new Julia();
+        equal(julia.alternatives.length, 0, "when no root view passed, alternatives length is 0");
+
+        julia.setRootView({});
+        equal(julia.alternatives.length, 1, "setRootView sets length to 1");
+
+        julia.alternatives.extend([1,2,3]);
+        julia.setRootView({});
+        equal(julia.alternatives.length, 1, "when alternatives length > 0, setRootView sets length to 1");
+
+    });
+    //endregion
 </script>
 </body>
 </html>

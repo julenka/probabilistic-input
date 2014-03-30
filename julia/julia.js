@@ -66,6 +66,13 @@ if(typeof jQuery === 'undefined') {
     };
 })();
 
+// Wraps a call to a method within the context of another.
+var bind = function (context, name) {
+    return function () {
+        return context[name].apply(context, arguments);
+    };
+};
+
 //
 // Math
 //
@@ -205,46 +212,60 @@ function log(level, msg) {
 
 //region Events
 
-PEventHook.ALL_EVENT_TYPES = ['mousedown', 'mousemove', 'mouseup', 'keydown', 'keyup', 'click', 'keypress'];
-function PEventHook(el, fn, event_types) {
-    if (typeof event_types === 'undefined') {
-        event_types = PEventHook.ALL_EVENT_TYPES;
+var PEventSource = Object.subClass({
+    init: function(){},
+    addListener: function(pEventListener) {
+        throw "not implemented!";
+    },
+    removeListener: function(pEventListener) {
+        throw "not implemented!";
     }
-    this.variance_x_px = 100;
-    this.variance_y_px = 100;
-    this.event_types = event_types;
-    var me = this;
-    var dispatchEvent = function(e) {
-        var type = e.type;
-        if(me.event_types.indexOf(type) === -1) {
-            return;
-        }
-        var pEvent;
-        if(type === "click" || type === "mousedown" || type === "mousemove" || type === "mouseup") {
-            pEvent = new PMouseEvent(1, e, me.variance_x_px, me.variance_y_px);
-        } else {
-            pEvent = new PKeyEvent(1, e);
-        }
-        fn(pEvent);
-    };
+});
 
-    if(typeof el === 'undefined') {
-        el = window;
+var DOMEventSource = PEventSource.subClass({
+    init: function(el){
+        this.el = el === undefined ? window : el;
     }
-    PEventHook.ALL_EVENT_TYPES.forEach(function (type) {
-        el.addEventListener(type, dispatchEvent, true);
-    });
-}
+});
+
+var PMouseEventHook = DOMEventSource.subClass({
+    init: function(el) {
+        this._super(el);
+        this.variance_x_px = 100;
+        this.variance_y_px = 100;
+    },
+    addListener: function(fn) {
+        var me = this;
+        ['mousedown', 'mousemove', 'mouseup', 'click'].forEach(function(type) {
+            me.el.addEventListener(type, function(e) {
+                fn(new PMouseEvent(1, e, me.variance_x_px, me.variance_y_px));
+            });
+        });
+    }
+});
+
+var PKeyEventHook = DOMEventSource.subClass({
+    init: function(el) {
+        this._super(el);
+    },
+    addListener: function(fn) {
+        var me = this;
+        ['keydown', 'keyup', 'keypress'].forEach(function(type) {
+            me.el.addEventListener(type, function(e) {
+                fn(new PKeyEvent(1, e));
+            });
+        });
+    }
+});
 
 var PEvent = Object.subClass({
-
     init: function (identity_p, e) {
         // base event is the event that this probabilsitic event was generated from.
         // seems useful, not sure. Maybe it can be either a regular DOM event or
         this.base_event = e;
     },
     getSamples: function () {
-        throw({name: "FatalError", message: "PEvent.getSamples is not implemented!"});
+        throw "not implemented!";
     }
 });
 
@@ -312,5 +333,357 @@ var PKeyEvent = PEvent.subClass({
     }
 });
 
-//region endEvent
+//endregion
 
+//region Julia
+
+var Julia = Object.subClass({
+    init: function(dom_el_to_hook, rootView) {
+        // [{viewRoot, event}, {viewRoot, event}]
+        this.dispatchQueue = [];
+        this.actionRequests = [];
+        this.nSamplesPerEvent = 20;
+        this.nAlternativesToKeep = 10;
+        this.alternatives = [];
+
+        if(dom_el_to_hook === undefined) {
+            log(LOG_LEVEL_DEBUG, "Warning: in Julia() dom_el_to_hook is undefined! ");
+            return;
+        }
+        if(rootView === undefined) {
+            log(LOG_LEVEL_DEBUG, "Warning: in Julia() rootView is undefined! ");
+            return;
+        }
+        this.setRootView(rootView);
+    },
+    //TODO test addEventSource
+    addEventSource: function(eventSource) {
+        eventSource.addListener(bind(this, "dispatchPEvent"));
+    },
+    /**
+     * populate the dispatch queue with interface alternatives and event samples.
+     * Cross product of interfaces and events
+     * Assumes that dispatchQueue is empty initially
+     * @param pEvent
+     */
+    initDispatchQueue: function(pEvent) {
+        var i,j;
+        var samples = pEvent.getSamples(this.nSamplesPerEvent);
+        if(this.dispatchQueue.length !== 0) {
+            throw({name: "FatalError", message: "initDispatchQueue dispatchQueue not empty!"});
+        }
+        for(i = 0; i < samples.length; i++) {
+            for (j = 0; j < this.alternatives.length; j++) {
+                this.addToDispatchQueue(this.alternatives[j], samples[i]);
+            }
+        }
+    },
+    addToDispatchQueue: function(view, event) {
+        this.dispatchQueue.push({
+            alternative: view,
+            eventSample: event
+        });
+    },
+    setRootView: function(view) {
+        this.rootView = view;
+        this.alternatives = [{view: view, probability: 1}];
+    },
+    /**
+     * Remove given view from list of alternatives
+     * @param view
+     */
+    killAlternative: function(view) {
+
+    },
+    dispatchPEvent: function(pEvent) {
+        // TODO: dispatch the event
+        this.initDispatchQueue(pEvent);
+        var i;
+        if(this.actionRequests.length !== 0) {
+            throw({name: "FatalError", message: "actionRequests length is not zero!"});
+        }
+        for(i = 0; i < this.dispatchQueue.length; i++) {
+            var viewAndEvent = this.dispatchQueue[i];
+            this.actionRequests.extend(viewAndEvent.alternative.dispatchEvent(viewAndEvent.eventSample));
+        }
+        // TODO combine requests
+        // TODO mediate requests
+        // TODO execute requests
+        // TODO resample views
+
+        if(typeof this.dispatchCompleted !== "undefined") {
+            this.dispatchCompleted([]);
+        }
+    },
+
+    /**
+     * Normalizes the weights of action requests so they sum to 1
+     * @param actionRequestSequences
+     */
+    normalizeActions: function(actionRequestSequences) {
+
+    },
+
+    /**
+     * Executes the action request sequences that have been accepted by the mediator
+     * updates the interface alternatives accordingly
+     * @param actionRequessSequences
+     */
+    executeActions: function(actionRequestSequences) {
+        var i, j;
+        for(i = 0; i < actionRequestSequences.length; i++) {
+            var actionRequestSequence = actionRequestSequences[i];
+            var rootView = actionRequestSequence.rootView;
+            var rootViewClone = rootView.clone();
+            // view.actionRequest
+        }
+        // for each action request sequence
+        // clone the original interface
+        // for every interactor context in the sequence, update the context
+        // for each function in the action request sequence
+        // execute that method with appropriate context
+
+    }
+
+
+});
+
+//endregion
+
+//region Mediation
+var Mediator = Object.subClass({
+    init: function(julia) {
+        this.julia = julia;
+    },
+    /**
+     * By default the mediator just takes the first nAlternativesToKeep alternatives
+     * and doesn't look at probability
+     * @param actionRequests
+     * @return action requests to accept, with non normalized weights
+     */
+    mediate: function(actionRequests) {
+        var result = [];
+        var i;
+        for(i = 0; i < this.julia.nAlternativesToKeep; i++) {
+            result.push(actionRequests[i]);
+        }
+    }
+});
+//endregion
+
+//region ActionRequest
+
+/**
+ * Represents a request to execute code as a result of an input event.
+ * @param fn function to execute
+ * @param viewContext the context in which to execute this method.
+ * For views, this should be the a reference to the view itself.
+ * The context should be cloneable, since it may need to be cloned.
+ * When we need to clone an interface (when accepting a final action request), we
+ * will need to go over all action requests in a sequence and set the context to the new,
+ * cloned, context before moving forward.
+ * @type {*}
+ */
+var ActionRequest = Object.subClass({
+    init: function(fn, viewContext, reversible, handlesEvent) {
+        this.fn = fn;
+        this.className = "ActionRequest";
+        this.reversible = reversible;
+        this.viewContext = viewContext;
+        this.handlesEvent = handlesEvent;
+    }
+});
+
+/**
+ * Represents a sequence of action requests to execute as a result of an intput event
+ * @param rootView The context in which to execute the action event sequence. Should be the root
+ * view of the interface
+ * @param requests the list of action requests that make up this sequence.
+ */
+var ActionRequestSequence = Object.subClass({
+    init: function(rootView, requests) {
+        this.requests = requests;
+        this.className = "ActionRequestSequence";
+        this.rootView = rootView;
+        this.weight = 1;
+    }
+});
+
+//endregion
+
+//region Views
+
+/**
+ * Represents a component of a user interface (or, potentially, an entire interface).
+ * @type {*}
+ */
+var View = Object.subClass({
+    init: function(julia) {
+        this.julia = julia;
+        this.className = "View";
+    },
+    /**
+     * Creates an identical copy of this view
+     */
+    clone: function() {
+        throw "not implemented!";
+    },
+    cloneProperties: function() {
+
+    },
+    /**
+     * If this has any action requests that it points to, make sure to move the action requests to
+     * the new clone
+     */
+    cloneActionRequests: function(clone){
+        if(typeof this.actionRequests === 'undefined') {
+            return;
+        }
+        var i;
+        for(i = 0; i < this.actionRequests.length; i++) {
+            this.actionRequets[i].viewContex = clone;
+        }
+    },
+    /**
+     * Draws the view
+     * @param $el a jQuery element to draw to
+     */
+    draw: function($el) {
+        throw "not implemented!";
+    },
+    /**
+     * Return true if this object equals the other object
+     * @param other
+     */
+    equals: function(other) {
+        throw "not implemented!";
+    },
+    /**
+     * Dispatches an event to itself and potentially any children.
+     * Returns a list action request sequences, where each sequence is a list of action requests.
+     * These action requests should be performed one after another, if executed
+     * @param event
+     * @return
+     */
+    dispatchEvent: function(event) {
+        throw "not implemented!";
+    }
+});
+
+/**
+ * View that contains several children elements
+ * @type {*}
+ */
+var ContainerView = View.subClass({
+    init: function(julia) {
+        this._super(julia);
+        this.className = "ContainerView";
+    }
+});
+
+/**
+ * View that is governed by a Finite State Machine
+ * @type {*}
+ */
+var FSMView = View.subClass({
+    init: function(julia) {
+        this._super(julia);
+        this.className = "FSMView";
+        this.fsm_description = {};
+        this.current_state = undefined;
+    },
+    clone_fsm: function(control) {
+        control.current_state = this.current_state;
+        var i;
+        for (var state in this.fsm_description) {
+            var new_state = [];
+
+            for(i = 0; i < this.fsm_description[state].length; i++) {
+                var transition = this.fsm_description[state][i];
+                var new_transition = {
+                    to: transition.to,
+                    source: transition.source,
+                    type: transition.type,
+                    action: transition.action,
+                    feedback: transition.feedback,
+                    predicate: transition.predicate,
+                    update: transition.update,
+                    handles_event: transition.handles_event
+                };
+                new_state.push(new_transition);
+            }
+        }
+        control.fsm_description[state] = new_state;
+    },
+    clone: function() {
+        var result = new FSMView(this.julia);
+        this.clone_fsm(result);
+        this.cloneActionRequests(result);
+        return result;
+    },
+    draw: function($el) {
+        $el.append("base control");
+    },
+
+    /**
+     * Dispatches an event to the finite state machine, generating a list of action requests, as appropriate.
+     * Returns a list action request sequences, where each sequence is a list of action requests.
+     * These action requests should be performed one after another, if executed
+     * @param event
+     * @return
+     */
+    dispatchEvent: function(e) {
+        var response = [], i;
+        // response: [ {control: control, handled: false, action: fn, feedback: fn}]
+        // for each transition
+        var transitions = this.fsm_description[this.current_state], transition;
+        for(i = 0; i < transitions.length; i++) {
+            transition = transitions[i];
+            if(transition.take(e, this)) {
+                if(typeof transition.action !== 'undefined') {
+                    response.push(new ActionRequest(transition.action, this, false, transition.handles_event));
+                }
+                if(typeof transition.action !== 'undefined') {
+                    response.push(new ActionRequest(transition.feedback, this, true), transition.handles_event);
+                }
+            }
+        }
+        return response;
+    },
+    equals: function(other) {
+        if(this.className !== other.className) {
+            return false;
+        }
+        if(this.current_state !== other.current_state) {
+            return false;
+        }
+        return true;
+    }
+});
+
+
+//endregion
+
+//region FSM
+var Transition = Object.subClass({
+    init: function(to,source,type,predicate,feedback_action,final_action,handles_event) {
+        this.to = to;
+        this.source = source;
+        this.type = type;
+        this.predicate = predicate;
+        this.feedback_action = feedback_action;
+        this.final_action = final_action;
+        this.handles_event = handles_event;
+    },
+    take: function(e, view) {
+        return this.source === e.source && this.type === e.type && this.predicate.call(view, e);
+    }
+});
+
+var KeypressTransition = Transition.subClass({
+    init: function(to, predicate, feedback_action, final_action, handles_event) {
+        this._super(to, "keyboard", "keypress", feedback_action, final_action, handles_event);
+    }
+});
+
+//endregion

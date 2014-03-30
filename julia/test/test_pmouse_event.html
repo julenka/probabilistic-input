@@ -18,13 +18,16 @@
 <body>
 
 <div>
-    number of samples: <input type="text" id="numSamples" value="10"/>
+    <label for="numSamples">number of samples:</label>
+    <input type="text" id="numSamples" value="10"/>
 </div>
 <div>
-    sample x variance: <input type="text" id="sampleVarianceX" value="10"/>
+    <label for="sampleVarianceX">sample x variance:</label>
+    <input type="text" id="sampleVarianceX" value="10"/>
 </div>
 <div>
-    sample y variance: <input type="text" id="sampleVarianceY" value="10"/>
+    <label for="sampleVarianceY">sample y variance:</label>
+    <input type="text" id="sampleVarianceY" value="10"/>
 </div>
 
 <svg id="sandbox"></svg>
@@ -33,16 +36,13 @@
 <script type="text/javascript">
     var snap = Snap("#sandbox");
     var snapLeft = $("#sandbox");
-    var snapTop = $("#san")
+    var snapTop = $("#san");
     var txtNumSamples = $("#numSamples");
     var txtXVariance = $("#sampleVarianceX");
     var txtYVariance = $("#sampleVarianceY");
-    var peventHook = new PEventHook(snap.node,
+    var peventHook = new PMouseEventHook(snap.node);
+    peventHook.addListener(
             function (e) {
-                if (e.source !== "mouse") {
-                    return;
-                }
-
                 // clear the current snap
                 // for each sample
                 snap.clear();

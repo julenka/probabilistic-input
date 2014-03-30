@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>State Machine Test 1</title>
+    <!-- JQuery -->
+    <script type="text/javascript" src="../lib/jquery.js"></script>
+
+    <!-- PFSM modules -->
+    <script type="text/javascript" src="../julia.js"></script>
+    <style type="text/css">
+        .sketch_div {
+            float: left;
+            margin-bottom: 10px;
+            margin-right: 20px;
+        }
+        .event_div {
+            border-top: 10px dashed black;
+            clear:both
+        }
+    </style>
+</head>
+<body>
+
+<div>
+    Press space to update the state. This page tests the following:
+    <ol>
+        <li>[Julia] Sending a single event sample to multiple possible interfaces</li>
+        <li>[FSMView] For an FSMView, generating multiple action requests for transitions responding to the same event</li>
+        <li>[Julia] Collecting all action requests</li>
+        <li>[Mediator] Accepting a subset of feedback requests randomly</li>
+        <li>[Julia] Given a list of action requests to accept, updating interface alternatives accordingly</li>
+        <li>[Julia] Calling dispatchCompleted when a dispatch loop has completed</li>
+    </ol>
+
+    Things that this test assumes already work:
+    <ol>
+        <li>[Julia] Responding to PKeyEvents and generating a single event sample</li>
+    </ol>
+</div>
+<div id="dispatch_history">
+</div>
+
+<script type="text/javascript">
+
+    var TestView = FSMView.subClass({
+        init: function (julia) {
+            this._super(julia);
+            this.past_colors = [];
+            var is_space_fn = function(e) { return e.keyCode === 32};
+            var turn_color = function(c) { this.past_colors.push(this.color); this.color = c};
+            this.color = "white";
+            this.current_state = "white";
+            // TODO: make it easy to apply common properties
+            this.fsm_description = {
+                white: [
+                    new KeypressTransition(
+                            "red",
+                            is_space_fn,
+                            turn_color.curry("red"),
+                            undefined,
+                            false
+                    ),
+                    new KeypressTransition(
+                            "blue",
+                            is_space_fn,
+                            turn_color.curry("blue"),
+                            undefined,
+                            false
+                    )
+                ],
+                red: [
+                    new KeypressTransition(
+                            "green",
+                            is_space_fn,
+                            turn_color.curry("green"),
+                            undefined,
+                            false
+                    )
+                ],
+                green: [
+                    new KeypressTransition(
+                            "white",
+                            is_space_fn,
+                            turn_color.curry("white"),
+                            undefined,
+                            false
+                    )
+                ],
+                blue: [
+                    new KeypressTransition(
+                            "white",
+                            is_space_fn,
+                            turn_color.curry("white"),
+                            undefined,
+                            false
+                    )
+                ]
+            };
+        },
+        draw: function ($el) {
+            var new_div = $("<div></div>").css({"border": "2px solid black", "background-color": this.color, "width": 100, "height": 100});
+            this.past_colors.forEach(function(color) {
+                var d2 = $("<div></div>").css({"width":100,"height":10, "background-color": color, "border-bottom": "1px solid black"});
+                new_div.append(d2);
+            });
+            $el.append(new_div);
+        },
+        clone: function() {
+            var result = new TestView(this.sketch);
+            this.clone_fsm(result);
+            result.color = this.color;
+            result.past_colors = [];
+            this.past_colors.forEach(function(c){result.past_colors.push(c)});
+            return result;
+        }
+    });
+    var view = new TestControl();
+    var julia = new Julia(window, view);
+
+    // ** julia setView **
+    var eventNumber = 0;
+    var $dispatchHistory = $("#dispatch_history");
+    julia.dispatchCompleted = function(dispatch_response) {
+        eventNumber++;
+        var newDiv = $("<div class='event_div'></div>");
+        newDiv.append($("<span>event " + eventNumber + "</span>"));
+        dispatch_response.forEach(function (sketch_prob) {
+            var sketchDiv = $("<div class='sketch_div'></div>");
+            sketch_prob.sketch.draw(sketchDiv);
+            newDiv.append(sketchDiv);
+        });
+        $dispatchHistory.prepend(newDiv);
+    };
+    julia.nSamplesPerEvent = 1;
+    var pEventHook = new PEventHook(window, function (p_event) {
+        if(p_event.type !== "keypress") {
+            return;
+        }
+        dispatcher.dispatchEvent(p_event);
+    });
+</script>
+</body>
+</html>
