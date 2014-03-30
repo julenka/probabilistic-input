@@ -4,7 +4,6 @@ if(typeof jQuery === 'undefined') {
     throw{name:"FatalError", message:"Julia requires jQuery! Did you forget to load jQuery?"};
 }
 
-
 //region Utilities and object extensions
 
 // Inheritance
@@ -13,7 +12,7 @@ if(typeof jQuery === 'undefined') {
     var initializing = false,
         superPattern =
             /xyz/.test(function() //noinspection BadExpressionStatementJS
-            {//noinspection JSHint
+            {//noinspection JSHint,JSUnresolvedVariable
                 xyz;}) ? /\b_super\b/ : /.*/; // determines in functions can be serialized
 
     Object.subClass = function(properties) {
@@ -32,6 +31,7 @@ if(typeof jQuery === 'undefined') {
                     (function(name, fn) {
                         return function() {
                             // save ths pointer to the super class
+                            //noinspection JSUnresolvedVariable
                             var tmp = this._super;
 
                             // set the new super class to be the superclass's super class
@@ -187,6 +187,7 @@ Function.prototype.curry = function() {
     var fn = this,
         args = Array.prototype.slice.call(arguments);
     return function() {
+        //noinspection JSValidateTypes
         return fn.apply(this, args.concat(
             Array.prototype.slice.call(arguments)));
     }; };
@@ -212,6 +213,7 @@ function log(level, msg) {
 
 //region Events
 
+//noinspection JSUnusedGlobalSymbols,JSUnusedGlobalSymbols,JSUnusedGlobalSymbols,JSUnusedGlobalSymbols,JSUnusedGlobalSymbols
 var PEventSource = Object.subClass({
     init: function(){},
     addListener: function(pEventListener) {
@@ -224,12 +226,14 @@ var PEventSource = Object.subClass({
 
 var DOMEventSource = PEventSource.subClass({
     init: function(el){
+        //noinspection JSUnresolvedVariable
         this.el = el === undefined ? window : el;
     }
 });
 
 var PMouseEventHook = DOMEventSource.subClass({
     init: function(el) {
+        //noinspection JSUnresolvedFunction
         this._super(el);
         this.variance_x_px = 100;
         this.variance_y_px = 100;
@@ -246,6 +250,7 @@ var PMouseEventHook = DOMEventSource.subClass({
 
 var PKeyEventHook = DOMEventSource.subClass({
     init: function(el) {
+        //noinspection JSUnresolvedFunction
         this._super(el);
     },
     addListener: function(fn) {
@@ -271,6 +276,7 @@ var PEvent = Object.subClass({
 
 var PMouseEvent = PEvent.subClass({
     init: function (identity_p, e, sigma_x, sigma_y) {
+        //noinspection JSUnresolvedFunction
         this._super(identity_p, e);
         this.sigma_x = sigma_x;
         this.sigma_y = sigma_y;
@@ -279,6 +285,7 @@ var PMouseEvent = PEvent.subClass({
     },
     getSamples: function (n) {
         var left = 0, top = 0;
+        //noinspection JSUnresolvedVariable
         if (this.base_event.currentTarget !== window) {
             //noinspection JSHint
             var offset = $(this.base_event.currentTarget).offset();
@@ -296,6 +303,7 @@ var PMouseEvent = PEvent.subClass({
         for (var i = 0; i < n; i++) {
             var sample_x = Math.sampleFromGaussian(this.sigma_x);
             var sample_y = Math.sampleFromGaussian(this.sigma_y);
+            //noinspection JSUnresolvedVariable
             result.push(new PMouseEventSample(1 / n, this,
                 this.base_event.clientX + sample_x,
                 this.base_event.clientY + sample_y,
@@ -308,6 +316,7 @@ var PMouseEvent = PEvent.subClass({
 
 var PMouseEventSample = PEvent.subClass({
     init: function (identity_p, e, client_x, client_y, element_x, element_y) {
+        //noinspection JSUnresolvedFunction
         this._super(identity_p, e);
         this.element_x = element_x;
         this.element_y = element_y;
@@ -318,6 +327,7 @@ var PMouseEventSample = PEvent.subClass({
 
 var PKeyEvent = PEvent.subClass({
     init: function(identity_p, e) {
+        //noinspection JSUnresolvedFunction
         this._super(identity_p, e);
         this.keyCode = e.keyCode;
         this.source="keyboard";
@@ -337,19 +347,17 @@ var PKeyEvent = PEvent.subClass({
 
 //region Julia
 
+//noinspection JSUnusedGlobalSymbols
 var Julia = Object.subClass({
-    init: function(dom_el_to_hook, rootView) {
+    init: function(rootView) {
         // [{viewRoot, event}, {viewRoot, event}]
         this.dispatchQueue = [];
         this.actionRequests = [];
         this.nSamplesPerEvent = 20;
         this.nAlternativesToKeep = 10;
         this.alternatives = [];
+        this.mediator = new Mediator();
 
-        if(dom_el_to_hook === undefined) {
-            log(LOG_LEVEL_DEBUG, "Warning: in Julia() dom_el_to_hook is undefined! ");
-            return;
-        }
         if(rootView === undefined) {
             log(LOG_LEVEL_DEBUG, "Warning: in Julia() rootView is undefined! ");
             return;
@@ -427,16 +435,17 @@ var Julia = Object.subClass({
     /**
      * Executes the action request sequences that have been accepted by the mediator
      * updates the interface alternatives accordingly
-     * @param actionRequessSequences
+     * @param actionRequestSequences
      */
     executeActions: function(actionRequestSequences) {
-        var i, j;
-        for(i = 0; i < actionRequestSequences.length; i++) {
-            var actionRequestSequence = actionRequestSequences[i];
-            var rootView = actionRequestSequence.rootView;
-            var rootViewClone = rootView.clone();
+        throw "not implemented!";
+//        var i;
+//        for(i = 0; i < actionRequestSequences.length; i++) {
+//            var actionRequestSequence = actionRequestSequences[i];
+//            var rootView = actionRequestSequence.rootView;
+//            var rootViewClone = rootView.clone();
             // view.actionRequest
-        }
+//        }
         // for each action request sequence
         // clone the original interface
         // for every interactor context in the sequence, update the context
@@ -467,6 +476,7 @@ var Mediator = Object.subClass({
         for(i = 0; i < this.julia.nAlternativesToKeep; i++) {
             result.push(actionRequests[i]);
         }
+        return result;
     }
 });
 //endregion
@@ -528,9 +538,6 @@ var View = Object.subClass({
     clone: function() {
         throw "not implemented!";
     },
-    cloneProperties: function() {
-
-    },
     /**
      * If this has any action requests that it points to, make sure to move the action requests to
      * the new clone
@@ -576,6 +583,7 @@ var View = Object.subClass({
  */
 var ContainerView = View.subClass({
     init: function(julia) {
+        //noinspection JSUnresolvedFunction
         this._super(julia);
         this.className = "ContainerView";
     }
@@ -587,6 +595,7 @@ var ContainerView = View.subClass({
  */
 var FSMView = View.subClass({
     init: function(julia) {
+        //noinspection JSUnresolvedFunction
         this._super(julia);
         this.className = "FSMView";
         this.fsm_description = {};
@@ -612,8 +621,9 @@ var FSMView = View.subClass({
                 };
                 new_state.push(new_transition);
             }
+            control.fsm_description[state] = new_state;
         }
-        control.fsm_description[state] = new_state;
+
     },
     clone: function() {
         var result = new FSMView(this.julia);
@@ -629,8 +639,7 @@ var FSMView = View.subClass({
      * Dispatches an event to the finite state machine, generating a list of action requests, as appropriate.
      * Returns a list action request sequences, where each sequence is a list of action requests.
      * These action requests should be performed one after another, if executed
-     * @param event
-     * @return
+     * @param e
      */
     dispatchEvent: function(e) {
         var response = [], i;
@@ -654,10 +663,8 @@ var FSMView = View.subClass({
         if(this.className !== other.className) {
             return false;
         }
-        if(this.current_state !== other.current_state) {
-            return false;
-        }
-        return true;
+        return this.current_state === other.current_state;
+
     }
 });
 
@@ -682,6 +689,7 @@ var Transition = Object.subClass({
 
 var KeypressTransition = Transition.subClass({
     init: function(to, predicate, feedback_action, final_action, handles_event) {
+        //noinspection JSUnresolvedFunction
         this._super(to, "keyboard", "keypress", feedback_action, final_action, handles_event);
     }
 });

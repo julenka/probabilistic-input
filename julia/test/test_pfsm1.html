@@ -44,10 +44,12 @@
 
     var TestView = FSMView.subClass({
         init: function (julia) {
+            //noinspection JSUnresolvedFunction
             this._super(julia);
             this.past_colors = [];
             var is_space_fn = function(e) { return e.keyCode === 32};
-            var turn_color = function(c) { this.past_colors.push(this.color); this.color = c};
+            var turn_color = function(c) { //noinspection JSPotentiallyInvalidUsageOfThis
+                this.past_colors.push(this.color); this.color = c};
             this.color = "white";
             this.current_state = "white";
             // TODO: make it easy to apply common properties
@@ -115,7 +117,7 @@
         }
     });
     var view = new TestControl();
-    var julia = new Julia(window, view);
+    var julia = new Julia(view);
 
     // ** julia setView **
     var eventNumber = 0;
@@ -132,7 +134,7 @@
         $dispatchHistory.prepend(newDiv);
     };
     julia.nSamplesPerEvent = 1;
-    var pEventHook = new PEventHook(window, function (p_event) {
+    var pEventHook = new PEventHook(document, function (p_event) {
         if(p_event.type !== "keypress") {
             return;
         }
