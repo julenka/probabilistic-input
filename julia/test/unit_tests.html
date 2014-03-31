@@ -19,6 +19,7 @@
     test("Inheritance", function () {
          ok(Object.subClass, "Object.subClass exists");
          var Person = Object.subClass({
+             className: "Person",
              init: function (isDancing) {
                  this.dancing = isDancing;
              },
@@ -28,6 +29,7 @@
          });
 
          var Ninja = Person.subClass({
+             className: "Ninja",
              init: function () {
                  this._super(false);
              },

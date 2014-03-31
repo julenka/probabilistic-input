@@ -18,6 +18,10 @@ if(typeof jQuery === 'undefined') {
     Object.subClass = function(properties) {
         var _super = this.prototype;
 
+        if (properties.className === undefined) {
+            throw "in Object.subClass className is undefined!";
+        }
+
         // instantiate the super class
         initializing = true;
         var proto = new this();
@@ -54,9 +58,6 @@ if(typeof jQuery === 'undefined') {
             // call the init method
             if(!initializing && this.init) {
                 this.init.apply(this, arguments);
-                this.constructor.toString = function() {
-                    return this.className === undefined ? "FooBar" : this.className;
-                };
             }
         }
 
@@ -218,6 +219,7 @@ function log(level, msg) {
 
 //noinspection JSUnusedGlobalSymbols,JSUnusedGlobalSymbols,JSUnusedGlobalSymbols,JSUnusedGlobalSymbols,JSUnusedGlobalSymbols
 var PEventSource = Object.subClass({
+    className: "PEventSource",
     init: function(){},
     addListener: function() {
         throw "not implemented!";
@@ -228,6 +230,7 @@ var PEventSource = Object.subClass({
 });
 
 var DOMEventSource = PEventSource.subClass({
+    className: "DOMEventSource",
     init: function(el){
         //noinspection JSUnresolvedVariable
         this.el = el === undefined ? window : el;
@@ -235,6 +238,7 @@ var DOMEventSource = PEventSource.subClass({
 });
 
 var PMouseEventHook = DOMEventSource.subClass({
+    className: "PMouseEventHook",
     init: function(el) {
         //noinspection JSUnresolvedFunction
         this._super(el);
@@ -252,6 +256,7 @@ var PMouseEventHook = DOMEventSource.subClass({
 });
 
 var PKeyEventHook = DOMEventSource.subClass({
+    className: "PKeyEventHook",
     init: function(el) {
         //noinspection JSUnresolvedFunction
         this._super(el);
@@ -267,6 +272,7 @@ var PKeyEventHook = DOMEventSource.subClass({
 });
 
 var PEvent = Object.subClass({
+    className: "PEvent",
     init: function (identity_p, e) {
         // base event is the event that this probabilsitic event was generated from.
         // seems useful, not sure. Maybe it can be either a regular DOM event or
@@ -278,6 +284,7 @@ var PEvent = Object.subClass({
 });
 
 var PMouseEvent = PEvent.subClass({
+    className: "PMouseEvent",
     init: function (identity_p, e, sigma_x, sigma_y) {
         //noinspection JSUnresolvedFunction
         this._super(identity_p, e);
@@ -318,6 +325,7 @@ var PMouseEvent = PEvent.subClass({
 });
 
 var PMouseEventSample = PEvent.subClass({
+    className: "PMouseEventSample",
     init: function (identity_p, e, client_x, client_y, element_x, element_y) {
         //noinspection JSUnresolvedFunction
         this._super(identity_p, e);
@@ -329,6 +337,7 @@ var PMouseEventSample = PEvent.subClass({
 });
 
 var PKeyEvent = PEvent.subClass({
+    className: "PKeyEvent",
     init: function(identity_p, e) {
         //noinspection JSUnresolvedFunction
         this._super(identity_p, e);
@@ -352,6 +361,7 @@ var PKeyEvent = PEvent.subClass({
 
 //noinspection JSUnusedGlobalSymbols
 var Julia = Object.subClass({
+    className: "Julia",
     init: function(rootView) {
         // [{viewRoot, event}, {viewRoot, event}]
         this.dispatchQueue = [];
@@ -361,7 +371,6 @@ var Julia = Object.subClass({
         this.alternatives = [];
         this.mediator = new Mediator();
         this.combiner = new Combiner();
-        this.className = "Julia";
     },
     //TODO test addEventSource
     addEventSource: function(eventSource) {
@@ -475,6 +484,7 @@ var Julia = Object.subClass({
  * of sequences accordingly
  */
 var Combiner = Object.subClass({
+    className: "Combiner",
     /**
      * Constructor for combiner class
      */
@@ -491,6 +501,7 @@ var Combiner = Object.subClass({
     }
 });
 var Mediator = Object.subClass({
+    className: "Mediator",
     init: function(){},
     /**
      * Mediator returns normalized probabilities s.t. sum of interfaces is 1
@@ -515,6 +526,7 @@ var Mediator = Object.subClass({
 });
 
 var MediationReply = Object.subClass({
+    className: "MediationReply",
     /**
      *
      * @param actionRequestSequence
@@ -543,6 +555,7 @@ var MediationReply = Object.subClass({
  * @type {*}
  */
 var ActionRequest = Object.subClass({
+    className: "ActionRequest",
     init: function(fn, viewContext, reversible, handlesEvent, event) {
         this.fn = fn;
         this.className = "ActionRequest";
@@ -562,6 +575,7 @@ var ActionRequest = Object.subClass({
  * @param requests the list of action requests that make up this sequence.
  */
 var ActionRequestSequence = Object.subClass({
+    className: "ActionRequestSequence",
     init: function(rootView, requests) {
         this.requests = requests;
         this.className = "ActionRequestSequence";
@@ -580,6 +594,7 @@ var ActionRequestSequence = Object.subClass({
  * @type {*}
  */
 var View = Object.subClass({
+    className: "View",
     init: function(julia) {
         this.julia = julia;
         this.className = "View";
@@ -635,6 +650,7 @@ var View = Object.subClass({
  * @type {*}
  */
 var ContainerView = View.subClass({
+    className: "ContainerView",
     init: function(julia) {
         //noinspection JSUnresolvedFunction
         this._super(julia);
@@ -647,6 +663,7 @@ var ContainerView = View.subClass({
  * @type {*}
  */
 var FSMView = View.subClass({
+    className: "FSMView",
     init: function(julia) {
         //noinspection JSUnresolvedFunction
         this._super(julia);
@@ -740,6 +757,7 @@ var FSMView = View.subClass({
 
 //region FSM
 var Transition = Object.subClass({
+    className: "Transition",
     init: function(to,source,type,predicate,feedback_action,final_action,handles_event) {
         this.to = to;
         this.source = source;
@@ -757,6 +775,7 @@ var Transition = Object.subClass({
 });
 
 var KeypressTransition = Transition.subClass({
+    className: "KeypressTransition",
     init: function(to, predicate, feedback_action, final_action, handles_event) {
         //noinspection JSUnresolvedFunction
         this._super(to, "keyboard", "keypress", predicate, feedback_action, final_action, handles_event);
