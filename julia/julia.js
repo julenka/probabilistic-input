@@ -54,6 +54,9 @@ if(typeof jQuery === 'undefined') {
             // call the init method
             if(!initializing && this.init) {
                 this.init.apply(this, arguments);
+                this.constructor.toString = function() {
+                    return this.className === undefined ? "FooBar" : this.className;
+                };
             }
         }
 
@@ -216,10 +219,10 @@ function log(level, msg) {
 //noinspection JSUnusedGlobalSymbols,JSUnusedGlobalSymbols,JSUnusedGlobalSymbols,JSUnusedGlobalSymbols,JSUnusedGlobalSymbols
 var PEventSource = Object.subClass({
     init: function(){},
-    addListener: function(pEventListener) {
+    addListener: function() {
         throw "not implemented!";
     },
-    removeListener: function(pEventListener) {
+    removeListener: function() {
         throw "not implemented!";
     }
 });
@@ -357,22 +360,19 @@ var Julia = Object.subClass({
         this.nAlternativesToKeep = 10;
         this.alternatives = [];
         this.mediator = new Mediator();
-
-        if(rootView === undefined) {
-            log(LOG_LEVEL_DEBUG, "Warning: in Julia() rootView is undefined! ");
-            return;
-        }
-        this.setRootView(rootView);
+        this.combiner = new Combiner();
+        this.className = "Julia";
     },
     //TODO test addEventSource
     addEventSource: function(eventSource) {
         eventSource.addListener(bind(this, "dispatchPEvent"));
     },
+
     /**
      * populate the dispatch queue with interface alternatives and event samples.
      * Cross product of interfaces and events
      * Assumes that dispatchQueue is empty initially
-     * @param pEvent
+     * @param pEvent the event to initialize the dispatch queue with
      */
     initDispatchQueue: function(pEvent) {
         var i,j;
@@ -386,9 +386,9 @@ var Julia = Object.subClass({
             }
         }
     },
-    addToDispatchQueue: function(view, event) {
+    addToDispatchQueue: function(viewAndProbability, event) {
         this.dispatchQueue.push({
-            alternative: view,
+            viewAndProbability: viewAndProbability,
             eventSample: event
         });
     },
@@ -408,75 +408,123 @@ var Julia = Object.subClass({
         this.initDispatchQueue(pEvent);
         var i;
         if(this.actionRequests.length !== 0) {
-            throw({name: "FatalError", message: "actionRequests length is not zero!"});
+            throw "actionRequests length is not zero!";
         }
-        for(i = 0; i < this.dispatchQueue.length; i++) {
-            var viewAndEvent = this.dispatchQueue[i];
-            this.actionRequests.extend(viewAndEvent.alternative.dispatchEvent(viewAndEvent.eventSample));
+        while(this.dispatchQueue.length !== 0) {
+            var viewAndEvent = this.dispatchQueue.shift();
+            this.actionRequests.extend(viewAndEvent.viewAndProbability.view.dispatchEvent(viewAndEvent.eventSample));
         }
-        // TODO combine requests
-        // TODO mediate requests
-        // TODO execute requests
-        // TODO resample views
 
+        var combinedRequests = this.combiner.combine(this.actionRequests);
+        var mediationResults = this.mediator.mediate(combinedRequests, this.nAlternativesToKeep);
+
+        var newAlternatives = [], mediationReply, viewClone;
+        for(i = 0; i < mediationResults.length; i++) {
+            mediationReply = mediationResults[i];
+
+            if(mediationReply.accept) {
+                var modifiedViews = [];
+                // for each action request, in order to properly move over the viewContext to the clone,
+                // we need to let each view know about all requests that came from it. Then it can appropriately
+                // update the viewContext for each request when the view gets cloned.
+                mediationReply.actionRequestSequence.requests.forEach(function(request) {
+                    var viewContext = request.viewContext;
+                    if(viewContext.actionRequests === undefined) {
+                        viewContext.actionRequests = [];
+                    }
+                    viewContext.actionRequests.push(request);
+                    modifiedViews.push(viewContext);
+                });
+
+                viewClone = mediationReply.actionRequestSequence.rootView.clone();
+                // TODO require that a container be at the root, and update the rootview accordingly
+                viewClone.rootView = viewClone;
+                mediationReply.actionRequestSequence.requests.forEach(function(request){
+                    request.fn.call(request.viewContext, request.event);
+                });
+                newAlternatives.push({view: viewClone, probability: mediationReply.probability});
+
+                // since different action request sequences may be possible for the same view, we need to
+                // remove the action request information for each view after we perform the clone and update
+                modifiedViews.forEach(function(view){
+                    view.actionRequests = undefined;
+                });
+            }
+            // TODO decide what to do for requests that are not accepted (deferred)
+        }
+
+
+        if(newAlternatives.length > 0) {
+            this.alternatives = newAlternatives;
+        }
+
+        // The mediator automatically resamples the views
         if(typeof this.dispatchCompleted !== "undefined") {
-            this.dispatchCompleted([]);
+            this.dispatchCompleted(this.alternatives, newAlternatives.length > 0);
         }
-    },
-
-    /**
-     * Normalizes the weights of action requests so they sum to 1
-     * @param actionRequestSequences
-     */
-    normalizeActions: function(actionRequestSequences) {
-
-    },
-
-    /**
-     * Executes the action request sequences that have been accepted by the mediator
-     * updates the interface alternatives accordingly
-     * @param actionRequestSequences
-     */
-    executeActions: function(actionRequestSequences) {
-        throw "not implemented!";
-//        var i;
-//        for(i = 0; i < actionRequestSequences.length; i++) {
-//            var actionRequestSequence = actionRequestSequences[i];
-//            var rootView = actionRequestSequence.rootView;
-//            var rootViewClone = rootView.clone();
-            // view.actionRequest
-//        }
-        // for each action request sequence
-        // clone the original interface
-        // for every interactor context in the sequence, update the context
-        // for each function in the action request sequence
-        // execute that method with appropriate context
-
+        this.actionRequests = [];
     }
-
 
 });
 
 //endregion
 
-//region Mediation
-var Mediator = Object.subClass({
-    init: function(julia) {
-        this.julia = julia;
-    },
+//region Mediation and Action Combination
+/**
+ * Combiner is responsible for combining multiple action request sequences, and updating the weights
+ * of sequences accordingly
+ */
+var Combiner = Object.subClass({
     /**
+     * Constructor for combiner class
+     */
+    init: function(){},
+
+    /**
+     * Combine multiple action request sequences, updating weights accordingly.
+     * Default implementation returns original action request sequence.
+     * @returns {Array} The collection of combind ActionRequestSequence objects
+     * @param actionRequestSequences
+     */
+    combine: function(actionRequestSequences) {
+        return actionRequestSequences;
+    }
+});
+var Mediator = Object.subClass({
+    init: function(){},
+    /**
+     * Mediator returns normalized probabilities s.t. sum of interfaces is 1
      * By default the mediator just takes the first nAlternativesToKeep alternatives
      * and doesn't look at probability
-     * @param actionRequests
-     * @return action requests to accept, with non normalized weights
+     * @return Array of mediation replies. Each mediation reply contains a sequence of requests to accept and information
+     * @param actionRequestSequences
+     * @param nAlternativesToKeep
      */
-    mediate: function(actionRequests) {
+    mediate: function(actionRequestSequences, nAlternativesToKeep) {
         var result = [];
         var i;
-        for(i = 0; i < this.julia.nAlternativesToKeep; i++) {
-            result.push(actionRequests[i]);
+        var sum = 0;
+        actionRequestSequences.forEach(function(seq){
+            sum += seq.weight;
+        });
+        for(i = 0; i < Math.min(nAlternativesToKeep, actionRequestSequences.length); i++) {
+            result.push(new MediationReply(actionRequestSequences[i], true, actionRequestSequences[i].weight / sum));
         }
         return result;
+    }
+});
+
+var MediationReply = Object.subClass({
+    /**
+     *
+     * @param actionRequestSequence
+     * @param accept boolean indicating whether to accept. If not, action gets defered
+     * @param probability
+     */
+    init: function(actionRequestSequence, accept, probability) {
+        this.actionRequestSequence = actionRequestSequence;
+        this.accept = accept;
+        this.probability = probability;
     }
 });
 //endregion
@@ -495,12 +543,15 @@ var Mediator = Object.subClass({
  * @type {*}
  */
 var ActionRequest = Object.subClass({
-    init: function(fn, viewContext, reversible, handlesEvent) {
+    init: function(fn, viewContext, reversible, handlesEvent, event) {
         this.fn = fn;
         this.className = "ActionRequest";
+        //noinspection JSUnusedGlobalSymbols
         this.reversible = reversible;
         this.viewContext = viewContext;
+        //noinspection JSUnusedGlobalSymbols
         this.handlesEvent = handlesEvent;
+        this.event = event;
     }
 });
 
@@ -523,6 +574,7 @@ var ActionRequestSequence = Object.subClass({
 
 //region Views
 
+//noinspection JSUnusedGlobalSymbols
 /**
  * Represents a component of a user interface (or, potentially, an entire interface).
  * @type {*}
@@ -541,6 +593,7 @@ var View = Object.subClass({
     /**
      * If this has any action requests that it points to, make sure to move the action requests to
      * the new clone
+     * @param clone the clone to copy these action requests to
      */
     cloneActionRequests: function(clone){
         if(typeof this.actionRequests === 'undefined') {
@@ -548,35 +601,35 @@ var View = Object.subClass({
         }
         var i;
         for(i = 0; i < this.actionRequests.length; i++) {
-            this.actionRequets[i].viewContex = clone;
+            this.actionRequests[i].viewContext = clone;
         }
+        // after cloning once, we shouldn't update the actionRequests for this view again.
+        this.actionRequests = undefined;
     },
     /**
      * Draws the view
-     * @param $el a jQuery element to draw to
      */
-    draw: function($el) {
+    draw: function() {
         throw "not implemented!";
     },
     /**
      * Return true if this object equals the other object
-     * @param other
      */
-    equals: function(other) {
+    equals: function() {
         throw "not implemented!";
     },
     /**
      * Dispatches an event to itself and potentially any children.
      * Returns a list action request sequences, where each sequence is a list of action requests.
      * These action requests should be performed one after another, if executed
-     * @param event
      * @return
      */
-    dispatchEvent: function(event) {
+    dispatchEvent: function() {
         throw "not implemented!";
     }
 });
 
+//noinspection JSUnusedGlobalSymbols
 /**
  * View that contains several children elements
  * @type {*}
@@ -601,33 +654,31 @@ var FSMView = View.subClass({
         this.fsm_description = {};
         this.current_state = undefined;
     },
-    clone_fsm: function(control) {
-        control.current_state = this.current_state;
+    /**
+     * Copies over the state machine for this view to a clone
+     * @param view_clone the clone to copy the fsm to
+     */
+    copyFsm: function(view_clone) {
+        view_clone.current_state = this.current_state;
         var i;
         for (var state in this.fsm_description) {
             var new_state = [];
 
             for(i = 0; i < this.fsm_description[state].length; i++) {
                 var transition = this.fsm_description[state][i];
-                var new_transition = {
-                    to: transition.to,
-                    source: transition.source,
-                    type: transition.type,
-                    action: transition.action,
-                    feedback: transition.feedback,
-                    predicate: transition.predicate,
-                    update: transition.update,
-                    handles_event: transition.handles_event
-                };
+                var new_transition = {};
+                for(var prop in transition) {
+                    new_transition[prop] = transition[prop];
+                }
                 new_state.push(new_transition);
             }
-            control.fsm_description[state] = new_state;
+            view_clone.fsm_description[state] = new_state;
         }
 
     },
     clone: function() {
         var result = new FSMView(this.julia);
-        this.clone_fsm(result);
+        this.copyFsm(result);
         this.cloneActionRequests(result);
         return result;
     },
@@ -642,19 +693,35 @@ var FSMView = View.subClass({
      * @param e
      */
     dispatchEvent: function(e) {
-        var response = [], i;
+        var me = this;
+        var response = [], i, j;
         // response: [ {control: control, handled: false, action: fn, feedback: fn}]
         // for each transition
         var transitions = this.fsm_description[this.current_state], transition;
         for(i = 0; i < transitions.length; i++) {
             transition = transitions[i];
+
             if(transition.take(e, this)) {
-                if(typeof transition.action !== 'undefined') {
-                    response.push(new ActionRequest(transition.action, this, false, transition.handles_event));
-                }
-                if(typeof transition.action !== 'undefined') {
-                    response.push(new ActionRequest(transition.feedback, this, true), transition.handles_event);
-                }
+                var options = [{action: transition.final_action, is_reversible: false},
+                    {action: transition.feedback_action, is_reversible: true}];
+                options.forEach(function(option) {
+                    if(option.action !== undefined) {
+                        response.push(
+                            new ActionRequestSequence(me.rootView === undefined ? me.julia.rootView : me.rootView,
+                                [new ActionRequest(
+                                    // we need to nest this in another closure to bind transition properly
+                                 function(destination_state) {
+                                     return function(event){
+                                         this.current_state = destination_state;
+                                         option.action.call(this, event);
+                                     };
+                                 }(transition.to),
+                                me,
+                                option.is_reversible,
+                                transition.handles_event,
+                                e)]));
+                    }
+                });
             }
         }
         return response;
@@ -678,7 +745,9 @@ var Transition = Object.subClass({
         this.source = source;
         this.type = type;
         this.predicate = predicate;
+        //noinspection JSUnusedGlobalSymbols
         this.feedback_action = feedback_action;
+        //noinspection JSUnusedGlobalSymbols
         this.final_action = final_action;
         this.handles_event = handles_event;
     },
@@ -690,7 +759,7 @@ var Transition = Object.subClass({
 var KeypressTransition = Transition.subClass({
     init: function(to, predicate, feedback_action, final_action, handles_event) {
         //noinspection JSUnresolvedFunction
-        this._super(to, "keyboard", "keypress", feedback_action, final_action, handles_event);
+        this._super(to, "keyboard", "keypress", predicate, feedback_action, final_action, handles_event);
     }
 });
 

@@ -24,10 +24,10 @@
 <div>
     Press space to update the state. This page tests the following:
     <ol>
-        <li>[Julia] Sending a single event sample to multiple possible interfaces</li>
+        <li>[Julia] Sending a single event sample to multiple possible interfaces (done)</li>
         <li>[FSMView] For an FSMView, generating multiple action requests for transitions responding to the same event</li>
         <li>[Julia] Collecting all action requests</li>
-        <li>[Mediator] Accepting a subset of feedback requests randomly</li>
+        <li>[Mediator] Accepting a subset of feedback requests </li>
         <li>[Julia] Given a list of action requests to accept, updating interface alternatives accordingly</li>
         <li>[Julia] Calling dispatchCompleted when a dispatch loop has completed</li>
     </ol>
@@ -108,38 +108,39 @@
             $el.append(new_div);
         },
         clone: function() {
-            var result = new TestView(this.sketch);
-            this.clone_fsm(result);
+            var result = new TestView(this.julia);
+            this.copyFsm(result);
+            this.cloneActionRequests(result);
             result.color = this.color;
             result.past_colors = [];
             this.past_colors.forEach(function(c){result.past_colors.push(c)});
             return result;
         }
     });
-    var view = new TestControl();
-    var julia = new Julia(view);
+    var julia = new Julia();
+    var view = new TestView(julia);
+    julia.setRootView(view);
 
     // ** julia setView **
     var eventNumber = 0;
     var $dispatchHistory = $("#dispatch_history");
-    julia.dispatchCompleted = function(dispatch_response) {
+    julia.dispatchCompleted = function(new_alternatives, uiUpdated) {
+        if(!uiUpdated) {
+            return;
+        }
         eventNumber++;
         var newDiv = $("<div class='event_div'></div>");
         newDiv.append($("<span>event " + eventNumber + "</span>"));
-        dispatch_response.forEach(function (sketch_prob) {
+        new_alternatives.forEach(function (view_probability) {
             var sketchDiv = $("<div class='sketch_div'></div>");
-            sketch_prob.sketch.draw(sketchDiv);
+            view_probability.view.draw(sketchDiv);
             newDiv.append(sketchDiv);
         });
         $dispatchHistory.prepend(newDiv);
     };
     julia.nSamplesPerEvent = 1;
-    var pEventHook = new PEventHook(document, function (p_event) {
-        if(p_event.type !== "keypress") {
-            return;
-        }
-        dispatcher.dispatchEvent(p_event);
-    });
+    var keyEventHook = new PKeyEventHook(document);
+    julia.addEventSource(keyEventHook);
 </script>
 </body>
 </html>
