@@ -460,7 +460,8 @@ var Julia = Object.subClass({
         }
         var updateUI = newAlternatives.length > 0;
         if(newAlternatives.length > 0) {
-            // TODO combine all alternatives into equivalend pairs
+            newAlternatives.shuffle();
+            newAlternatives = newAlternatives.splice(0, this.nAlternativesToKeep);
             var combinedAlternatives = [];
             combinedAlternatives[0] = newAlternatives.shift();
             while(newAlternatives.length > 0) {
@@ -476,6 +477,7 @@ var Julia = Object.subClass({
                     combinedAlternatives.push(alternative);
                 }
             }
+
             this.alternatives = combinedAlternatives;
         }
 
