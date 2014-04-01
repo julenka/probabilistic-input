@@ -85,6 +85,7 @@
 //endregion
 
     var PTestEvent = PEvent.subClass({
+        className: "PTestEvent",
         init: function (identity_p, e, n) {
             this._super(identity_p, e);
             this.value = n;
@@ -118,11 +119,13 @@
         var julia = new Julia();
         equal(julia.alternatives.length, 0, "when no root view passed, alternatives length is 0");
 
-        julia.setRootView({});
+        throws(function(){julia.setRootView({});}, "setRootView throws exception when root is not a ContainerView");
+
+        julia.setRootView(new ContainerView(julia));
         equal(julia.alternatives.length, 1, "setRootView sets length to 1");
 
         julia.alternatives.extend([1,2,3]);
-        julia.setRootView({});
+        julia.setRootView(new ContainerView(julia));
         equal(julia.alternatives.length, 1, "when alternatives length > 0, setRootView sets length to 1");
 
     });

@@ -53,7 +53,6 @@
                 this.past_colors.push(this.color); this.color = c};
             this.color = "white";
             this.current_state = "white";
-            // TODO: make it easy to apply common properties
             this.fsm_description = {
                 white: [
                     new KeypressTransition(
@@ -119,8 +118,10 @@
         }
     });
     var julia = new Julia();
+    var rootView = new ContainerView(julia);
     var view = new TestView(julia);
-    julia.setRootView(view);
+    rootView.addChildView(view);
+    julia.setRootView(rootView);
 
     // ** julia setView **
     var eventNumber = 0;

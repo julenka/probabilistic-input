@@ -365,7 +365,6 @@ var Julia = Object.subClass({
     init: function(rootView) {
         // [{viewRoot, event}, {viewRoot, event}]
         this.dispatchQueue = [];
-        this.actionRequests = [];
         this.nSamplesPerEvent = 20;
         this.nAlternativesToKeep = 10;
         this.alternatives = [];
@@ -402,6 +401,9 @@ var Julia = Object.subClass({
         });
     },
     setRootView: function(view) {
+        if(!(view instanceof ContainerView)) {
+            throw "root view not instance of ContainerView!";
+        }
         this.rootView = view;
         this.alternatives = [{view: view, probability: 1}];
     },
@@ -413,18 +415,16 @@ var Julia = Object.subClass({
 
     },
     dispatchPEvent: function(pEvent) {
-        // TODO: dispatch the event
         this.initDispatchQueue(pEvent);
         var i;
-        if(this.actionRequests.length !== 0) {
-            throw "actionRequests length is not zero!";
-        }
+
+        var actionRequests = [];
         while(this.dispatchQueue.length !== 0) {
             var viewAndEvent = this.dispatchQueue.shift();
-            this.actionRequests.extend(viewAndEvent.viewAndProbability.view.dispatchEvent(viewAndEvent.eventSample));
+            actionRequests.extend(viewAndEvent.viewAndProbability.view.dispatchEvent(viewAndEvent.eventSample));
         }
 
-        var combinedRequests = this.combiner.combine(this.actionRequests);
+        var combinedRequests = this.combiner.combine(actionRequests);
         var mediationResults = this.mediator.mediate(combinedRequests, this.nAlternativesToKeep);
 
         var newAlternatives = [], mediationReply, viewClone;
@@ -447,7 +447,7 @@ var Julia = Object.subClass({
 
                 viewClone = mediationReply.actionRequestSequence.rootView.clone();
                 // TODO require that a container be at the root, and update the rootview accordingly
-                viewClone.rootView = viewClone;
+//                viewClone.rootView = viewClone;
                 mediationReply.actionRequestSequence.requests.forEach(function(request){
                     request.fn.call(request.viewContext, request.event);
                 });
@@ -471,7 +471,6 @@ var Julia = Object.subClass({
         if(typeof this.dispatchCompleted !== "undefined") {
             this.dispatchCompleted(this.alternatives, newAlternatives.length > 0);
         }
-        this.actionRequests = [];
     }
 
 });
@@ -558,7 +557,6 @@ var ActionRequest = Object.subClass({
     className: "ActionRequest",
     init: function(fn, viewContext, reversible, handlesEvent, event) {
         this.fn = fn;
-        this.className = "ActionRequest";
         //noinspection JSUnusedGlobalSymbols
         this.reversible = reversible;
         this.viewContext = viewContext;
@@ -581,6 +579,11 @@ var ActionRequestSequence = Object.subClass({
         this.className = "ActionRequestSequence";
         this.rootView = rootView;
         this.weight = 1;
+    },
+    clone: function() {
+        var requests = [];
+        requests.extend(this.requests);
+        return new ActionRequestSequence(this.rootView, requests);
     }
 });
 
@@ -630,8 +633,10 @@ var View = Object.subClass({
     /**
      * Return true if this object equals the other object
      */
-    equals: function() {
-        throw "not implemented!";
+    equals: function(other) {
+        if(this.className !== other.className) {
+            return false;
+        }
     },
     /**
      * Dispatches an event to itself and potentially any children.
@@ -655,6 +660,123 @@ var ContainerView = View.subClass({
         //noinspection JSUnresolvedFunction
         this._super(julia);
         this.className = "ContainerView";
+        this.children = [];
+    },
+    addChildView: function(view) {
+        this.children.push(view);
+    },
+    /**
+     * Creates an identical copy of this view
+     */
+    clone: function() {
+        var result = new ContainerView(this.julia);
+        this.cloneActionRequests(result);
+        result.children = [];
+        this.children.forEach(function(child){
+            result.addChildView(child.clone());
+        });
+        return result;
+    },
+    /**
+     * Draws the view
+     */
+    draw: function($el) {
+        var i = 0;
+        for(i; i < this.children.length; i++) {
+            this.children[i].draw($el);
+        }
+    },
+    /**
+     * Return true if this object equals the other object
+     */
+    equals: function(other) {
+        if(!this._super.equals(other)) {
+            return false;
+        }
+        if(this.children.length !== other.children.length) {
+            return false;
+        }
+        var i;
+        for(i = 0; i < this.children.length; i++) {
+            if(!this.children[i].equals(other.children[i])) {
+                return false;
+            }
+        }
+        return true;
+    },
+    /**
+     * Dispatches an event to itself and potentially any children.
+     * Returns a list action request sequences, where each sequence is a list of action requests.
+     * These action requests should be performed one after another, if executed
+     * @return
+     */
+    dispatchEvent: function(event) {
+        var i = this.children.length - 1, child;
+
+        // initialize a list of root views and sequences, initially we are empty
+        // sequence needs to have the index of the child we left off at
+
+        // [{actionSequence, childIndex}]
+
+        // set tot true if any child handles this event
+        var isEventHandled;
+        var dispatchQueue = [{actionSequence: new ActionRequestSequence(this, []), childIndex: this.children.length - 1}];
+        // init: function(rootView, requests) {
+        var result = [];
+        while(dispatchQueue.length > 0) {
+            isEventHandled = false;
+            var cur = dispatchQueue.shift();
+            var actionSequence = cur.actionSequence;
+            for(i = cur.childIndex; i >= 0; i--) {
+                child = this.children[i];
+                // dispatch the event to this child
+                // if we get a response, if handled end the sequence
+                var childResponses = child.dispatchEvent(event);
+                childResponses.forEach(function(response) {
+                    // response can be either an ActionRequest or an ActionRequestSequence
+                    // if it is an action request, look to see if it is handled. (handlesEvent)
+                    // add the item to the current action request sequence
+                    // if it is handled, add this to the list of responses
+                    // if it is not handled, add this action request sequence to the current list of items to dispatch
+                    // and continue
+                    var actionSequence2 = actionSequence.clone();
+                    if(response instanceof ActionRequest) {
+                        isEventHandled = response.handlesEvent;
+                        actionSequence2.requests.push(response);
+                    } else if (response instanceof ActionRequestSequence) {
+                        actionSequence2.requests.extend(response.requests);
+                        isEventHandled = response.requests[response.requests.length - 1].handlesEvent;
+                    } else {
+                        throw "response not the right type!";
+                    }
+                    // check if the last item is handled.
+                    // if it is handled, add this to the list of responses
+                    // if it is not handled, add this action request sequence to the current list of items to dispatch
+                    // and continue
+                    if(isEventHandled) {
+                        result.push(actionSequence2);
+                    } else {
+                        if(i > 0) {
+                            dispatchQueue.push({actionSequence: actionSequence2, childIndex: i - 1});
+                        } else if(actionSequence2.requests.length > 0){
+                            // if i === 0, then we are at the end of dispatch.
+                            // Even if the even wasn't handled, we should add this action event sequence
+                            // to the response.
+                            result.push(actionSequence2);
+                        }
+                    }
+
+                });
+                // If there was any response, stop dispatching as
+                // the next dispatch item will be in the dispatch queue
+                if(childResponses.length > 0) {
+                    break;
+                }
+
+            }
+        }
+        return result;
+
     }
 });
 
@@ -705,9 +827,11 @@ var FSMView = View.subClass({
 
     /**
      * Dispatches an event to the finite state machine, generating a list of action requests, as appropriate.
-     * Returns a list action request sequences, where each sequence is a list of action requests.
+     * Returns a list of action request sequences, where each sequence is a list of action requests.
      * These action requests should be performed one after another, if executed
      * @param e
+     * @return Array list of action requests. Each action request represents a different action that the control
+     * may want to take.
      */
     dispatchEvent: function(e) {
         var me = this;
@@ -724,19 +848,19 @@ var FSMView = View.subClass({
                 options.forEach(function(option) {
                     if(option.action !== undefined) {
                         response.push(
-                            new ActionRequestSequence(me.rootView === undefined ? me.julia.rootView : me.rootView,
-                                [new ActionRequest(
-                                    // we need to nest this in another closure to bind transition properly
-                                 function(destination_state) {
-                                     return function(event){
-                                         this.current_state = destination_state;
-                                         option.action.call(this, event);
-                                     };
-                                 }(transition.to),
+                            new ActionRequest(
+                                // we need to nest this in another closure to bind transition properly
+                                function(destination_state) {
+                                    return function(event){
+                                        this.current_state = destination_state;
+                                        option.action.call(this, event);
+                                    };
+                                }(transition.to),
                                 me,
                                 option.is_reversible,
                                 transition.handles_event,
-                                e)]));
+                                e
+                        ));
                     }
                 });
             }
