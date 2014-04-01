@@ -607,6 +607,7 @@ var View = Object.subClass({
      * Creates an identical copy of this view
      */
     clone: function() {
+        // TODO make the clone method more generic: 1. Create a new object 2. copy action requests 3. copy all properties
         throw "not implemented!";
     },
     /**
@@ -624,6 +625,13 @@ var View = Object.subClass({
         }
         // after cloning once, we shouldn't update the actionRequests for this view again.
         this.actionRequests = undefined;
+    },
+    /**
+     * Copy any view-specific properties here
+     * @param clone
+     */
+    cloneProperties: function(clone) {
+        throw "not implemented!";
     },
     /**
      * Draws the view
@@ -950,33 +958,55 @@ var Cursor = FSMView.subClass({
         this.radius = 10;
         this.opacity = 1.0;
         this.current_state = "start";
-        var update_cursor = function(c, e) { this.color = c; this.x = e.element_x; this.y = e.element_y;};
         var t = function() { return true; };
         // TODO: make it easy to apply common properties
         this.fsm_description = {
             start: [
                 new MouseDownTransition(
-                    "start",
+                    "down",
                     t,
-                    update_cursor.curry("red"),
+                    this.drag_start,
                     undefined,
                     true),
                 new MouseMoveTransition(
                     "start",
                     t,
-                    update_cursor.curry("green"),
+                    this.update_location,
                     undefined,
                     true),
+            ],
+            down: [
+                new MouseMoveTransition(
+                    "down",
+                    t,
+                    this.drag_progress,
+                    undefined,
+                    true
+                ),
                 new MouseUpTransition(
                     "start",
                     t,
-                    update_cursor.curry("blue"),
+                    this.drag_end,
                     undefined,
                     true
                 )
-
             ]
         };
+    },
+    update_location: function(e){
+        this.x = e.element_x;
+        this.y = e.element_y;
+    },
+    drag_start: function(e) {
+        this.update_location(e);
+        this.color = "green";
+    },
+    drag_progress: function(e) {
+        this.update_location(e);
+    },
+    drag_end: function(e) {
+        this.update_location(e);
+        this.color = "black";
     },
     draw: function ($el) {
         // TODO are we okay with drawing this to a Snap?

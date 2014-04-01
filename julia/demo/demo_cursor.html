@@ -22,16 +22,28 @@
 </head>
 <body>
 <div>
-    number of samples: <input type="text" id="numSamples" value="10"/>
+    <label for="numSamples">number of event samples:</label>
+    <input type="text" id="numSamples" value="10"/>
 </div>
 <div>
-    sample x variance: <input type="text" id="sampleVarianceX" value="10"/>
+    <label for="numAlternatives">number of alternatives to keep:</label>
+    <input type="text" id="numAlternatives" value ="50"/>
 </div>
 <div>
-    sample y variance: <input type="text" id="sampleVarianceY" value="10"/>
+    <label for="sampleVarianceX">sample x variance:</label>
+    <input type="text" id="sampleVarianceX" value="10"/>
 </div>
 <div>
-    circle radius: <input type="text" id="circleRadius" value="10"/>
+    <label for="sampleVarianceY">sample y variance:</label>
+    <input type="text" id="sampleVarianceY" value="10"/>
+</div>
+<div>
+    <label for="circleRadius">circle radius:</label>
+    <input type="text" id="circleRadius" value="10"/>
+</div>
+<div>
+    <label for="draw_history">paintbrush mode</label>
+    <input type="checkbox" id="draw_history" defaultChecked="0">
 </div>
 <button onclick="update()">Update</button>
 <table>
@@ -50,9 +62,51 @@
 
 <script type="text/javascript">
 
+    var HistoryCursor = Cursor.subClass({
+        className: "HistoryCursor",
+        init: function(julia) {
+            this._super(julia);
+            this.path = [];
+        },
+        clone: function() {
+            var result = new HistoryCursor(this.julia);
+            this.copyFsm(result);
+            this.cloneActionRequests(result);
+            result.color = this.color;
+            result.x = this.x;
+            result.y = this.y;
+            result.radius = this.radius;
+            result.opacity = this.opacity;
+            result.path = [];
+            result.path.extend(this.path);
+            result.draw_history = this.draw_history;
+            return result;
+        },
+        drag_progress: function(e) {
+            this._super(e);
+            if(this.draw_history) {
+                this.path.push(this.x + ", " + this.y);
+            }
+        },
+        drag_end: function(e) {
+            this._super(e);
+            this.path = [];
+        },
+        draw: function ($el) {
+            // TODO are we okay with drawing this to a Snap?
+            // in this case $el will be an SVG element
+            var s = Snap($el[0]);
+            s.circle(this.x, this.y, this.radius).attr({fill: this.color, opacity: this.opacity});
+            if (this.path.length > 1) {
+                s.path("M" + this.path.join("L")).attr({stroke: this.color, fill: "none",
+                    "stroke-width": this.radius, opacity: this.opacity});
+            }
+        }
+    });
+
     var julia = new Julia();
     var rootView = new ContainerView(julia);
-    var view = new Cursor(julia);
+    var view = new HistoryCursor(julia);
     view.opacity = 0.2;
     rootView.addChildView(view);
     julia.setRootView(rootView);
@@ -60,7 +114,9 @@
     var txtXVariance = $("#sampleVarianceX");
     var txtYVariance = $("#sampleVarianceY");
     var txtNumSamples = $("#numSamples");
+    var txtNumAlternatives = $("#numAlternatives");
     var txtCursorRadius = $("#circleRadius");
+    var chkDrawHistory = $("#draw_history");
     var $sketch = $("#sketch");
     var $sketches = $("#sketches");
 
@@ -92,9 +148,11 @@
 
     function update() {
         julia.nSamplesPerEvent = parseInt(txtNumSamples.val());
+        julia.nAlternativesToKeep = parseInt(txtNumAlternatives.val());
         mouseHook.variance_x_px = parseInt(txtXVariance.val());
         mouseHook.variance_y_px = parseInt(txtYVariance.val());
         view.radius = parseInt(txtCursorRadius.val());
+        view.draw_history = chkDrawHistory.prop('checked');
         julia.setRootView(rootView);
     }
     update();
