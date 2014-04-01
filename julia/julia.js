@@ -780,16 +780,11 @@ var ContainerView = View.subClass({
     }
 });
 
-/**
- * View that is governed by a Finite State Machine
- * @type {*}
- */
 var FSMView = View.subClass({
     className: "FSMView",
     init: function(julia) {
         //noinspection JSUnresolvedFunction
         this._super(julia);
-        this.className = "FSMView";
         this.fsm_description = {};
         this.current_state = undefined;
     },
@@ -860,7 +855,7 @@ var FSMView = View.subClass({
                                 option.is_reversible,
                                 transition.handles_event,
                                 e
-                        ));
+                            ));
                     }
                 });
             }
@@ -880,6 +875,13 @@ var FSMView = View.subClass({
 //endregion
 
 //region FSM
+
+/**
+ * View that is governed by a Finite State Machine
+ * @type {*}
+ */
+
+
 var Transition = Object.subClass({
     className: "Transition",
     init: function(to,source,type,predicate,feedback_action,final_action,handles_event) {
@@ -898,6 +900,33 @@ var Transition = Object.subClass({
     }
 });
 
+var MouseTransition = Transition.subClass({
+    className: "MouseTransition",
+    init: function(to, type, predicate, feedback_action, final_action, handles_event) {
+        this._super(to, "mouse", type, predicate, feedback_action, final_action, handles_event);
+    }
+});
+
+var MouseDownTransition = MouseTransition.subClass({
+    className: "MouseDownTransition",
+    init: function(to, predicate, feedback_action, final_action, handles_event) {
+        this._super(to, "mousedown", predicate, feedback_action, final_action, handles_event);
+    }
+});
+
+var MouseMoveTransition = MouseTransition.subClass({
+    className: "MouseMoveTransition",
+    init: function(to, predicate, feedback_action, final_action, handles_event) {
+        this._super(to, "mousemove", predicate, feedback_action, final_action, handles_event);
+    }
+});
+
+var MouseUpTransition = MouseTransition.subClass({
+    className: "MouseUpTransition",
+    init: function(to, predicate, feedback_action, final_action, handles_event) {
+        this._super(to, "mouseup", predicate, feedback_action, final_action, handles_event);
+    }
+});
 var KeypressTransition = Transition.subClass({
     className: "KeypressTransition",
     init: function(to, predicate, feedback_action, final_action, handles_event) {
@@ -907,3 +936,66 @@ var KeypressTransition = Transition.subClass({
 });
 
 //endregion
+
+//region Controls
+
+var Cursor = FSMView.subClass({
+    className: "Cursor",
+    init: function (julia) {
+        this._super(julia);
+        this.color = "black";
+        this.x = 0;
+        this.y = 0;
+        this.current_state = "start";
+        var update_cursor = function(c, e) { this.color = c; this.x = e.element_x; this.y = e.element_y;};
+        var t = function() { return true; };
+        // TODO: make it easy to apply common properties
+        this.fsm_description = {
+            start: [
+                new MouseDownTransition(
+                    "start",
+                    t,
+                    update_cursor.curry("red"),
+                    undefined,
+                    true),
+                new MouseMoveTransition(
+                    "start",
+                    t,
+                    update_cursor.curry("green"),
+                    undefined,
+                    true),
+                new MouseUpTransition(
+                    "start",
+                    t,
+                    update_cursor.curry("blue"),
+                    undefined,
+                    true
+                )
+
+            ]
+        };
+    },
+    draw: function ($el) {
+        // TODO are we okay with drawing this to a Snap?
+        // in this case $el will be an SVG element
+        var s = Snap($el[0]);
+        s.circle(this.x, this.y, 100).attr({fill: this.color});
+    },
+    clone: function() {
+        var result = new Cursor(this.julia);
+        this.copyFsm(result);
+        this.cloneActionRequests(result);
+        result.color = this.color;
+        result.x = this.x;
+        result.y = this.y;
+        return result;
+    },
+    equals: function(other) {
+        if(!this._super(other)) {
+            return false;
+        }
+        return this.x === other.x && this.y === other.y;
+    }
+});
+//endregion
+

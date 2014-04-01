@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>State Machine Test 2</title>
+    <script type="text/javascript" src="../lib/jquery.js"></script>
+    <script type="text/javascript" src="../lib/snap.svg.js"></script>
+    <script type="text/javascript" src="../julia.js"></script>
+
+    <style type="text/css">
+        svg {
+            border: 1px solid black;
+        }
+    </style>
+</head>
+<body>
+<div id="sketches"></div>
+
+<script type="text/javascript">
+    // TODO this still takes too many steps. Make it more elegant
+    var julia = new Julia();
+    var rootView = new ContainerView(julia);
+    var view = new Cursor(julia);
+    rootView.addChildView(view);
+    julia.setRootView(rootView);
+
+
+    julia.dispatchCompleted = function(new_alternatives, uiUpdated) {
+        if(!uiUpdated) {
+            return;
+        }
+        var w = $(window).width();
+        var h = $(window).height();
+        var $sketches = $("#sketches");
+        $sketches.empty();
+        new_alternatives.forEach(function(view_probability, i) {
+            var snap = Snap(w / new_alternatives.length, h / new_alternatives.length);
+            var snap_dom = snap.node;
+            snap_dom.setAttribute("viewBox", [0,0,w,h].join(' '))
+            snap_dom.setAttribute("id", "sketch-" + i);
+            $sketches.append(snap_dom);
+            view_probability.view.draw($(snap_dom));
+
+        });
+
+    };
+    julia.nSamplesPerEvent = 10;
+    julia.addEventSource(new PMouseEventHook(window));
+</script>
+</body>
+</html>
