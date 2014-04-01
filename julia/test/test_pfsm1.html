@@ -136,6 +136,7 @@
         new_alternatives.forEach(function (view_probability) {
             var sketchDiv = $("<div class='sketch_div'></div>");
             view_probability.view.draw(sketchDiv);
+            sketchDiv.append("prob: " + view_probability.probability);
             newDiv.append(sketchDiv);
         });
         $dispatchHistory.prepend(newDiv);

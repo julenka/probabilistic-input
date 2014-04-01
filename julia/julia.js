@@ -424,8 +424,7 @@ var Julia = Object.subClass({
             actionRequests.extend(viewAndEvent.viewAndProbability.view.dispatchEvent(viewAndEvent.eventSample));
         }
 
-        var combinedRequests = this.combiner.combine(actionRequests);
-        var mediationResults = this.mediator.mediate(combinedRequests, this.nAlternativesToKeep);
+        var mediationResults = this.mediator.mediate(actionRequests);
 
         var newAlternatives = [], mediationReply, viewClone;
         for(i = 0; i < mediationResults.length; i++) {
@@ -446,8 +445,6 @@ var Julia = Object.subClass({
                 });
 
                 viewClone = mediationReply.actionRequestSequence.rootView.clone();
-                // TODO require that a container be at the root, and update the rootview accordingly
-//                viewClone.rootView = viewClone;
                 mediationReply.actionRequestSequence.requests.forEach(function(request){
                     request.fn.call(request.viewContext, request.event);
                 });
@@ -461,15 +458,30 @@ var Julia = Object.subClass({
             }
             // TODO decide what to do for requests that are not accepted (deferred)
         }
-
-
+        var updateUI = newAlternatives.length > 0;
         if(newAlternatives.length > 0) {
-            this.alternatives = newAlternatives;
+            // TODO combine all alternatives into equivalend pairs
+            var combinedAlternatives = [];
+            combinedAlternatives[0] = newAlternatives.shift();
+            while(newAlternatives.length > 0) {
+                var alternative = newAlternatives.shift();
+                var found = false;
+                for(i = 0; i < combinedAlternatives.length && !found; i++) {
+                    if(alternative.view.equals(combinedAlternatives[i].view)) {
+                        combinedAlternatives[i].probability += alternative.probability;
+                        found = true;
+                    }
+                }
+                if(!found) {
+                    combinedAlternatives.push(alternative);
+                }
+            }
+            this.alternatives = combinedAlternatives;
         }
 
         // The mediator automatically resamples the views
         if(typeof this.dispatchCompleted !== "undefined") {
-            this.dispatchCompleted(this.alternatives, newAlternatives.length > 0);
+            this.dispatchCompleted(this.alternatives, updateUI);
         }
     }
 
@@ -503,14 +515,14 @@ var Mediator = Object.subClass({
     className: "Mediator",
     init: function(){},
     /**
-     * Mediator returns normalized probabilities s.t. sum of interfaces is 1
-     * By default the mediator just takes a random set of nAlternativesToKeep alternatives
-     * and doesn't look at probability
+     * Mediator takes as input a list of action requests and returns a list of resulting actions to execute
+     * By default, all actions are returned and accepted
+     * If an action is not accepted, it is deferred for execution later
      * @return Array of mediation replies. Each mediation reply contains a sequence of requests to accept and information
      * @param actionRequestSequences
      * @param nAlternativesToKeep
      */
-    mediate: function(actionRequestSequences, nAlternativesToKeep) {
+    mediate: function(actionRequestSequences) {
         var result = [];
         var i;
         var sum = 0;
@@ -518,7 +530,7 @@ var Mediator = Object.subClass({
             sum += seq.weight;
         });
         actionRequestSequences.shuffle();
-        for(i = 0; i < Math.min(nAlternativesToKeep, actionRequestSequences.length); i++) {
+        for(i = 0; i < actionRequestSequences.length; i++) {
             result.push(new MediationReply(actionRequestSequences[i], true, actionRequestSequences[i].weight / sum));
         }
         return result;
@@ -646,6 +658,7 @@ var View = Object.subClass({
         if(this.className !== other.className) {
             return false;
         }
+        return true;
     },
     /**
      * Dispatches an event to itself and potentially any children.
@@ -699,7 +712,7 @@ var ContainerView = View.subClass({
      * Return true if this object equals the other object
      */
     equals: function(other) {
-        if(!this._super.equals(other)) {
+        if(!this._super(other)) {
             return false;
         }
         if(this.children.length !== other.children.length) {
