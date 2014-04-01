@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Cursor Demo</title>
+    <!-- JQuery -->
+    <script type="text/javascript" src="../lib/jquery.js"></script>
+    <script type="text/javascript" src="../lib/snap.svg.js"></script>
+
+    <script type="text/javascript" src="../julia.js"></script>
+
+    <style type="text/css">
+        svg {
+            border: 1px solid black;
+        }
+
+        .float-left {
+            float: left
+        }
+
+
+    </style>
+</head>
+<body>
+<div>
+    number of samples: <input type="text" id="numSamples" value="10"/>
+</div>
+<div>
+    sample x variance: <input type="text" id="sampleVarianceX" value="10"/>
+</div>
+<div>
+    sample y variance: <input type="text" id="sampleVarianceY" value="10"/>
+</div>
+<div>
+    circle radius: <input type="text" id="circleRadius" value="10"/>
+</div>
+<button onclick="update()">Update</button>
+<table>
+    <tr>
+        <td>
+            <svg id="sketch" width="500" height="700"></svg>
+        </td>
+        <td>
+            <div id="sketches"></div>
+        </td>
+
+    </tr>
+</table>
+
+
+
+<script type="text/javascript">
+
+    var julia = new Julia();
+    var rootView = new ContainerView(julia);
+    var view = new Cursor(julia);
+    view.opacity = 0.2;
+    rootView.addChildView(view);
+    julia.setRootView(rootView);
+
+    var txtXVariance = $("#sampleVarianceX");
+    var txtYVariance = $("#sampleVarianceY");
+    var txtNumSamples = $("#numSamples");
+    var txtCursorRadius = $("#circleRadius");
+    var $sketch = $("#sketch");
+    var $sketches = $("#sketches");
+
+
+
+    julia.dispatchCompleted = function(new_alternatives, uiUpdated) {
+        if(!uiUpdated) {
+            return;
+        }
+
+        $sketch.empty();
+        $sketches.empty();
+        var w = $sketch.width();
+        var h = $sketch.height();
+        new_alternatives.forEach(function(view_probability, i) {
+            view_probability.view.draw($sketch);
+            var d = $("<div class='float-left'></div>");
+            d.append(["<div>","sketch", i, ":", 1/new_alternatives.length, "</div>"].join(" "));
+            var s = Snap(w / 10, h / 10);
+            var s_dom = s.node;
+            s_dom.setAttribute("viewBox", [0, 0, w, h].join(" "));
+            d.append(s_dom);
+            view_probability.view.draw($(s_dom));
+            $sketches.append(d);
+        });
+    };
+    var mouseHook = new PMouseEventHook($sketch[0]);
+    julia.addEventSource(mouseHook);
+
+    function update() {
+        julia.nSamplesPerEvent = parseInt(txtNumSamples.val());
+        mouseHook.variance_x_px = parseInt(txtXVariance.val());
+        mouseHook.variance_y_px = parseInt(txtYVariance.val());
+        view.radius = parseInt(txtCursorRadius.val());
+        julia.setRootView(rootView);
+    }
+    update();
+
+
+</script>
+</body>
+</html>

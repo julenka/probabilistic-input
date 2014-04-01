@@ -504,7 +504,7 @@ var Mediator = Object.subClass({
     init: function(){},
     /**
      * Mediator returns normalized probabilities s.t. sum of interfaces is 1
-     * By default the mediator just takes the first nAlternativesToKeep alternatives
+     * By default the mediator just takes a random set of nAlternativesToKeep alternatives
      * and doesn't look at probability
      * @return Array of mediation replies. Each mediation reply contains a sequence of requests to accept and information
      * @param actionRequestSequences
@@ -517,6 +517,7 @@ var Mediator = Object.subClass({
         actionRequestSequences.forEach(function(seq){
             sum += seq.weight;
         });
+        actionRequestSequences.shuffle();
         for(i = 0; i < Math.min(nAlternativesToKeep, actionRequestSequences.length); i++) {
             result.push(new MediationReply(actionRequestSequences[i], true, actionRequestSequences[i].weight / sum));
         }
@@ -946,6 +947,8 @@ var Cursor = FSMView.subClass({
         this.color = "black";
         this.x = 0;
         this.y = 0;
+        this.radius = 10;
+        this.opacity = 1.0;
         this.current_state = "start";
         var update_cursor = function(c, e) { this.color = c; this.x = e.element_x; this.y = e.element_y;};
         var t = function() { return true; };
@@ -979,7 +982,7 @@ var Cursor = FSMView.subClass({
         // TODO are we okay with drawing this to a Snap?
         // in this case $el will be an SVG element
         var s = Snap($el[0]);
-        s.circle(this.x, this.y, 100).attr({fill: this.color});
+        s.circle(this.x, this.y, this.radius).attr({fill: this.color, opacity: this.opacity});
     },
     clone: function() {
         var result = new Cursor(this.julia);
@@ -988,6 +991,8 @@ var Cursor = FSMView.subClass({
         result.color = this.color;
         result.x = this.x;
         result.y = this.y;
+        result.radius = this.radius;
+        result.opacity = this.opacity;
         return result;
     },
     equals: function(other) {
