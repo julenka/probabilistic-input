@@ -421,11 +421,13 @@ var Julia = Object.subClass({
         var actionRequests = [];
         while(this.dispatchQueue.length !== 0) {
             var viewAndEvent = this.dispatchQueue.shift();
+            // TODO multiply in the likelihood of an interface alternative into an action request
             actionRequests.extend(viewAndEvent.viewAndProbability.view.dispatchEvent(viewAndEvent.eventSample));
         }
 
         var mediationResults = this.mediator.mediate(actionRequests);
 
+        // Update interface alternatives based on mediation results
         var newAlternatives = [], mediationReply, viewClone;
         for(i = 0; i < mediationResults.length; i++) {
             mediationReply = mediationResults[i];
@@ -458,26 +460,15 @@ var Julia = Object.subClass({
             }
             // TODO decide what to do for requests that are not accepted (deferred)
         }
-        var updateUI = newAlternatives.length > 0;
-        if(newAlternatives.length > 0) {
-            newAlternatives.shuffle();
-            newAlternatives = newAlternatives.splice(0, this.nAlternativesToKeep);
-            var combinedAlternatives = [];
-            combinedAlternatives[0] = newAlternatives.shift();
-            while(newAlternatives.length > 0) {
-                var alternative = newAlternatives.shift();
-                var found = false;
-                for(i = 0; i < combinedAlternatives.length && !found; i++) {
-                    if(alternative.view.equals(combinedAlternatives[i].view)) {
-                        combinedAlternatives[i].probability += alternative.probability;
-                        found = true;
-                    }
-                }
-                if(!found) {
-                    combinedAlternatives.push(alternative);
-                }
-            }
 
+
+        var updateUI = newAlternatives.length > 0;
+        if(updateUI) {
+            // combine alternatives
+            var combinedAlternatives = this.combineInterfaceAlternatives(newAlternatives);
+            // TODO pick the top this.nAlternatviesToKeep alternatives
+            // sort the alternatives by probability
+            // pick the top N
             this.alternatives = combinedAlternatives;
         }
 
@@ -485,6 +476,24 @@ var Julia = Object.subClass({
         if(typeof this.dispatchCompleted !== "undefined") {
             this.dispatchCompleted(this.alternatives, updateUI);
         }
+    },
+    combineInterfaceAlternatives: function(newAlternatives) {
+        var combinedAlternatives = [], i;
+        combinedAlternatives[0] = newAlternatives.shift();
+        while(newAlternatives.length > 0) {
+            var alternative = newAlternatives.shift();
+            var found = false;
+            for(i = 0; i < combinedAlternatives.length && !found; i++) {
+                if(alternative.view.equals(combinedAlternatives[i].view)) {
+                    combinedAlternatives[i].probability += alternative.probability;
+                    found = true;
+                }
+            }
+            if(!found) {
+                combinedAlternatives.push(alternative);
+            }
+        }
+        return combinedAlternatives;
     }
 
 });
