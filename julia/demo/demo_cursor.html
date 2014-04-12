@@ -45,7 +45,7 @@
     <label for="draw_history">paintbrush mode</label>
     <input type="checkbox" id="draw_history" defaultChecked="0">
 </div>
-<button onclick="update()">Update</button>
+<button onclick="update()">Update Settings</button>
 <table>
     <tr>
         <td>
@@ -72,15 +72,15 @@
             var result = new HistoryCursor(this.julia);
             this.copyFsm(result);
             this.cloneActionRequests(result);
-            result.color = this.color;
-            result.x = this.x;
-            result.y = this.y;
-            result.radius = this.radius;
-            result.opacity = this.opacity;
-            result.path = [];
-            result.path.extend(this.path);
-            result.draw_history = this.draw_history;
+            this.copyProperties(result);
+
             return result;
+        },
+        copyProperties: function(clone) {
+            this._super(clone);
+            clone.path = [];
+            clone.path.extend(this.path);
+            clone.draw_history = this.draw_history;
         },
         drag_progress: function(e) {
             this._super(e);

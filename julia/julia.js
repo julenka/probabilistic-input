@@ -249,7 +249,7 @@ var PMouseEventHook = DOMEventSource.subClass({
         var me = this;
         ['mousedown', 'mousemove', 'mouseup', 'click'].forEach(function(type) {
             me.el.addEventListener(type, function(e) {
-                fn(new PMouseEvent(1, e, me.variance_x_px, me.variance_y_px));
+                fn(new PMouseEvent(1, e, me.variance_x_px, me.variance_y_px, type));
             });
         });
     }
@@ -277,6 +277,7 @@ var PEvent = Object.subClass({
         // base event is the event that this probabilsitic event was generated from.
         // seems useful, not sure. Maybe it can be either a regular DOM event or
         this.base_event = e;
+        this.identity_p = identity_p;
     },
     getSamples: function () {
         throw "not implemented!";
@@ -291,9 +292,15 @@ var PMouseEvent = PEvent.subClass({
         this.sigma_x = sigma_x;
         this.sigma_y = sigma_y;
         this.type = e.type;
+        if(e.type === "mousedown") {
+            PMouseEvent.prototype.button_state = "down";
+        } else if (e.type === "mouseup") {
+            PMouseEvent.prototype.button_state = undefined;
+        }
         this.source = "mouse";
     },
     getSamples: function (n) {
+        console.log(this.button_state);
         var left = 0, top = 0;
         //noinspection JSUnresolvedVariable
         if (this.base_event.currentTarget !== window) {
@@ -310,20 +317,42 @@ var PMouseEvent = PEvent.subClass({
             top = 0;
         }
         var result = [];
+        var randomValues = this.getRandomValues(n);
         for (var i = 0; i < n; i++) {
-            var sample_x = Math.sampleFromGaussian(this.sigma_x);
-            var sample_y = Math.sampleFromGaussian(this.sigma_y);
+            var xy = randomValues[i];
             //noinspection JSUnresolvedVariable
             result.push(new PMouseEventSample(1 / n, this,
-                this.base_event.clientX + sample_x,
-                this.base_event.clientY + sample_y,
-                this.base_event.clientX + sample_x - left,
-                this.base_event.clientY + sample_y - top));
+                this.base_event.clientX + xy.x,
+                this.base_event.clientY + xy.y,
+                this.base_event.clientX + xy.x - left,
+                this.base_event.clientY + xy.y - top));
         }
         return result;
+    },
+    hashSigmaXSigmaY: function() {
+        return this.sigma_x + ',' + this.sigma_y;
+    },
+    getRandomValues: function(n) {
+        var hash = this.hashSigmaXSigmaY();
+        if(! (hash in this.pseudorandom_samples)) {
+            this.pseudorandom_samples[hash] = [];
+        }
+        if((typeof this.button_state) === "undefined") {
+            this.pseudorandom_samples[hash] = [];
+            for(var i = 0; i < n; i++) {
+                this.pseudorandom_samples[hash].push({x: Math.sampleFromGaussian(this.sigma_x), y: Math.sampleFromGaussian(this.sigma_y)});
+            }
+        } else {
+            while(this.pseudorandom_samples[hash].length < n){
+                this.pseudorandom_samples[hash].push({x: Math.sampleFromGaussian(this.sigma_x), y: Math.sampleFromGaussian(this.sigma_y)});
+            }
+        }
+
+        return this.pseudorandom_samples[hash];
     }
 });
 
+PMouseEvent.prototype.pseudorandom_samples = {};
 var PMouseEventSample = PEvent.subClass({
     className: "PMouseEventSample",
     init: function (identity_p, e, client_x, client_y, element_x, element_y) {
@@ -389,6 +418,7 @@ var Julia = Object.subClass({
             throw({name: "FatalError", message: "initDispatchQueue dispatchQueue not empty!"});
         }
         for(i = 0; i < samples.length; i++) {
+            samples[i].sample_index = i;
             for (j = 0; j < this.alternatives.length; j++) {
                 this.addToDispatchQueue(this.alternatives[j], samples[i]);
             }
@@ -982,6 +1012,7 @@ var Cursor = FSMView.subClass({
         this.radius = 10;
         this.opacity = 1.0;
         this.current_state = "start";
+        this.drag_sample_index = -1;
         var t = function() { return true; };
         // TODO: make it easy to apply common properties
         this.fsm_description = {
@@ -989,6 +1020,7 @@ var Cursor = FSMView.subClass({
                 new MouseDownTransition(
                     "down",
                     t,
+
                     this.drag_start,
                     undefined,
                     true),
@@ -1002,14 +1034,14 @@ var Cursor = FSMView.subClass({
             down: [
                 new MouseMoveTransition(
                     "down",
-                    t,
+                    this.does_sample_index_match,
                     this.drag_progress,
                     undefined,
                     true
                 ),
                 new MouseUpTransition(
                     "start",
-                    t,
+                    this.does_sample_index_match,
                     this.drag_end,
                     undefined,
                     true
@@ -1017,11 +1049,16 @@ var Cursor = FSMView.subClass({
             ]
         };
     },
+    does_sample_index_match: function(e) {
+        return e.sample_index === this.drag_sample_index;
+    },
     update_location: function(e){
         this.x = e.element_x;
         this.y = e.element_y;
     },
     drag_start: function(e) {
+        // the index of the event sample that we received when a drag was initiated
+        this.drag_sample_index = e.sample_index;
         this.update_location(e);
         this.color = "green";
     },
@@ -1031,6 +1068,7 @@ var Cursor = FSMView.subClass({
     drag_end: function(e) {
         this.update_location(e);
         this.color = "black";
+        this.drag_sample_index = -1;
     },
     draw: function ($el) {
         // TODO are we okay with drawing this to a Snap?
@@ -1042,12 +1080,16 @@ var Cursor = FSMView.subClass({
         var result = new Cursor(this.julia);
         this.copyFsm(result);
         this.cloneActionRequests(result);
-        result.color = this.color;
-        result.x = this.x;
-        result.y = this.y;
-        result.radius = this.radius;
-        result.opacity = this.opacity;
+        this.copyProperties(result);
         return result;
+    },
+    copyProperties: function(clone) {
+        clone.color = this.color;
+        clone.x = this.x;
+        clone.y = this.y;
+        clone.radius = this.radius;
+        clone.opacity = this.opacity;
+        clone.drag_sample_index = this.drag_sample_index;
     },
     equals: function(other) {
         if(!this._super(other)) {
