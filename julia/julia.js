@@ -300,7 +300,6 @@ var PMouseEvent = PEvent.subClass({
         this.source = "mouse";
     },
     getSamples: function (n) {
-        console.log(this.button_state);
         var left = 0, top = 0;
         //noinspection JSUnresolvedVariable
         if (this.base_event.currentTarget !== window) {
@@ -488,7 +487,7 @@ var Julia = Object.subClass({
                     view.actionRequests = undefined;
                 });
             }
-            // TODO decide what to do for requests that are not accepted (deferred)
+            // TODO decide what to do for requests that are not accepted (deferred) For now, do nothing.
         }
 
 
@@ -496,16 +495,22 @@ var Julia = Object.subClass({
         if(updateUI) {
             // combine alternatives
             var combinedAlternatives = this.combineInterfaceAlternatives(newAlternatives);
+            var sortedAlternatives = combinedAlternatives.sort(function(a,b) {
+                return b.probability - a.probability;
+            });
+            this.alternatives = sortedAlternatives.splice(0, this.nAlternativesToKeep);
             // TODO pick the top this.nAlternatviesToKeep alternatives
             // sort the alternatives by probability
             // pick the top N
-            this.alternatives = combinedAlternatives;
         }
 
         // The mediator automatically resamples the views
         if(typeof this.dispatchCompleted !== "undefined") {
             this.dispatchCompleted(this.alternatives, updateUI);
         }
+    },
+    compareAlternatives: function(a,b) {
+        return b.probability - a.probability;
     },
     combineInterfaceAlternatives: function(newAlternatives) {
         var combinedAlternatives = [], i;

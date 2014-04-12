@@ -37,6 +37,12 @@
         <li>[Julia] Responding to PKeyEvents and generating a single event sample</li>
     </ol>
 </div>
+<div>
+    <label for="numAlternatives">number of alternatives to keep:</label>
+    <input type="text" id="numAlternatives" value ="5"/>
+    <button onclick="update()">Update Settings</button>
+</div>
+
 <div id="dispatch_history">
 </div>
 
@@ -144,6 +150,12 @@
     julia.nSamplesPerEvent = 1;
     var keyEventHook = new PKeyEventHook(document);
     julia.addEventSource(keyEventHook);
+
+    function update() {
+        julia.nAlternativesToKeep = parseInt($("#numAlternatives").val());
+    }
+    update();
+
 </script>
 </body>
 </html>
