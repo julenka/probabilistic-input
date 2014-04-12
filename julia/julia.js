@@ -322,10 +322,10 @@ var PMouseEvent = PEvent.subClass({
             var xy = randomValues[i];
             //noinspection JSUnresolvedVariable
             result.push(new PMouseEventSample(1 / n, this,
-                this.base_event.clientX + xy.x,
-                this.base_event.clientY + xy.y,
-                this.base_event.clientX + xy.x - left,
-                this.base_event.clientY + xy.y - top));
+                this.base_event.pageX + xy.x,
+                this.base_event.pageY + xy.y,
+                this.base_event.pageX + xy.x - left,
+                this.base_event.pageY + xy.y - top));
         }
         return result;
     },
