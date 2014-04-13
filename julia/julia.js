@@ -401,9 +401,9 @@ var Julia = Object.subClass({
         this.dispatchQueue = [];
         this.nSamplesPerEvent = 20;
         this.nAlternativesToKeep = 10;
+        // [{view:...,probability:...},...]
         this.alternatives = [];
         this.mediator = new Mediator();
-        this.combiner = new Combiner();
     },
     //TODO test addEventSource
     addEventSource: function(eventSource) {
@@ -451,7 +451,6 @@ var Julia = Object.subClass({
     },
     dispatchPEvent: function(pEvent) {
         this.initDispatchQueue(pEvent);
-        var i;
 
         var actionRequests = [];
         while(this.dispatchQueue.length !== 0) {
@@ -461,14 +460,37 @@ var Julia = Object.subClass({
         }
 
         var mediationResults = this.mediator.mediate(actionRequests);
+        var newAlternatives = this.updateInterfaceAlternatives(mediationResults);
+        var combinedAlternatives = this.combineInterfaceAlternatives(newAlternatives);
+        var downsampledAlternatives = this.downSampleInterfaceAlternatives(
+            combinedAlternatives,
+            this.nAlternativesToKeep);
+        if(downsampledAlternatives.length > 0) {
+            this.alternatives = downsampledAlternatives;
+        }
+        log(LOG_LEVEL_VERBOSE,  "updateUI:",  downsampledAlternatives.length > 0);
+        // The mediator automatically resamples the views
+        if(typeof this.dispatchCompleted !== "undefined") {
+            this.dispatchCompleted(this.alternatives, downsampledAlternatives.length > 0);
+        }
+    },
 
+    /**
+     * Updates the interface alternatives given a list of mediation results (from the mediator)
+     * Does not aggregate similar interfaces
+     * @param mediationResults
+     * @return {Array} list of the new alternatives which are a result of executing the action requests
+     */
+    updateInterfaceAlternatives: function(mediationResults) {
         // Update interface alternatives based on mediation results
         var newAlternatives = [], mediationReply, viewClone;
+        var i;
         for(i = 0; i < mediationResults.length; i++) {
             mediationReply = mediationResults[i];
 
             if(mediationReply.accept) {
                 var modifiedViews = [];
+                var hasFinalAction = false;
                 // for each action request, in order to properly move over the viewContext to the clone,
                 // we need to let each view know about all requests that came from it. Then it can appropriately
                 // update the viewContext for each request when the view gets cloned.
@@ -483,6 +505,9 @@ var Julia = Object.subClass({
 
                 viewClone = mediationReply.actionRequestSequence.rootView.clone();
                 mediationReply.actionRequestSequence.requests.forEach(function(request){
+                    if(!request.reversible) {
+                        hasFinalAction = true;
+                    }
                     request.fn.call(request.viewContext, request.event);
                 });
                 newAlternatives.push({view: viewClone, probability: mediationReply.probability});
@@ -492,37 +517,37 @@ var Julia = Object.subClass({
                 modifiedViews.forEach(function(view){
                     view.actionRequests = undefined;
                 });
+                // If this action request sequence had a final action, set the new root view, and return
+                if(hasFinalAction) {
+                    newAlternatives.slice(0, newAlternatives.length - 1);
+                    return newAlternatives;
+                }
             }
             // TODO decide what to do for requests that are not accepted (deferred) For now, do nothing.
         }
-
-
-        var updateUI = newAlternatives.length > 0;
-        if(updateUI) {
-            // combine alternatives
-            var combinedAlternatives = this.combineInterfaceAlternatives(newAlternatives);
-            var sortedAlternatives = combinedAlternatives.sort(function(a,b) {
-                return b.probability - a.probability;
-            });
-            this.alternatives = sortedAlternatives.splice(0, this.nAlternativesToKeep);
-            // TODO pick the top this.nAlternatviesToKeep alternatives
-            // sort the alternatives by probability
-            // pick the top N
-        }
-
-        // The mediator automatically resamples the views
-        if(typeof this.dispatchCompleted !== "undefined") {
-            this.dispatchCompleted(this.alternatives, updateUI);
-        }
+        return newAlternatives;
     },
     compareAlternatives: function(a,b) {
         return b.probability - a.probability;
     },
-    combineInterfaceAlternatives: function(newAlternatives) {
+
+    /**
+     * ***This modifies the input array***
+     * Combines similar alternative interfaces.
+     * Takes as input a list of interface alternatives, and their weights.
+     * Combines similar interfaces, and returns a new list containing these reduces interfaces
+     * TODO make the combination method modular
+     * @param interfaceAlternatives the initial, non-combined list of alternatives
+     * @returns {Array} A list of
+     */
+    combineInterfaceAlternatives: function(interfaceAlternatives) {
+        if(interfaceAlternatives.length === 0) {
+            return [];
+        }
         var combinedAlternatives = [], i;
-        combinedAlternatives[0] = newAlternatives.shift();
-        while(newAlternatives.length > 0) {
-            var alternative = newAlternatives.shift();
+        combinedAlternatives[0] = interfaceAlternatives.shift();
+        while(interfaceAlternatives.length > 0) {
+            var alternative = interfaceAlternatives.shift();
             var found = false;
             for(i = 0; i < combinedAlternatives.length && !found; i++) {
                 if(alternative.view.equals(combinedAlternatives[i].view)) {
@@ -535,8 +560,26 @@ var Julia = Object.subClass({
             }
         }
         return combinedAlternatives;
+    },
+    /**
+     * ***This method modifies the input newAlternatives array***
+     * Given a list of interface alternatives (and their probabilities), downsamples this list to a smaller list
+     * of maxAlternatives interface alternatives.
+     *
+     * This particular algorithm just sorts the alternatives by probability and picks the top maxAlternatives
+     * interfaces.
+     *
+     * TODO make this more modular
+     * @param newAlternatives
+     * @param n maximum number of alternatives to keep
+     * @returns {Array} the downsampled interface alternatives
+     */
+    downSampleInterfaceAlternatives: function(interfaceAlternatives, n) {
+        var sortedAlternatives = interfaceAlternatives.sort(function(a,b) {
+            return b.probability - a.probability;
+        });
+        return sortedAlternatives.splice(0, n);
     }
-
 });
 
 //endregion
@@ -581,7 +624,6 @@ var Mediator = Object.subClass({
         actionRequestSequences.forEach(function(seq){
             sum += seq.weight;
         });
-        actionRequestSequences.shuffle();
         for(i = 0; i < actionRequestSequences.length; i++) {
             result.push(new MediationReply(actionRequestSequences[i], true, actionRequestSequences[i].weight / sum));
         }
@@ -733,7 +775,6 @@ var ContainerView = View.subClass({
     init: function(julia) {
         //noinspection JSUnresolvedFunction
         this._super(julia);
-        this.className = "ContainerView";
         this.children = [];
     },
     addChildView: function(view) {
@@ -801,8 +842,11 @@ var ContainerView = View.subClass({
             isEventHandled = false;
             var cur = dispatchQueue.shift();
             var actionSequence = cur.actionSequence;
+            // the number of children that generated responses for this event
+            var numChildResponses = 0;
             for(i = cur.childIndex; i >= 0; i--) {
                 child = this.children[i];
+
                 // dispatch the event to this child
                 // if we get a response, if handled end the sequence
                 var childResponses = child.dispatchEvent(event);
@@ -844,10 +888,16 @@ var ContainerView = View.subClass({
                 // If there was any response, stop dispatching as
                 // the next dispatch item will be in the dispatch queue
                 if(childResponses.length > 0) {
+                    numChildResponses++;
                     break;
                 }
-
             }
+            // if no child responded, then we need to add the current action request sequence to the result,
+            // assuming the action request sequence length > 0
+            if(numChildResponses === 0 && actionSequence.requests.length > 0) {
+                result.push(actionSequence);
+            }
+
         }
         return result;
 
@@ -883,6 +933,9 @@ var FSMView = View.subClass({
             view_clone.fsm_description[state] = new_state;
         }
 
+    },
+    copyProperties: function(clone) {
+        throw "copyProperties not implemented!";
     },
     clone: function() {
         var result = new FSMView(this.julia);
@@ -1024,6 +1077,7 @@ var Cursor = FSMView.subClass({
         this.opacity = 1.0;
         this.current_state = "start";
         this.drag_sample_index = -1;
+        this.handles_event = false;
         var t = function() { return true; };
         // TODO: make it easy to apply common properties
         this.fsm_description = {
@@ -1031,16 +1085,15 @@ var Cursor = FSMView.subClass({
                 new MouseDownTransition(
                     "down",
                     t,
-
                     this.drag_start,
                     undefined,
-                    true),
+                    this.handles_event),
                 new MouseMoveTransition(
                     "start",
                     t,
                     this.update_location,
                     undefined,
-                    true),
+                    this.handles_event)
             ],
             down: [
                 new MouseMoveTransition(
@@ -1048,14 +1101,14 @@ var Cursor = FSMView.subClass({
                     this.does_sample_index_match,
                     this.drag_progress,
                     undefined,
-                    true
+                    this.handles_event
                 ),
                 new MouseUpTransition(
                     "start",
                     this.does_sample_index_match,
                     this.drag_end,
                     undefined,
-                    true
+                    this.handles_event
                 )
             ]
         };
@@ -1101,12 +1154,111 @@ var Cursor = FSMView.subClass({
         clone.radius = this.radius;
         clone.opacity = this.opacity;
         clone.drag_sample_index = this.drag_sample_index;
+        clone.handles_event = this.handles_event;
     },
     equals: function(other) {
         if(!this._super(other)) {
             return false;
         }
         return this.x === other.x && this.y === other.y;
+    }
+});
+
+
+var Button = FSMView.subClass({
+    className: "Button",
+    init: function (julia, x, y, w, h) {
+        this._super(julia);
+        this.x = x;
+        this.y = y;
+        this.w = w;
+        this.h = h;
+        this.click_handlers = [];
+        this.current_state = "start";
+        // TODO: make it easy to apply common properties
+        this.fsm_description = {
+            start: [
+                new MouseDownTransition(
+                    "down",
+                    this.hit_test,
+                    this.on_down,
+                    undefined,
+                    true)
+            ],
+            down: [
+                new MouseMoveTransition(
+                    "start",
+                    function(e) { return ! (this.hit_test(e));},
+                    this.on_out,
+                    undefined,
+                    false
+                ),
+                new MouseMoveTransition(
+                    "down",
+                    function(e) { return (this.hit_test(e));},
+                    this.on_move_in,
+                    undefined,
+                    false
+                ),
+                new MouseUpTransition(
+                    "start",
+                    function() { return true;},
+                    this.on_up,
+                    // on_click is the 'final action' version of this event, and it does final actions
+                    // final actions should be appended with the 'final' keywords
+                    this.on_click_final,
+                    true
+                )
+            ]
+        };
+    },
+    hit_test: function(e) {
+        var rx = e.element_x - this.x;
+        var ry = e.element_y - this.y;
+        return (rx > 0 && ry > 0 && rx < this.w && ry < this.h);
+    },
+    on_out: function(e) {
+
+    },
+    on_move_in: function(e) {
+
+    },
+    on_down: function(e) {
+
+    },
+    on_up: function(e) {
+
+    },
+    on_click_final: function(e) {
+        var handled = false;
+        var i = 0;
+        while(i < this.click_handlers.length && !handled) {
+            handled = this.click_handlers[i](e);
+            i++;
+        }
+    },
+    draw: function ($el) {
+        var c = this.current_state === "start" ? "white" : "black";
+        // in this case $el will be an SVG element
+        var s = Snap($el[0]);
+        s.rect(this.x, this.y, this.w, this.h, 10, 10).attr({stroke: "black", fill: c, opacity: 0.2});
+        s.text(this.x + 20, this.y + 20, this.x + ", " + this.y);
+    },
+    clone: function() {
+        var result = new Button(this.julia, this.x, this.y, this.w, this.h);
+        this.copyFsm(result);
+        this.cloneActionRequests(result);
+        result.click_handlers.extend(this.click_handlers);
+        return result;
+    },
+    addClickHandler: function(fn) {
+        this.click_handlers.push(fn);
+    },
+    removeClickHandler: function(fn) {
+        var index = this.click_handlers.indexOf(fn);
+        if(index > -1) {
+            this.click_handlers.splice(index,1);
+        }
     }
 });
 //endregion

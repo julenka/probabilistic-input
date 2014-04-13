@@ -69,10 +69,10 @@
         new Button(julia, 150, 100, 100, 50)
     ];
     buttons.forEach(function(button) {
-        button.addClickHandler(function(e){ window.alert("button clicked!")});
+        button.addClickHandler(function(e){ window.alert("button at (" + button.x + ", " + button.y + ") clicked!")});
         rootView.addChildView(button);
     });
-    rootView.addChildView(cursor);
+//    rootView.addChildView(cursor);
     julia.setRootView(rootView);
 
     var txtXVariance = $("#sampleVarianceX");
@@ -97,7 +97,7 @@
         new_alternatives.forEach(function(view_probability, i) {
             view_probability.view.draw($sketch);
             var d = $("<div class='float-left'></div>");
-            d.append(["<div>","sketch", i, ":", 1/new_alternatives.length, "</div>"].join(" "));
+            d.append(["<div>","sketch", i, ":", Math.roundWithSignificance(view_probability.probability, 2), "</div>"].join(" "));
             var s = Snap(w / 10, h / 10);
             var s_dom = s.node;
             s_dom.setAttribute("viewBox", [0, 0, w, h].join(" "));
