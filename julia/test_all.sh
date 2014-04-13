@@ -1,0 +1,1 @@
+for t in test/* demo/*; do open ${t}; done
