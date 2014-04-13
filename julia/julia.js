@@ -58,6 +58,7 @@ if(typeof jQuery === 'undefined') {
             // call the init method
             if(!initializing && this.init) {
                 this.init.apply(this, arguments);
+                this.className = properties.className;
             }
         }
 
