@@ -1,1 +1,1 @@
-for t in test/* demo/*; do open ${t}; done
+for t in test/*.html demo/*.html; do open ${t}; done
