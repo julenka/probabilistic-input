@@ -705,15 +705,52 @@ var Mediator = Object.subClass({
      * @param nAlternativesToKeep
      */
     mediate: function(actionRequestSequences) {
-        var result = [];
+        if(actionRequestSequences.length === 0) {
+            return [];
+        }
+        if(actionRequestSequences.length === 1) {
+            return [new MediationReply(actionRequestSequences[0], true, actionRequestSequences[0].weight)];
+        }
         var i;
         var sum = 0;
+
         actionRequestSequences.forEach(function(seq){
             sum += seq.weight;
         });
         for(i = 0; i < actionRequestSequences.length; i++) {
-            result.push(new MediationReply(actionRequestSequences[i], true, actionRequestSequences[i].weight / sum));
+            actionRequestSequences[i].weight /= sum;
         }
+
+        var finalRequests = [];
+        var reversibleRequests = [];
+        for(i = 0; i < actionRequestSequences.length; i++) {
+            var seq = actionRequestSequences[i];
+            seq.weight /= sum;
+            if(!(seq.requests[seq.requests.length - 1].reversible)) {
+                finalRequests.push(seq);
+            } else {
+                reversibleRequests.push(seq);
+            }
+        }
+        if(finalRequests.length === 0) {
+            return this.mediationReplyFromActionSequences(reversibleRequests);
+        }
+
+        var cmp = function(a,b) { return b.weight - a.weight;};
+        var finalSorted = finalRequests.sort(cmp);
+        var feedbackSorted = reversibleRequests.sort(cmp);
+        if(feedbackSorted.length === 0 || (finalSorted[0].weight >= feedbackSorted[0].weight
+            && (finalSorted.length === 1 || finalSorted[0].weight - finalSorted[1].weight > 0.1))) {
+            return [new MediationReply(finalSorted[0], true, finalSorted[0].weight)];
+        } else {
+            return this.mediationReplyFromActionSequences(feedbackSorted);
+        }
+    },
+    mediationReplyFromActionSequences: function(sequences) {
+        var result = [];
+        sequences.forEach(function(s) {
+            result.push(new MediationReply(s, true, s.weight));
+        });
         return result;
     }
 });
