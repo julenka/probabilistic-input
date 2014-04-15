@@ -106,6 +106,7 @@
             $sketches.append(d);
         });
     };
+
     var mouseHook = new PMouseEventHook($sketch[0]);
     julia.addEventSource(mouseHook);
 
@@ -116,6 +117,7 @@
         mouseHook.variance_y_px = parseInt(txtYVariance.val());
         cursor.radius = parseInt(txtCursorRadius.val());
         julia.setRootView(rootView);
+        julia.alternatives[0].view.draw($sketch);
     }
     update();
 
