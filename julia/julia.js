@@ -197,6 +197,30 @@ Function.prototype.curry = function() {
             Array.prototype.slice.call(arguments)));
     }; };
 
+/**
+ * returns whether this function actually uses the first parameters that are passed to it.
+ * A function uses the parameters that are passed to it if the function
+ * references the parameter anywhere in the code body
+ * If the function contains no params, returns false.
+ * for example, this function returns TRUE for the following functions:
+ * function(a,b) { return a + b; }
+ * function(a) { return a; }
+ *
+ * And the following function return FALSE:
+ * function() { return 0; }
+ * function(a,b) { return b; }
+ * function(a,b) { return 0; }
+ * TODO Make this function work for the first N params
+ * TODO Make this function work for all parameters var re2 = /^function\s*\((.*)\)\s*{([\s\S]*)}$/m MATCH
+ */
+Function.prototype.usesFirstParam = function() {
+    // the [\s\S] is because '.' doesn't match whitespace
+    // 'm' makes the regex multiline
+    // \W matches NON-WORDS
+    var regex = /^function\s*\((\w+)[,\)][\s\S]*\W\1\W[\s\S]*}$/m;
+    return regex.test(this.toString());
+};
+
 //endregion
 
 //region Logging
@@ -404,7 +428,7 @@ var Julia = Object.subClass({
         // [{view:...,probability:...},...]
         this.alternatives = [];
         this.mediator = new Mediator();
-        this.combiner = new Combiner();
+        this.combiner = new ActionRequestCombiner();
     },
     //TODO test addEventSource
     addEventSource: function(eventSource) {
@@ -465,6 +489,9 @@ var Julia = Object.subClass({
         }
 
         actionRequests = this.combiner.combine(actionRequests);
+        actionRequests.forEach(function(seq) {
+            log(LOG_LEVEL_DEBUG, pEvent.type, seq.requests[seq.requests.length-1].toString().replace(/\s+/g," "), Math.roundWithSignificance(seq.weight,2));
+        })
         var mediationResults = this.mediator.mediate(actionRequests);
         var newAlternatives = this.updateInterfaceAlternatives(mediationResults);
         var combinedAlternatives = this.combineInterfaceAlternatives(newAlternatives);
@@ -599,11 +626,11 @@ var Julia = Object.subClass({
 
 //region Mediation and Action Combination
 /**
- * Combiner is responsible for combining multiple action request sequences, and updating the weights
+ * ActionRequestCombiner is responsible for combining multiple action request sequences, and updating the weights
  * of sequences accordingly
  */
-var Combiner = Object.subClass({
-    className: "Combiner",
+var ActionRequestCombiner = Object.subClass({
+    className: "ActionRequestCombiner",
     /**
      * Constructor for combiner class
      */
@@ -756,9 +783,15 @@ var FSMActionRequest = ActionRequest.subClass({
             this.current_state = destination_state;
             action_fn.call(this, event);
         };
+        this.action_fn = action_fn;
         this._super(fn2, viewContext, reversible, handlesEvent, event);
         this.destination_state = destination_state;
         this.source_state = source_state;
+    },
+    // This is for debugging
+    // TODO remove (once done with debugging)
+    toString: function() {
+        return this.action_fn.toString();
     },
     equals: function(other) {
         if(!(other instanceof FSMActionRequest)) {
@@ -781,7 +814,14 @@ var FSMActionRequest = ActionRequest.subClass({
         if(this.fn.toString() !== other.fn.toString()) {
             return false;
         }
+        if(this.action_fn.usesFirstParam()) {
+            // if the function uses the actual input event, then compare the input events as well
+            return(this.event === other.event);
+        }
+        // otherwise, the function does not use the actual input event, so just assume that the requests are equal
         return true;
+
+
     }
 });
 
@@ -1341,7 +1381,7 @@ var Button = FSMView.subClass({
         var handled = false;
         var i = 0;
         while(i < this.click_handlers.length && !handled) {
-            handled = this.click_handlers[i](e);
+            handled = this.click_handlers[i]();
             i++;
         }
     },

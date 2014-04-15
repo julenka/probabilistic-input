@@ -69,7 +69,7 @@
         new Button(julia, 150, 100, 100, 50)
     ];
     buttons.forEach(function(button) {
-        button.addClickHandler(function(e){ window.alert("button at (" + button.x + ", " + button.y + ") clicked!")});
+        button.addClickHandler(function(){ window.alert("button at (" + button.x + ", " + button.y + ") clicked!")});
         rootView.addChildView(button);
     });
 //    rootView.addChildView(cursor);

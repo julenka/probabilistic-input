@@ -1,1 +1,2 @@
-for t in test/*.html demo/*.html; do open ${t}; done
+dirname=`dirname $0`
+for t in ${dirname}/test/*.html ${dirname}/demo/*.html; do open ${t}; done

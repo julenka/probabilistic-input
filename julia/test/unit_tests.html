@@ -82,6 +82,29 @@
          equal(plusThree(2), 5, "plusThree(2) is five!");
          equal(twoPlusThree(), 5, "twoPlusThree() is five!");
     });
+
+    test("Function.usesFirstParam", function() {
+        var true_funcs = [
+            function (e) { return e.x + e.y; } ,
+            function (e) { return e['x'] + e['y']; } ,
+            function (a,v) { return a + b; } ,
+            function (a,b) { return (a + b); } ,
+        ];
+        var false_funcs = [
+            function (e) {
+                return 5;
+            } ,
+            function (e) { return 5;} ,
+            function (a,b) { return b; } ,
+            function () { return 0; }
+        ];
+        true_funcs.forEach(function(fn) {
+            equal(fn.usesFirstParam(), true);
+        });
+        false_funcs.forEach(function(fn){
+            equal(fn.usesFirstParam(), false);
+        });
+    });
 //endregion
 
     var PTestEvent = PEvent.subClass({
