@@ -404,6 +404,7 @@ var Julia = Object.subClass({
         // [{view:...,probability:...},...]
         this.alternatives = [];
         this.mediator = new Mediator();
+        this.combiner = new Combiner();
     },
     //TODO test addEventSource
     addEventSource: function(eventSource) {
@@ -456,9 +457,14 @@ var Julia = Object.subClass({
         while(this.dispatchQueue.length !== 0) {
             var viewAndEvent = this.dispatchQueue.shift();
             // TODO multiply in the likelihood of an interface alternative into an action request
-            actionRequests.extend(viewAndEvent.viewAndProbability.view.dispatchEvent(viewAndEvent.eventSample));
+            var requestsFromView = viewAndEvent.viewAndProbability.view.dispatchEvent(viewAndEvent.eventSample);
+            requestsFromView.forEach(function(seq) {
+                seq.weight *= viewAndEvent.viewAndProbability.probability * viewAndEvent.eventSample.identity_p;
+            });
+            actionRequests.extend(requestsFromView);
         }
 
+        actionRequests = this.combiner.combine(actionRequests);
         var mediationResults = this.mediator.mediate(actionRequests);
         var newAlternatives = this.updateInterfaceAlternatives(mediationResults);
         var combinedAlternatives = this.combineInterfaceAlternatives(newAlternatives);
@@ -468,7 +474,6 @@ var Julia = Object.subClass({
         if(downsampledAlternatives.length > 0) {
             this.alternatives = downsampledAlternatives;
         }
-        log(LOG_LEVEL_VERBOSE,  "updateUI:",  downsampledAlternatives.length > 0);
         // The mediator automatically resamples the views
         if(typeof this.dispatchCompleted !== "undefined") {
             this.dispatchCompleted(this.alternatives, downsampledAlternatives.length > 0);
@@ -578,7 +583,15 @@ var Julia = Object.subClass({
         var sortedAlternatives = interfaceAlternatives.sort(function(a,b) {
             return b.probability - a.probability;
         });
-        return sortedAlternatives.splice(0, n);
+        var result = sortedAlternatives.splice(0, n);
+        var sum = 0;
+        result.forEach(function(alternative) {
+            sum += alternative.probability;
+        });
+        result.forEach(function(alternative){
+            alternative.probability = alternative.probability / sum;
+        });
+        return result;
     }
 });
 
@@ -603,7 +616,54 @@ var Combiner = Object.subClass({
      * @param actionRequestSequences
      */
     combine: function(actionRequestSequences) {
-        return actionRequestSequences;
+        if(actionRequestSequences.length === 0) {
+            return [];
+        }
+        // compare request. rootView
+        // compare the code of every action request, and the .event of each actionrequest
+        var result = [actionRequestSequences[0]];
+        var i,j;
+
+        for(i = 1; i < actionRequestSequences.length; i++) {
+            var found = false;
+            for(j = 0; j < result.length && !found; j++) {
+                // equivalence
+                if(this.sequencesAreEqual(actionRequestSequences[i], result[j])) {
+                    result[j].weight += actionRequestSequences[i].weight;
+                    found = true;
+                }
+            }
+            if(!found) {
+                result.push(actionRequestSequences[i]);
+            }
+        }
+        return result;
+    },
+
+    /**
+     * Determines whether two action request sequences are equal
+     * @param a
+     * @param b
+     * @return boolean Whether sequences a and b are equal
+     */
+    sequencesAreEqual: function(a,b) {
+
+        if(a.rootView !== b.rootView) {
+            return false;
+        }
+        if(a.requests.length !== b.requests.length) {
+            return false;
+        }
+        for(var i = 0; i < a.requests.length; i++) {
+            var aReq = a.requests[i];
+            var bReq = b.requests[i];
+
+            if(!aReq.equals(bReq)) {
+                return false;
+            }
+        }
+        return true;
+
     }
 });
 var Mediator = Object.subClass({
@@ -670,6 +730,58 @@ var ActionRequest = Object.subClass({
         //noinspection JSUnusedGlobalSymbols
         this.handlesEvent = handlesEvent;
         this.event = event;
+    },
+    equals: function(other) {
+        if(!(other instanceof ActionRequest)) {
+            return false;
+        }
+        if(other.reversible !== this.reversible) {
+            return false;
+        }
+        // for now, let's say that action requests that do not act on the same
+        // view (as in, the exact same object) are not equal
+        if(other.viewContext !== this.viewContext) {
+            return false;
+        }
+        // by default, we will just check whether the code of the strings are equal
+        // TODO think of a better way
+        return other.fn.toString() === this.fn.toString();
+    }
+});
+
+var FSMActionRequest = ActionRequest.subClass({
+    className: "FSMActionRequest",
+    init: function(action_fn, viewContext, reversible, handlesEvent, event, destination_state, source_state) {
+        var fn2 = function(event) {
+            this.current_state = destination_state;
+            action_fn.call(this, event);
+        };
+        this._super(fn2, viewContext, reversible, handlesEvent, event);
+        this.destination_state = destination_state;
+        this.source_state = source_state;
+    },
+    equals: function(other) {
+        if(!(other instanceof FSMActionRequest)) {
+            return false;
+        }
+        if(other.reversible !== this.reversible) {
+            return false;
+        }
+        // for now, let's say that action requests that do not act on the same
+        // view (as in, the exact same object) are not equal
+        if(other.viewContext !== this.viewContext) {
+            return false;
+        }
+        if(other.source_state !== this.source_state) {
+            return false;
+        }
+        if(other.destination_state !== this.destination_state) {
+            return false;
+        }
+        if(this.fn.toString() !== other.fn.toString()) {
+            return false;
+        }
+        return true;
     }
 });
 
@@ -970,18 +1082,14 @@ var FSMView = View.subClass({
                 options.forEach(function(option) {
                     if(option.action !== undefined) {
                         response.push(
-                            new ActionRequest(
-                                // we need to nest this in another closure to bind transition properly
-                                function(destination_state) {
-                                    return function(event){
-                                        this.current_state = destination_state;
-                                        option.action.call(this, event);
-                                    };
-                                }(transition.to),
+                            new FSMActionRequest(
+                                option.action,
                                 me,
                                 option.is_reversible,
                                 transition.handles_event,
-                                e
+                                e,
+                                transition.to,
+                                transition.from
                             ));
                     }
                 });
