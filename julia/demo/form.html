@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Form Demo</title>
+    <!-- JQuery -->
+    <script type="text/javascript" src="../lib/jquery.js"></script>
+    <script type="text/javascript" src="../lib/snap.svg.js"></script>
+
+    <script type="text/javascript" src="../julia.js"></script>
+
+</head>
+<body>
+<div>
+    <label for="name">name (last, first):</label>
+    <input type="text" id="name" value=""/>
+</div>
+<div>
+    <label for="ssn">ssn:</label>
+    <input type="text" id="ssn"/>
+</div>
+<div>
+    <label for="phone">phone number:</label>
+    <input type="text" id="phone"/>
+</div>
+<div>
+    <label for="addr">address</label>
+    <input type="text" id="addr"/>
+</div>
+<div>
+    <label for="email">email</label>
+    <input type="text" id="email"/>
+</div>
+<div>
+    <input type="button" onclick="nextClicked();" value="next field"/>
+    or [TAB]
+</div>
+<div>
+    <input type="button" onclick="doneClicked();" value="done"/>
+    or [ENTER]
+</div>
+<!--
+- ContainerView needs to have 'in focus' control
+- ContainerView needs to dispatch to the 'in focus' control if something is in focus
+- If no control is in focus, it should dispatch equally to all children (appropriate alternatives will be generated)
+- Text Control logic:
+    - need a function that returns true if the text can take input
+    - regex for email: \[\w|@.]/.test(input)  ^\w+@\w+\.[a-zA-Z]+$/ (this is not actually correct, seee http://cubicspot.blogspot.com/2012/06/correct-way-to-validate-e-mail-address.html and http://stackoverflow.com/questions/201323/using-a-regular-expression-to-validate-an-email-address?rq=1)
+    - regex for ssn: /\d/.test(input) && /^\d{0,8}$/.test(current_text)
+    - regex for phone #: /\d/.test(input) && /^\d{0,6}$/.test(current_text)
+    - regex for name: \\w\.test(input) valid for accepting input: \\w+\ valid for finalization: \^\w+\s*,\s*\w+$\.test(current_text)
+    - count number of consecutive, invalid characters
+    - if one invalid character, just don't update but keep focus.
+    - if more than one invalid character in a row, kill the interface alternative
+    - when tab pressed: if the field is 'complete valid'
+-->
+<script>
+
+</script>
+</body>
+</html>
