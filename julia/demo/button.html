@@ -19,8 +19,10 @@
 
 
         </style>
+        <link rel="stylesheet" type="text/css" href="../julia.css">
     </head>
 <body>
+<div id="form">
 <div>
     <label for="numSamples">number of event samples:</label>
     <input type="text" id="numSamples" value="10"/>
@@ -42,11 +44,11 @@
     <input type="text" id="circleRadius" value="10"/>
 </div>
 <button onclick="update()">Update Settings</button>
-
-<table>
+</div>
+<table >
     <tr>
         <td>
-            <svg id="sketch" width="500" height="700"></svg>
+            <svg class="unselectable" id="sketch" width="500" height="700"></svg>
         </td>
         <td>
             <div id="sketches"></div>
