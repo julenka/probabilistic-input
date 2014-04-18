@@ -9,3 +9,23 @@
     user-select: none;
     cursor: default;
 }
+
+.indent-level-0 {
+    margin-left: 0px;
+}
+
+.indent-level-1 {
+    margin-left: 20px;
+}
+.indent-level-2 {
+    margin-left: 40px;
+}
+.indent-level-3 {
+    margin-left: 60px;
+}
+.indent-level-4 {
+    margin-left: 80px;
+}
+.indent-level-5 {
+    margin-left: 100px;
+}

@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Interface Debugger</title>
+    <script type="text/javascript" src="../lib/jquery.js"></script>
+    <script type="text/javascript" src="../lib/snap.svg.js"></script>
+    <script type="text/javascript" src="../julia.js"></script>
+    <link rel="stylesheet" type="text/css" href="../julia.css">
+    <style>
+        .obj-property {
+            margin: 0px;
+        }
+    </style>
+</head>
+<body>
+<div id="debug-container">
+</div>
+
+<script>
+    var $container = $("#debug-container");
+
+    var julia = new Julia();
+    var rootView = new ContainerView(julia);
+    var cursor = new Cursor(julia);
+    cursor.opacity = 0.2;
+    var buttons = [
+        new Button(julia, 50, 50, 100, 50),
+        new Button(julia, 150, 50, 100, 50),
+        new Button(julia, 50, 100, 100, 50),
+        new Button(julia, 150, 100, 100, 50)
+    ];
+    for (var i = 0; i < buttons.length; i++) {
+        var obj = buttons[i];
+        rootView.addChildView(obj);
+    }
+    rootView.domDump($container);
+</script>
+</body>
+</html>

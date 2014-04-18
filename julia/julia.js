@@ -620,6 +620,7 @@ var Julia = Object.subClass({
         });
         return result;
     }
+
 });
 
 //endregion
@@ -951,6 +952,39 @@ var View = Object.subClass({
      */
     dispatchEvent: function() {
         throw "not implemented!";
+    },
+
+    domDump: function($el) {
+        $el.empty();
+        var renderInteractorTreeHelper = function(view, level) {
+            var $result = $("<div class='indent-level-" + level + "'></div>");
+            if(view instanceof ContainerView) {
+                for (var prop in view) {
+                    if(typeof view[prop] === "function" || prop == "_super" || prop == "julia") {
+                        continue;
+                    }
+                    if (prop !== "children") {
+                        $result.append("<p class='obj-property'>" + prop + ": " + view[prop] + "</p>");
+                    }
+                }
+                $result.append("<p class='obj-property'>children:</p>");
+                for (var i = 0; i < view.children.length; i++) {
+                    var o = view.children[i];
+                    $result.append("<p></p>");
+                    $result.append(renderInteractorTreeHelper(o, level + 1));
+                }
+            } else {
+                for (var prop in view) {
+                    if(typeof view[prop] === "function"  || prop == "_super" || prop == "julia") {
+                        continue;
+                    }
+
+                    $result.append("<p class='obj-property'>" + prop + ": " + view[prop] + "</p>")
+                }
+            }
+            return $result;
+        };
+        $el.append(renderInteractorTreeHelper(this, 0));
     }
 });
 
@@ -965,6 +999,13 @@ var ContainerView = View.subClass({
         //noinspection JSUnresolvedFunction
         this._super(julia);
         this.children = [];
+        // index of the child that is currently in focus
+        this.focus_index = -1;
+    },
+    setFocus: function(child) {
+        if(this.focus_index !== -1) {
+            throw "setFocus called when item is in focus!"
+        }
     },
     addChildView: function(view) {
         this.children.push(view);
