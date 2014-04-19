@@ -472,7 +472,12 @@ var Julia = Object.subClass({
      * @param view
      */
     killAlternative: function(view) {
-
+        for (var i = 0; i < this.alternatives.length; i++) {
+            var alternative = this.alternatives[i].view;
+            if(alternative === view) {
+                this.alternatives = this.alternatives.splice(i, 1);
+            }
+        }
     },
     dispatchPEvent: function(pEvent) {
         this.initDispatchQueue(pEvent);
@@ -490,7 +495,7 @@ var Julia = Object.subClass({
 
         actionRequests = this.combiner.combine(actionRequests);
         actionRequests.forEach(function(seq) {
-            log(LOG_LEVEL_DEBUG, pEvent.type, seq.requests[seq.requests.length-1].toString().replace(/\s+/g," "), Math.roundWithSignificance(seq.weight,2));
+            log(LOG_LEVEL_VERBOSE, pEvent.type, seq.requests[seq.requests.length-1].toString().replace(/\s+/g," "), Math.roundWithSignificance(seq.weight,2));
         })
         var mediationResults = this.mediator.mediate(actionRequests);
         var newAlternatives = this.updateInterfaceAlternatives(mediationResults);
@@ -536,13 +541,16 @@ var Julia = Object.subClass({
                 });
 
                 viewClone = mediationReply.actionRequestSequence.rootView.clone();
+                viewClone.kill = undefined;
                 mediationReply.actionRequestSequence.requests.forEach(function(request){
                     if(!request.reversible) {
                         hasFinalAction = true;
                     }
-                    request.fn.call(request.viewContext, request.event);
+                    request.fn.call(request.viewContext, request.event, viewClone);
                 });
-                newAlternatives.push({view: viewClone, probability: mediationReply.probability});
+                if((typeof viewClone.kill) === 'undefined') {
+                    newAlternatives.push({view: viewClone, probability: mediationReply.probability});
+                }
 
                 // since different action request sequences may be possible for the same view, we need to
                 // remove the action request information for each view after we perform the clone and update
@@ -550,7 +558,8 @@ var Julia = Object.subClass({
                     view.actionRequests = undefined;
                 });
                 // If this action request sequence had a final action, set the new root view, and return
-                if(hasFinalAction) {
+                if(hasFinalAction && (typeof viewClone.kill) === 'undefined') {
+
                     newAlternatives.slice(0, newAlternatives.length - 1);
                     return newAlternatives;
                 }
@@ -817,9 +826,9 @@ var ActionRequest = Object.subClass({
 var FSMActionRequest = ActionRequest.subClass({
     className: "FSMActionRequest",
     init: function(action_fn, viewContext, reversible, handlesEvent, event, destination_state, source_state) {
-        var fn2 = function(event) {
+        var fn2 = function(event, rootView) {
             this.current_state = destination_state;
-            action_fn.call(this, event);
+            action_fn.call(this, event, rootView);
         };
         this.action_fn = action_fn;
         this._super(fn2, viewContext, reversible, handlesEvent, event);
@@ -1003,11 +1012,18 @@ var ContainerView = View.subClass({
         this.focus_index = -1;
     },
     setFocus: function(child) {
-        if(this.focus_index !== -1) {
-            throw "setFocus called when item is in focus!"
+        for (var i = 0; i < this.children.length; i++) {
+            if (child === this.children[i]) {
+                this.focus_index = i;
+                return;
+            }
         }
     },
+    clearFocus: function() {
+        this.focus_index = -1;
+    },
     addChildView: function(view) {
+        view.container = this;
         this.children.push(view);
     },
     /**
@@ -1018,8 +1034,11 @@ var ContainerView = View.subClass({
         this.cloneActionRequests(result);
         result.children = [];
         this.children.forEach(function(child){
-            result.addChildView(child.clone());
+            var clone = child.clone();
+            clone.container = this;
+            result.addChildView(clone);
         });
+        result.focus_index = this.focus_index;
         return result;
     },
     /**
@@ -1041,6 +1060,9 @@ var ContainerView = View.subClass({
         if(this.children.length !== other.children.length) {
             return false;
         }
+        if(this.focus_index !== other.focus_index) {
+            return false;
+        }
         var i;
         for(i = 0; i < this.children.length; i++) {
             if(!this.children[i].equals(other.children[i])) {
@@ -1049,6 +1071,7 @@ var ContainerView = View.subClass({
         }
         return true;
     },
+
     /**
      * Dispatches an event to itself and potentially any children.
      * Returns a list action request sequences, where each sequence is a list of action requests.
@@ -1065,7 +1088,8 @@ var ContainerView = View.subClass({
 
         // set tot true if any child handles this event
         var isEventHandled;
-        var dispatchQueue = [{actionSequence: new ActionRequestSequence(this, []), childIndex: this.children.length - 1}];
+        var childIndex = this.focus_index < 0 ? this.children.length - 1 : this.focus_index;
+        var dispatchQueue = [{actionSequence: new ActionRequestSequence(this, []), childIndex: childIndex}];
         // init: function(rootView, requests) {
         var result = [];
         while(dispatchQueue.length > 0) {
@@ -1080,6 +1104,7 @@ var ContainerView = View.subClass({
                 // dispatch the event to this child
                 // if we get a response, if handled end the sequence
                 var childResponses = child.dispatchEvent(event);
+                var me = this;
                 childResponses.forEach(function(response) {
                     // response can be either an ActionRequest or an ActionRequestSequence
                     // if it is an action request, look to see if it is handled. (handlesEvent)
@@ -1103,8 +1128,14 @@ var ContainerView = View.subClass({
                     // and continue
                     if(isEventHandled) {
                         result.push(actionSequence2);
+                        // special case: if this is a keyboard event, and there is no item in focus, add next item to dispatch cue
+                        if(event instanceof PKeyEvent && me.focus_index < 0 && i > 0) {
+                            dispatchQueue.push({actionSequence: actionSequence, childIndex: i - 1});
+                        }
                     } else {
-                        if(i > 0) {
+                        // If the focus index is >= 0, an item is in focus, don't add it to the dispatch queue (e.g. add
+                        // don't dispatch to the next child).
+                        if(i > 0 && me.focus_index < 0 && i > 0) {
                             dispatchQueue.push({actionSequence: actionSequence2, childIndex: i - 1});
                         } else if(actionSequence2.requests.length > 0){
                             // if i === 0, then we are at the end of dispatch.
@@ -1140,7 +1171,7 @@ var FSMView = View.subClass({
         //noinspection JSUnresolvedFunction
         this._super(julia);
         this.fsm_description = {};
-        this.current_state = undefined;
+        this.current_state = "start";
     },
     /**
      * Copies over the state machine for this view to a clone
@@ -1219,7 +1250,7 @@ var FSMView = View.subClass({
         if(this.className !== other.className) {
             return false;
         }
-        return this.current_state === other.current_state;
+        return this.current_state === other.current_state && this.className === other.className;
 
     }
 });
@@ -1288,6 +1319,13 @@ var KeypressTransition = Transition.subClass({
     }
 });
 
+var KeydownTransition = Transition.subClass({
+    className: "KeypressTransition",
+    init: function(to, predicate, feedback_action, final_action, handles_event) {
+        //noinspection JSUnresolvedFunction
+        this._super(to, "keyboard", "keydown", predicate, feedback_action, final_action, handles_event);
+    }
+});
 //endregion
 
 //region Controls

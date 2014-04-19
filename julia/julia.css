@@ -29,3 +29,15 @@
 .indent-level-5 {
     margin-left: 100px;
 }
+
+.border1px {
+    border: 1px solid black;
+}
+
+.float-left {
+    float: left
+}
+
+.obj-property {
+    margin: 0px;
+}
