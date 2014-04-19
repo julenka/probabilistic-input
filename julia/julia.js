@@ -78,6 +78,14 @@ var bind = function (context, name) {
     };
 };
 
+String.prototype.repeat = function(count) {
+    var old = this;
+    var result = "";
+    for(var i = 0; i < count; i++) {
+        result += old;
+    }
+    return result;
+};
 //
 // Math
 //
@@ -504,7 +512,6 @@ var Julia = Object.subClass({
         var actionRequests = [];
         while(this.dispatchQueue.length !== 0) {
             var viewAndEvent = this.dispatchQueue.shift();
-            // TODO multiply in the likelihood of an interface alternative into an action request
             var requestsFromView = viewAndEvent.viewAndProbability.view.dispatchEvent(viewAndEvent.eventSample);
             requestsFromView.forEach(function(seq) {
                 seq.weight *= viewAndEvent.viewAndProbability.probability * viewAndEvent.eventSample.identity_p;
@@ -515,7 +522,7 @@ var Julia = Object.subClass({
         actionRequests = this.combiner.combine(actionRequests);
         actionRequests.forEach(function(seq) {
             log(LOG_LEVEL_VERBOSE, pEvent.type, seq.requests[seq.requests.length-1].toString().replace(/\s+/g," "), Math.roundWithSignificance(seq.weight,2));
-        })
+        });
         var mediationResults = this.mediator.mediate(actionRequests);
         var newAlternatives = this.updateInterfaceAlternatives(mediationResults);
         var combinedAlternatives = this.combineInterfaceAlternatives(newAlternatives);
@@ -540,6 +547,7 @@ var Julia = Object.subClass({
     updateInterfaceAlternatives: function(mediationResults) {
         // Update interface alternatives based on mediation results
         var newAlternatives = [], mediationReply, viewClone;
+        var deferred = [];
         var i;
         for(i = 0; i < mediationResults.length; i++) {
             mediationReply = mediationResults[i];
@@ -582,9 +590,22 @@ var Julia = Object.subClass({
                     newAlternatives.slice(0, newAlternatives.length - 1);
                     return newAlternatives;
                 }
+            } else {
+                deferred.push(mediationReply);
             }
             // TODO decide what to do for requests that are not accepted (deferred) For now, do nothing.
         }
+
+        if(deferred.length > 0) {
+            var logLevel = LOG_LEVEL_DEBUG;
+            log(logLevel, "ambiguous request! Can't decide between " + deferred.length + " requests:");
+            deferred.forEach(function(reply, i) {
+                log(logLevel, "view " + i + ": ");
+                var seq = reply.actionRequestSequence;
+                seq.requests[seq.requests.length - 1].viewContext.logDump(logLevel);
+            });
+        }
+
         return newAlternatives;
     },
     compareAlternatives: function(a,b) {
@@ -803,11 +824,21 @@ var Mediator = Object.subClass({
         var cmp = function(a,b) { return b.weight - a.weight;};
         var finalSorted = finalRequests.sort(cmp);
         var feedbackSorted = reversibleRequests.sort(cmp);
-        if(feedbackSorted.length === 0 || (finalSorted[0].weight >= feedbackSorted[0].weight
-            && (finalSorted.length === 1 || finalSorted[0].weight - finalSorted[1].weight > 0.1))) {
+        var mediationThreshold = 0.1;
+
+        // finalRequests.length > 0 here
+        var w = finalSorted[0].weight;
+        var finalShouldBeAccepted = finalSorted.length === 1 || w - finalSorted[1].weight > mediationThreshold;
+        if(finalShouldBeAccepted) {
             return [new MediationReply(finalSorted[0], true, finalSorted[0].weight)];
         } else {
-            return this.mediationReplyFromActionSequences(feedbackSorted);
+            // add deferred action items
+            var result = this.mediationReplyFromActionSequences(feedbackSorted);
+            result.push(new MediationReply(finalSorted[0], false, finalSorted[0].weight));
+            for(var i = 1; i < finalSorted.length && w - finalSorted[i].weight < mediationThreshold; i++) {
+                result.push(new MediationReply(finalSorted[i], false, finalSorted[i].weight));
+            }
+            return result;
         }
     },
     mediationReplyFromActionSequences: function(sequences) {
@@ -1048,6 +1079,40 @@ var View = Object.subClass({
             return $result;
         };
         $el.append(renderInteractorTreeHelper(this, 0));
+    },
+
+    /**
+     * Dump the state of this interactor to the console
+     * @param log_level
+     */
+    logDump: function(log_level) {
+        var dumpHelper = function(view, level) {
+            var result = "";
+            if(view instanceof ContainerView) {
+                for (var prop in view) {
+                    if(typeof view[prop] === "function" || prop == "_super" || prop == "julia") {
+                        continue;
+                    }
+                    if (prop !== "children") {
+                        result += "\t".repeat(level) + prop + ":" + view[prop] + "\n";
+                    }
+                }
+                result += "\n\n";
+                for (var i = 0; i < view.children.length; i++) {
+                    var o = view.children[i];
+                    result += "\n" + dumpHelper(o, level + 1);
+                }
+            } else {
+                for (var prop2 in view) {
+                    if(typeof view[prop2] === "function"  || prop2 === "_super" || prop2 === "julia") {
+                        continue;
+                    }
+                    result += "\t".repeat(level) + prop2 + ":" + view[prop2] + "\n";
+                }
+            }
+            return result;
+        };
+        log(log_level, dumpHelper(this, 0));
     }
 });
 

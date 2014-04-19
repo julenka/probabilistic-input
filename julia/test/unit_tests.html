@@ -55,6 +55,12 @@
          ninja instanceof Person, "ninja is a Ninja and a Person");
     });
 
+    test("String.repeat", function() {
+        equal("s".repeat(0), "");
+        equal("s".repeat(5), "sssss");
+        equal("hi there".repeat(1), "hi there");
+        equal("foo".repeat(10), "foofoofoofoofoofoofoofoofoofoo");
+    });
     test("Array.extend", function() {
          var a1 = [1,2,3];
          var a2 = [4,5,6];
