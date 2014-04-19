@@ -598,6 +598,7 @@ var Julia = Object.subClass({
 
         if(deferred.length > 0) {
             var logLevel = LOG_LEVEL_DEBUG;
+            window.alert("ambiguous action request! See log output for details");
             log(logLevel, "ambiguous request! Can't decide between " + deferred.length + " requests:");
             deferred.forEach(function(reply, i) {
                 log(logLevel, "view " + i + ": ");
