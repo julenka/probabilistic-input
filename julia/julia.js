@@ -628,6 +628,41 @@ var Julia = Object.subClass({
             alternative.probability = alternative.probability / sum;
         });
         return result;
+    },
+
+    /**
+     * Draws all current interface alternatives to the DOM, into Snap objects
+     * Assumes that julia.css is included
+     * Also assumes that all elements are drawnt to a Snap element
+     * This is a utility function
+     * TODO: fix this to work with any DOM element, or decide that you're using SVGs
+     * @param $el
+     * @param snap_width the original width of the snap
+     * @param snap_eight the original height of the snap
+     * @param snap_scale the amount to scale the snap by
+     */
+    dumpAlternativesAsSnap: function($el, snap_width, snap_height, snap_scale) {
+        $el.empty();
+        this.alternatives.forEach(function(view_probability, i) {
+            var d = $("<div class='float-left'></div>");
+            d.append(["<div>","i", i, ":", Math.roundWithSignificance(view_probability.probability, 2), "</div>"].join(" "));
+            var s = Snap(snap_width * snap_scale, snap_height * snap_scale);
+            var s_dom = s.node;
+            s_dom.setAttribute("viewBox", [0, 0, snap_width, snap_height].join(" "));
+            d.append(s_dom);
+            view_probability.view.draw($(s_dom));
+            $el.append(d);
+        });
+    },
+
+    dumpAlternativesAsText: function($el) {
+        $el.empty();
+        this.alternatives.forEach(function(view_probability, i){
+            var d = $("<div class='float-left'></div>");
+            d.append(["<div>","i", i, ":", Math.roundWithSignificance(view_probability.probability, 2), "</div>"].join(" "));
+            view_probability.view.domDump(d);
+            $el.append(d);
+        });
     }
 
 });

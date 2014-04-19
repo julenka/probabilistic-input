@@ -38,7 +38,7 @@
 <table >
     <tr>
         <td>
-            <svg class="unselectable border1px" id="sketch" width="500" height="700"></svg>
+            <svg class="unselectable border1px" id="sketch" width="320" height="200"></svg>
         </td>
         <td>
             <div id="sketches"></div>
@@ -81,21 +81,10 @@
         if(!uiUpdated) {
             return;
         }
-
+        julia.dumpAlternativesAsSnap($sketches, $sketch.width(), $sketch.height(), 0.5);
         $sketch.empty();
-        $sketches.empty();
-        var w = $sketch.width();
-        var h = $sketch.height();
         new_alternatives.forEach(function(view_probability, i) {
             view_probability.view.draw($sketch);
-            var d = $("<div class='float-left'></div>");
-            d.append(["<div>","sketch", i, ":", Math.roundWithSignificance(view_probability.probability, 2), "</div>"].join(" "));
-            var s = Snap(w / 10, h / 10);
-            var s_dom = s.node;
-            s_dom.setAttribute("viewBox", [0, 0, w, h].join(" "));
-            d.append(s_dom);
-            view_probability.view.draw($(s_dom));
-            $sketches.append(d);
         });
     };
 

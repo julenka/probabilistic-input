@@ -7,18 +7,7 @@
     <script type="text/javascript" src="../lib/snap.svg.js"></script>
 
     <script type="text/javascript" src="../julia.js"></script>
-
-    <style type="text/css">
-        svg {
-            border: 1px solid black;
-        }
-
-        .float-left {
-            float: left
-        }
-
-
-    </style>
+    <link type="text/css" rel="stylesheet" href="../julia.css"/>
 </head>
 <body>
 <div>
@@ -39,7 +28,7 @@
 </div>
 <div>
     <label for="circleRadius">circle radius:</label>
-    <input type="text" id="circleRadius" value="10"/>
+    <input type="text" id="circleRadius" value="50"/>
 </div>
 <div>
     <label for="draw_history">paintbrush mode</label>
@@ -49,7 +38,7 @@
 <table>
     <tr>
         <td>
-            <svg id="sketch" width="500" height="700"></svg>
+            <svg class="border1px" id="sketch" width="500" height="300"></svg>
         </td>
         <td>
             <div id="sketches"></div>
@@ -126,21 +115,10 @@
         if(!uiUpdated) {
             return;
         }
-
+        julia.dumpAlternativesAsSnap($sketches, $sketch.width(), $sketch.height(), 0.25)
         $sketch.empty();
-        $sketches.empty();
-        var w = $sketch.width();
-        var h = $sketch.height();
         new_alternatives.forEach(function(view_probability, i) {
             view_probability.view.draw($sketch);
-            var d = $("<div class='float-left'></div>");
-            d.append(["<div>","sketch", i, ":", 1/new_alternatives.length, "</div>"].join(" "));
-            var s = Snap(w / 10, h / 10);
-            var s_dom = s.node;
-            s_dom.setAttribute("viewBox", [0, 0, w, h].join(" "));
-            d.append(s_dom);
-            view_probability.view.draw($(s_dom));
-            $sketches.append(d);
         });
     };
     var mouseHook = new PMouseEventHook($sketch[0]);

@@ -26,6 +26,14 @@ When you press enter, a finalization request is made, the most likely interface 
 
 <table>
     <tr>
+        <input id="dbg_dumptext" type="checkbox" />
+        <label for="dbg_dumptext">dump alternatives as text</label>
+    </tr>
+    <tr>
+        <input id="dbg_dumpsnap" type="checkbox" />
+        <label for="dbg_dumpsnap">dump alternative renderings</label>
+    </tr>
+    <tr>
         <td>
             <svg id="main_interface" class="border1px" width="500" height="300"></svg>
         </td>
@@ -133,6 +141,12 @@ var FormEntry = FSMView.subClass({
     var rootView = new ContainerView(julia);
     var $sketch = $("#main_interface");
     var $sketches = $("#alternative_interfaces");
+    $("#dbg_dumptext").click(function(){
+        $("#debug").empty();
+    });
+    $("#dbg_dumpsnap").click(function(){
+        $("#alternative_interfaces").empty();
+    });
     julia.nSamplesPerEvent = 1;
     julia.setRootView(rootView);
 
@@ -142,26 +156,15 @@ var FormEntry = FSMView.subClass({
         }
 
         $sketch.empty();
-        $sketches.empty();
-        var w = $sketch.width();
-        var h = $sketch.height();
-        $("#debug").empty();
+        if($("#dbg_dumptext").is(':checked')) {
+            julia.dumpAlternativesAsText($("#debug"));
+        }
+        if($("#dbg_dumpsnap").is(':checked')) {
+            julia.dumpAlternativesAsSnap($sketches, $sketch.width(), $sketch.height(), 0.5);
+        }
+
         new_alternatives.forEach(function(view_probability, i) {
-
             view_probability.view.draw($sketch);
-            var d = $("<div class='float-left'></div>");
-            d.append(["<div>","sketch", i, ":", Math.roundWithSignificance(view_probability.probability, 2), "</div>"].join(" "));
-            var s = Snap(w/2, h/2);
-            var s_dom = s.node;
-            s_dom.setAttribute("viewBox", [0, 0, w, h].join(" "));
-            d.append(s_dom);
-            view_probability.view.draw($(s_dom));
-            $sketches.append(d);
-
-            d = $("<div class='float-left'></div>");
-
-//            view_probability.view.domDump(d);
-            $("#debug").append(d);
         });
     };
 
