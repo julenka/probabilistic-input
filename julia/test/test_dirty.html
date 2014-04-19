@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Dirty bit test</title>
+    <!-- JQuery -->
+    <script type="text/javascript" src="../lib/jquery.js"></script>
+    <script type="text/javascript" src="../lib/snap.svg.js"></script>
+
+    <script type="text/javascript" src="../julia.js"></script>
+    <link rel="stylesheet" type="text/css" href="../julia.css"/>
+</head>
+<body>
+
+<table>
+    <tr>
+        <td>
+            <input id="dbg_dumptext" type="checkbox" checked="True"/>
+            <label for="dbg_dumptext">dump alternatives as text</label>
+        </td>
+
+    </tr>
+    <tr>
+        <td>
+            <input id="dbg_dumpsnap" type="checkbox" checked="True"/>
+            <label for="dbg_dumpsnap">dump alternative renderings</label>
+        </td>
+    </tr>
+    <tr>
+        <td>
+            <input type="button" id="reset_button" value="reset"/>
+        </td>
+    </tr>
+    <tr>
+        <td>
+            <svg id="main_interface" class="border1px" width="500" height="300"></svg>
+        </td>
+        <td>
+            <div id="alternative_interfaces"></div>
+        </td>
+    </tr>
+</table>
+<div id="debug">
+
+</div>
+
+<script>
+var FormEntry = FSMView.subClass({
+    className: "FormLabel",
+    init: function(julia, label, inputValidFunction, entryTextValidFunction, x, y) {
+        this._super(julia);
+        this.entry_text = "";
+        this.entry_opacity = 0.6;
+        this.x = x;
+        this.y = y;
+        this.label = label;
+        this.validFunction = inputValidFunction;
+        this.entryTextValidFunction = entryTextValidFunction;
+        this.fsm_description = {
+            start: [
+                new KeypressTransition(
+                        "textEntered",
+                        function(e) {
+                            return !(e.keyCode == 9 || e.keyCode == 13) && this.validFunction(String.fromCharCode(e.keyCode));
+                        },
+                        function(e) {
+                            this.entry_opacity = 0.6;
+                            this.entry_text += String.fromCharCode(e.keyCode);
+                            this.container.setFocus(this);
+                        }, // feedback
+                        undefined,
+                        true
+                )
+            ],
+            textEntered : [
+                new KeypressTransition(
+                        "done",
+                        function(e) { return e.keyCode == 13 && this.entryTextValidFunction(this.entry_text); }, // 9 is tab, 13 is enter
+                        undefined,
+                        function(e, rootView) {
+                            this.entry_opacity = 1.0;
+                            this.container.clearFocus();
+                        }, // final
+                        true
+                ),
+                new KeypressTransition(
+                        "textEntered",
+                        function(e) {
+                            return !(e.keyCode == 9 || e.keyCode == 13);
+                        },
+                        function(e, rootView) {
+                            if(!(this.validFunction(String.fromCharCode(e.keyCode)))) {
+                                rootView.kill = true;
+                                return;
+                            }
+                            if(String.fromCharCode(e.keyCode) === "x") {
+                                this.entry_text = this.entry_text.substring(0, this.entry_text.length - 2);
+                                if(this.entry_text.length == 0) {
+                                    this.container.setFocus(this);
+                                }
+                            } else {
+                                this.entry_text += String.fromCharCode(e.keyCode);
+                            }
+
+
+                        }, // feedback
+                        undefined,
+                        true
+                )
+            ],
+            done: [
+
+            ]
+        }
+    },
+    draw: function($el) {
+        var s = Snap($el[0]);
+        s.text(this.x,this.y, this.label + ": ");
+        s.text(this.x + 120, this.y, this.entry_text).attr({opacity: this.entry_opacity});
+    },
+    clone: function() {
+        var result = new FormEntry(this.julia, this.label, this.validFunction, this.entryTextValidFunction, this.x, this.y);
+        this.copyFsm(result);
+        this.cloneActionRequests(result);
+        result.entry_text = this.entry_text;
+        result.entry_opacity = this.entry_opacity;
+
+        return result;
+    },
+    equals: function(other) {
+        if(!this._super(other)) {
+            return false;
+        }
+        return this.label === other.label && this.entry_text === other.entry_text;
+    }
+});
+
+var $sketch = $("#main_interface");
+var $sketches = $("#alternative_interfaces");
+
+$("#dbg_dumptext").click(function(){
+    $("#debug").empty();
+});
+$("#dbg_dumpsnap").click(function(){
+    $("#alternative_interfaces").empty();
+});
+
+$("#reset_button").click(function(){
+    reset();
+});
+
+function reset() {
+    var rootView = new ContainerView(julia);
+    julia.setRootView(rootView);
+
+    var labelx = 50;
+    var starty = 50;
+    var dy = 30;
+    var fields = [];
+    fields.push(new FormEntry(julia, "name (last, first)", function(input) { return /[a-zA-z, ]/.test(input);},
+            function(current_text) { return /^\s*\w+\s*,\s*\w+\s*$/.test(current_text)},
+            labelx, starty
+    ));
+    starty += dy;
+
+    fields.push(new FormEntry(julia, "date of birth", function(input) { return /[0-9\/]/.test(input);},
+            function(current_text) { return /^\d{2}\/\d{2}\/\d{4}$/.test(current_text)},
+            labelx, starty
+    ));
+    starty += dy;
+
+    fields.push(new FormEntry(julia, "email", function(input) { return /[\w@\.]/.test(input);},
+            function(currentText) { return /^\w+@\w+\.[a-zA-Z]+$/.test(currentText); }, labelx, starty)); // (julia, label, validFunction, x, y) {)
+    starty += dy;
+
+
+    fields.push(new FormEntry(julia, "ssn", function(input) { return /[x\d]/.test(input) && /^\d{0,8}$/.test(this.entry_text); },
+            function(current_text) { return /^\d{9}$/.test(current_text)}, labelx, starty));
+    starty += dy;
+    fields.push(new FormEntry(julia, "phone", function(input) { return /[x\d]/.test(input) && /^\d{0,9}$/.test(this.entry_text); },
+            function(current_text) { return /^(\d{10}|\d{7})$/.test(current_text)}, labelx, starty));
+    starty += dy;
+    fields.push(new FormEntry(julia, "fruit", function(input) { return /[a-z]/.test(input); },
+            function(current_text) { return /^(apple|orange|banana)$/.test(current_text)}, labelx, starty));
+    starty += dy;
+    fields.push(new FormEntry(julia, "vegetable", function(input) { return /[a-z]/.test(input); },
+            function(current_text) { return /^(tomato|carrot|potato)$/.test(current_text)}, labelx, starty));
+
+    fields.forEach(function(f){
+        rootView.addChildView(f);
+    });
+    $sketch.empty();
+    $("#debug").empty();
+    $("#alternative_interfaces").empty();
+    rootView.draw($sketch);
+}
+
+var julia = new Julia();
+julia.nSamplesPerEvent = 1;
+julia.dispatchCompleted = function(new_alternatives, uiUpdated) {
+    if(!uiUpdated) {
+        return;
+    }
+
+    $sketch.empty();
+    if($("#dbg_dumptext").is(':checked')) {
+        julia.dumpAlternativesAsText($("#debug"));
+    }
+    if($("#dbg_dumpsnap").is(':checked')) {
+        julia.dumpAlternativesAsSnap($sketches, $sketch.width(), $sketch.height(), 0.5);
+    }
+
+    julia.rootView.draw($sketch);
+};
+julia.addEventSource(new PKeyEventHook(document));
+reset();
+</script>
+
+
+</body>
+</html>
