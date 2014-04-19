@@ -492,6 +492,7 @@ var Julia = Object.subClass({
             throw "root view not instance of ContainerView!";
         }
         this.rootView = view;
+        this.rootView.resetDirtyBit();
         this.alternatives = [{view: view, probability: 1}];
     },
     /**
@@ -530,7 +531,13 @@ var Julia = Object.subClass({
             combinedAlternatives,
             this.nAlternativesToKeep);
         if(downsampledAlternatives.length > 0) {
-            this.alternatives = downsampledAlternatives;
+            if(downsampledAlternatives.length === 1) {
+                // there is only one alternative, set a new root view.
+                this.setRootView(downsampledAlternatives[0].view);
+            } else {
+                this.alternatives = downsampledAlternatives;
+            }
+
         }
         // The mediator automatically resamples the views
         if(typeof this.dispatchCompleted !== "undefined") {
@@ -574,6 +581,8 @@ var Julia = Object.subClass({
                         hasFinalAction = true;
                     }
                     request.fn.call(request.viewContext, request.event, viewClone);
+                    // set the viewContext dirty bit
+                    request.viewContext._dirty = true;
                 });
                 if((typeof viewClone.kill) === 'undefined') {
                     newAlternatives.push({view: viewClone, probability: mediationReply.probability});
@@ -1130,6 +1139,14 @@ var ContainerView = View.subClass({
         this.children = [];
         // index of the child that is currently in focus
         this.focus_index = -1;
+    },
+    resetDirtyBit: function() {
+        this.children.forEach(function(child){
+            child._dirty = false;
+            if(child instanceof ContainerView) {
+                child.resetDirtyBit();
+            }
+        });
     },
     setFocus: function(child) {
         for (var i = 0; i < this.children.length; i++) {
