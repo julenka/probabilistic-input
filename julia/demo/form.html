@@ -26,12 +26,22 @@ When you press enter, a finalization request is made, the most likely interface 
 
 <table>
     <tr>
-        <input id="dbg_dumptext" type="checkbox" />
-        <label for="dbg_dumptext">dump alternatives as text</label>
+        <td>
+            <input id="dbg_dumptext" type="checkbox" />
+            <label for="dbg_dumptext">dump alternatives as text</label>
+        </td>
+
     </tr>
     <tr>
-        <input id="dbg_dumpsnap" type="checkbox" />
-        <label for="dbg_dumpsnap">dump alternative renderings</label>
+        <td>
+            <input id="dbg_dumpsnap" type="checkbox" />
+            <label for="dbg_dumpsnap">dump alternative renderings</label>
+        </td>
+    </tr>
+    <tr>
+        <td>
+            <input type="button" id="reset_button" value="reset"/>
+        </td>
     </tr>
     <tr>
         <td>
@@ -137,38 +147,23 @@ var FormEntry = FSMView.subClass({
     }
 });
 
-    var julia = new Julia();
+var $sketch = $("#main_interface");
+var $sketches = $("#alternative_interfaces");
+
+$("#dbg_dumptext").click(function(){
+    $("#debug").empty();
+});
+$("#dbg_dumpsnap").click(function(){
+    $("#alternative_interfaces").empty();
+});
+
+$("#reset_button").click(function(){
+    reset();
+});
+
+function reset() {
     var rootView = new ContainerView(julia);
-    var $sketch = $("#main_interface");
-    var $sketches = $("#alternative_interfaces");
-    $("#dbg_dumptext").click(function(){
-        $("#debug").empty();
-    });
-    $("#dbg_dumpsnap").click(function(){
-        $("#alternative_interfaces").empty();
-    });
-    julia.nSamplesPerEvent = 1;
     julia.setRootView(rootView);
-
-    julia.dispatchCompleted = function(new_alternatives, uiUpdated) {
-        if(!uiUpdated) {
-            return;
-        }
-
-        $sketch.empty();
-        if($("#dbg_dumptext").is(':checked')) {
-            julia.dumpAlternativesAsText($("#debug"));
-        }
-        if($("#dbg_dumpsnap").is(':checked')) {
-            julia.dumpAlternativesAsSnap($sketches, $sketch.width(), $sketch.height(), 0.5);
-        }
-
-        new_alternatives.forEach(function(view_probability, i) {
-            view_probability.view.draw($sketch);
-        });
-    };
-
-    julia.addEventSource(new PKeyEventHook(document));
 
     var labelx = 50;
     var starty = 50;
@@ -192,22 +187,47 @@ var FormEntry = FSMView.subClass({
 
 
     fields.push(new FormEntry(julia, "ssn", function(input) { return /[x\d]/.test(input) && /^\d{0,8}$/.test(this.entry_text); },
-    function(current_text) { return /^\d{9}$/.test(current_text)}, labelx, starty));
+            function(current_text) { return /^\d{9}$/.test(current_text)}, labelx, starty));
     starty += dy;
     fields.push(new FormEntry(julia, "phone", function(input) { return /[x\d]/.test(input) && /^\d{0,9}$/.test(this.entry_text); },
-        function(current_text) { return /^(\d{10}|\d{7})$/.test(current_text)}, labelx, starty));
+            function(current_text) { return /^(\d{10}|\d{7})$/.test(current_text)}, labelx, starty));
     starty += dy;
     fields.push(new FormEntry(julia, "fruit", function(input) { return /[a-z]/.test(input); },
-        function(current_text) { return /^(apple|orange|banana)$/.test(current_text)}, labelx, starty));
+            function(current_text) { return /^(apple|orange|banana)$/.test(current_text)}, labelx, starty));
     starty += dy;
     fields.push(new FormEntry(julia, "vegetable", function(input) { return /[a-z]/.test(input); },
-        function(current_text) { return /^(tomato|carrot|potato)$/.test(current_text)}, labelx, starty));
+            function(current_text) { return /^(tomato|carrot|potato)$/.test(current_text)}, labelx, starty));
 
     fields.forEach(function(f){
         rootView.addChildView(f);
     })
+    $sketch.empty();
+    $("#debug").empty();
+    $("#alternative_interfaces").empty();
     rootView.draw($sketch);
+}
 
+var julia = new Julia();
+julia.nSamplesPerEvent = 1;
+julia.dispatchCompleted = function(new_alternatives, uiUpdated) {
+    if(!uiUpdated) {
+        return;
+    }
+
+    $sketch.empty();
+    if($("#dbg_dumptext").is(':checked')) {
+        julia.dumpAlternativesAsText($("#debug"));
+    }
+    if($("#dbg_dumpsnap").is(':checked')) {
+        julia.dumpAlternativesAsSnap($sketches, $sketch.width(), $sketch.height(), 0.5);
+    }
+
+    new_alternatives.forEach(function(view_probability, i) {
+        view_probability.view.draw($sketch);
+    });
+};
+julia.addEventSource(new PKeyEventHook(document));
+reset();
 </script>
 
 
