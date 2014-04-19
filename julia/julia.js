@@ -264,6 +264,13 @@ var DOMEventSource = PEventSource.subClass({
     init: function(el){
         //noinspection JSUnresolvedVariable
         this.el = el === undefined ? window : el;
+        this.event_listeners = [];
+    },
+    removeEventListeners: function() {
+        var me = this;
+        this.event_listeners.forEach(function(lt) {
+            me.el.removeEventListener(lt.type, lt.fn);
+        });
     }
 });
 
@@ -278,9 +285,11 @@ var PMouseEventHook = DOMEventSource.subClass({
     addListener: function(fn) {
         var me = this;
         ['mousedown', 'mousemove', 'mouseup', 'click'].forEach(function(type) {
-            me.el.addEventListener(type, function(e) {
+            var fn2 = function(e) {
                 fn(new PMouseEvent(1, e, me.variance_x_px, me.variance_y_px, type));
-            });
+            };
+            me.event_listeners.push({type: type, fn: fn2});
+            me.el.addEventListener(type, fn2);
         });
     }
 });
@@ -294,9 +303,11 @@ var PKeyEventHook = DOMEventSource.subClass({
     addListener: function(fn) {
         var me = this;
         ['keydown', 'keyup', 'keypress'].forEach(function(type) {
-            me.el.addEventListener(type, function(e) {
+            var fn2 = function(e) {
                 fn(new PKeyEvent(1, e));
-            });
+            };
+            me.event_listeners.push({type: type, fn: fn2});
+            me.el.addEventListener(type, fn2);
         });
     }
 });
@@ -429,12 +440,20 @@ var Julia = Object.subClass({
         this.alternatives = [];
         this.mediator = new Mediator();
         this.combiner = new ActionRequestCombiner();
+        this.eventSources = [];
     },
     //TODO test addEventSource
     addEventSource: function(eventSource) {
         eventSource.addListener(bind(this, "dispatchPEvent"));
+        this.eventSources.push(eventSource);
     },
 
+    clearEventSources: function(){
+        this.eventSources.forEach(function(es){ es.removeEventListeners()});
+    },
+    removeEventSource: function(eventSource) {
+          eventSource.removeEventListeners();
+    },
     /**
      * populate the dispatch queue with interface alternatives and event samples.
      * Cross product of interfaces and events
