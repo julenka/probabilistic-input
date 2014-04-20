@@ -29,11 +29,18 @@
     <label for="sampleVarianceY">sample y variance:</label>
     <input type="text" id="sampleVarianceY" value="10"/>
 </div>
-<div>
-    <label for="circleRadius">circle radius:</label>
-    <input type="text" id="circleRadius" value="10"/>
-</div>
 <button onclick="update()">Update Settings</button>
+</div>
+<div>
+    feedback type:
+</div>
+<div>
+    <input name="fb" type="radio" id="radio_blur"/>
+    <label for="radio_blur">blur</label>
+</div>
+<div>
+    <input name="fb" type="radio" id="radio_opacity" checked="True"/>
+    <label for="radio_opacity">opacity</label>
 </div>
 <table >
     <tr>
@@ -52,8 +59,6 @@
 <script type="text/javascript">
     var julia = new Julia();
     var rootView = new ContainerView(julia);
-    var cursor = new Cursor(julia);
-    cursor.opacity = 0.2;
     var buttons = [
         new Button(julia, 50, 50, 100, 50),
         new Button(julia, 150, 50, 100, 50),
@@ -71,11 +76,16 @@
     var txtYVariance = $("#sampleVarianceY");
     var txtNumSamples = $("#numSamples");
     var txtNumAlternatives = $("#numAlternatives");
-    var txtCursorRadius = $("#circleRadius");
     var $sketch = $("#sketch");
     var $sketches = $("#sketches");
 
-
+    var feedback = new SimpleFeedback(julia, FeedbackOpacityView);
+    $("#radio_blur").click(function(){
+        feedback = new SimpleFeedback(julia, BlurOpacityView);
+    });
+    $("#radio_opacity").click(function() {
+        feedback = new SimpleFeedback(julia, FeedbackOpacityView);
+    });
 
     julia.dispatchCompleted = function(new_alternatives, uiUpdated) {
         if(!uiUpdated) {
@@ -83,9 +93,7 @@
         }
         julia.dumpAlternativesAsSnap($sketches, $sketch.width(), $sketch.height(), 0.5);
         $sketch.empty();
-        new_alternatives.forEach(function(view_probability, i) {
-            view_probability.view.draw($sketch);
-        });
+        julia.drawFeedback($sketch, feedback);
     };
 
     var mouseHook = new PMouseEventHook($sketch[0]);
@@ -96,7 +104,6 @@
         julia.nAlternativesToKeep = parseInt(txtNumAlternatives.val());
         mouseHook.variance_x_px = parseInt(txtXVariance.val());
         mouseHook.variance_y_px = parseInt(txtYVariance.val());
-        cursor.radius = parseInt(txtCursorRadius.val());
         julia.setRootView(rootView);
         julia.alternatives[0].view.draw($sketch);
     }

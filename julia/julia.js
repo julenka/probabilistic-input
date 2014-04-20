@@ -439,7 +439,7 @@ var PKeyEvent = PEvent.subClass({
 //noinspection JSUnusedGlobalSymbols
 var Julia = Object.subClass({
     className: "Julia",
-    init: function(rootView) {
+    init: function() {
         // [{viewRoot, event}, {viewRoot, event}]
         this.dispatchQueue = [];
         this.nSamplesPerEvent = 20;
@@ -519,7 +519,6 @@ var Julia = Object.subClass({
             });
             actionRequests.extend(requestsFromView);
         }
-
         actionRequests = this.combiner.combine(actionRequests);
         actionRequests.forEach(function(seq) {
             log(LOG_LEVEL_VERBOSE, pEvent.type, seq.requests[seq.requests.length-1].toString().replace(/\s+/g," "), Math.roundWithSignificance(seq.weight,2));
@@ -544,7 +543,14 @@ var Julia = Object.subClass({
             this.dispatchCompleted(this.alternatives, downsampledAlternatives.length > 0);
         }
     },
-
+    /**
+     * For now, at the end of the dispatch loop, we will draw feedback to the given elements
+     * TODO: when constructed, we shoudl probably specify the element to draw to
+     * @param $el
+     */
+    drawFeedback: function($el, feedback) {
+        feedback.draw($el);
+    },
     /**
      * Updates the interface alternatives given a list of mediation results (from the mediator)
      * Does not aggregate similar interfaces
@@ -718,6 +724,7 @@ var Julia = Object.subClass({
 });
 
 //endregion
+
 
 //region Mediation and Action Combination
 /**
@@ -1001,7 +1008,6 @@ var View = Object.subClass({
     className: "View",
     init: function(julia) {
         this.julia = julia;
-        this.className = "View";
     },
     /**
      * Creates an identical copy of this view
@@ -1639,10 +1645,10 @@ var Button = FSMView.subClass({
         }
     },
     draw: function ($el) {
-        var c = this.current_state === "start" ? "white" : "black";
+        var c = this.current_state === "start" ? "white" : "gray";
         // in this case $el will be an SVG element
         var s = Snap($el[0]);
-        s.rect(this.x, this.y, this.w, this.h, 10, 10).attr({stroke: "black", fill: c, opacity: 0.2});
+        s.rect(this.x, this.y, this.w, this.h, 10, 10).attr({stroke: "black", fill: c});
         s.text(this.x + 20, this.y + 20, this.x + ", " + this.y);
     },
     clone: function() {
@@ -1662,5 +1668,100 @@ var Button = FSMView.subClass({
         }
     }
 });
+
 //endregion
 
+
+//region Feedback
+var SimpleFeedback = Object.subClass({
+    className: "OpacityFeedback",
+    init: function(julia, feedbackType) {
+        this.julia = julia;
+        this.feedbackType = feedbackType;
+    },
+    draw: function($el) {
+        // creates a merged UI combining the interface alternatives
+        // root: the certain root that we have
+        // alternatives: all the alternatives for this item
+        var me = this;
+        var mergeHelper = function(root, alternatives) {
+            if(!(root instanceof ContainerView)) {
+                // base case
+                var dirty_vps = [];
+                for(var i = 0; i < alternatives.length; i++) {
+                    var vp = alternatives[i];
+                    // TODO remove magic number
+                    // Don't render feedback for extremely unlikely things
+                    if(vp.view._dirty && vp.probability > 0.01) {
+                        log(LOG_LEVEL_DEBUG,"dirty!");
+                        vp.view.logDump(LOG_LEVEL_DEBUG);
+                        dirty_vps.push(vp);
+                    }
+                }
+                if(dirty_vps.length > 0) {
+                    var result = new ContainerView();
+                    dirty_vps.forEach(function(vp){
+                        result.addChildView(new me.feedbackType(me.julia, vp.view, vp.probability));
+                    });
+                    return result;
+                }
+                return root;
+            }
+
+            // this is a containerview
+            // For now, assume container is NOT dirty
+            // TODO handle the case when the ContainerView is dirty
+            for(var i = 0; i < root.children.length; i++) {
+                var child = root.children[i];
+                var new_alternatives = [];
+                for(var j = 0; j < alternatives.length; j++) {
+                    new_alternatives.push({view: alternatives[j].view.children[i],
+                        probability: alternatives[j].probability});
+                }
+                root.children[i] = mergeHelper(child, new_alternatives);
+            }
+            return root;
+
+        };
+        // merge the interface
+        var mergedRoot = mergeHelper(this.julia.rootView.clone(), this.julia.alternatives);
+        mergedRoot.draw($el);
+    }
+});
+
+/**
+ * Renders a child view with opacity according to its probability
+ * uses Snap library
+ * @type {*}
+ */
+var FeedbackOpacityView = View.subClass({
+    className: "FeedbackOpacityView",
+    init: function(julia, view, probability) {
+        this.view = view;
+        this.probability = probability;
+    },
+    draw: function($el) {
+
+        var s = Snap($el[0]);
+        var group = s.group();
+        group.attr({opacity: Math.roundWithSignificance(this.probability, 2)});
+        this.view.draw($(group.node));
+    }
+});
+
+var BlurOpacityView = View.subClass({
+    className: "FeedbackOpacityView",
+    init: function(julia, view, probability) {
+        this.view = view;
+        this.probability = probability;
+        var snap = Snap();
+        this.filter = snap.filter(Snap.filter.blur(2, 2));
+    },
+    draw: function($el) {
+        var s = Snap($el[0]);
+        var group = s.group();
+        group.attr({filter: this.filter});
+        this.view.draw($(group.node));
+    }
+});
+//endregion
