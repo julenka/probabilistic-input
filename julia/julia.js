@@ -59,6 +59,7 @@ if(typeof jQuery === 'undefined') {
             if(!initializing && this.init) {
                 this.init.apply(this, arguments);
                 this.className = properties.className;
+                this.toString = function() { return this.className; };
             }
         }
 
@@ -549,7 +550,7 @@ var Julia = Object.subClass({
      * @param $el
      */
     drawFeedback: function($el, feedback) {
-        feedback.draw($el);
+        return feedback.draw($el);
     },
     /**
      * Updates the interface alternatives given a list of mediation results (from the mediator)
@@ -1693,8 +1694,6 @@ var SimpleFeedback = Object.subClass({
                     // TODO remove magic number
                     // Don't render feedback for extremely unlikely things
                     if(vp.view._dirty && vp.probability > 0.01) {
-                        log(LOG_LEVEL_DEBUG,"dirty!");
-                        vp.view.logDump(LOG_LEVEL_DEBUG);
                         dirty_vps.push(vp);
                     }
                 }
@@ -1726,6 +1725,7 @@ var SimpleFeedback = Object.subClass({
         // merge the interface
         var mergedRoot = mergeHelper(this.julia.rootView.clone(), this.julia.alternatives);
         mergedRoot.draw($el);
+        return mergedRoot;
     }
 });
 

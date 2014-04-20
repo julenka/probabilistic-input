@@ -52,6 +52,11 @@
         </td>
 
     </tr>
+    <td>Interactor tree of main interface:</td>
+    </tr>
+    <tr>
+        <td><div id="debug"/></td>
+    </tr>
 </table>
 
 
@@ -93,7 +98,8 @@
         }
         julia.dumpAlternativesAsSnap($sketches, $sketch.width(), $sketch.height(), 0.5);
         $sketch.empty();
-        julia.drawFeedback($sketch, feedback);
+        var merged = julia.drawFeedback($sketch, feedback);
+        merged.domDump($("#debug"));
     };
 
     var mouseHook = new PMouseEventHook($sketch[0]);
