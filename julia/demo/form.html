@@ -59,13 +59,15 @@ When you press enter, a finalization request is made, the most likely interface 
 <script>
 var FormEntry = FSMView.subClass({
     className: "FormLabel",
-    init: function(julia, label, inputValidFunction, entryTextValidFunction, x, y) {
+    init: function(julia, label, inputValidFunction, entryTextValidFunction, x, y, onCompleteFn) {
         this._super(julia);
         this.entry_text = "";
         this.entry_opacity = 0.6;
         this.x = x;
         this.y = y;
         this.label = label;
+        this.message = "";
+        this.onCompleteFn = onCompleteFn;
         this.validFunction = inputValidFunction;
         this.entryTextValidFunction = entryTextValidFunction;
         this.fsm_description = {
@@ -87,12 +89,25 @@ var FormEntry = FSMView.subClass({
             textEntered : [
                 new KeypressTransition(
                         "done",
-                        function(e) { return e.keyCode == 13 && this.entryTextValidFunction(this.entry_text); }, // 9 is tab, 13 is enter
+                        function(e, rootView) { return e.keyCode == 13 && this.entryTextValidFunction(this.entry_text); }, // 9 is tab, 13 is enter
                         undefined,
                         function(e, rootView) {
+                            this.message = "complete";
                             this.entry_opacity = 1.0;
                             this.container.clearFocus();
+                            if(typeof this.onCompleteFn !== 'undefined') {
+                                this.onCompleteFn(this, rootView);
+                            }
                         }, // final
+                        true
+                ),
+                new KeypressTransition(
+                        "textEntered",
+                        function(e) { return e.keyCode == 13 && !this.entryTextValidFunction(this.entry_text); }, // 9 is tab, 13 is enter
+                        function(e) {
+                            this.message = "not valid!"
+                        },
+                        undefined, // final
                         true
                 ),
                 new KeypressTransition(
@@ -112,6 +127,7 @@ var FormEntry = FSMView.subClass({
                                 }
                             } else {
                                 this.entry_text += String.fromCharCode(e.keyCode);
+                                this.message = "keep going...";
                             }
 
 
@@ -129,6 +145,7 @@ var FormEntry = FSMView.subClass({
         var s = Snap($el[0]);
         s.text(this.x,this.y, this.label + ": ");
         s.text(this.x + 120, this.y, this.entry_text).attr({opacity: this.entry_opacity});
+        s.text(this.x + 300, this.y, this.message);
     },
     clone: function() {
         var result = new FormEntry(this.julia, this.label, this.validFunction, this.entryTextValidFunction, this.x, this.y);
@@ -136,7 +153,8 @@ var FormEntry = FSMView.subClass({
         this.cloneActionRequests(result);
         result.entry_text = this.entry_text;
         result.entry_opacity = this.entry_opacity;
-
+        result.message = this.message;
+        result.onCompleteFn = this.onCompleteFn;
         return result;
     },
     equals: function(other) {
