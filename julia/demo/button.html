@@ -77,10 +77,6 @@
 //    rootView.addChildView(cursor);
     julia.setRootView(rootView);
 
-    var txtXVariance = $("#sampleVarianceX");
-    var txtYVariance = $("#sampleVarianceY");
-    var txtNumSamples = $("#numSamples");
-    var txtNumAlternatives = $("#numAlternatives");
     var $sketch = $("#sketch");
     var $sketches = $("#sketches");
 
@@ -106,10 +102,10 @@
     julia.addEventSource(mouseHook);
 
     function update() {
-        julia.nSamplesPerEvent = parseInt(txtNumSamples.val());
-        julia.nAlternativesToKeep = parseInt(txtNumAlternatives.val());
-        mouseHook.variance_x_px = parseInt(txtXVariance.val());
-        mouseHook.variance_y_px = parseInt(txtYVariance.val());
+        julia.nSamplesPerEvent = parseInt($("#numSamples").val());
+        julia.nAlternativesToKeep = parseInt($("#numAlternatives").val());
+        mouseHook.variance_x_px = parseInt($("#sampleVarianceX").val());
+        mouseHook.variance_y_px = parseInt($("#sampleVarianceY").val());
         julia.setRootView(rootView);
         var merged = julia.drawFeedback($sketch, feedback);
         merged.domDump($("#debug"));
