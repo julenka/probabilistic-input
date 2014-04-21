@@ -83,6 +83,7 @@ var FormEntry = FSMView.subClass({
                             this.entry_opacity = 0.6;
                             this.entry_text += String.fromCharCode(e.keyCode);
                             this.container.setFocus(this);
+                            this.message = "keep going...";
                         }, // feedback
                         undefined,
                         true
