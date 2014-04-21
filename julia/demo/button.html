@@ -111,7 +111,8 @@
         mouseHook.variance_x_px = parseInt(txtXVariance.val());
         mouseHook.variance_y_px = parseInt(txtYVariance.val());
         julia.setRootView(rootView);
-        julia.alternatives[0].view.draw($sketch);
+        var merged = julia.drawFeedback($sketch, feedback);
+        merged.domDump($("#debug"));
     }
     update();
 
