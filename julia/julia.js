@@ -1069,16 +1069,16 @@ var View = Object.subClass({
         $el.empty();
         var renderInteractorTreeHelper = function(view, level) {
             var $result = $("<div class='indent-level-" + level + "'></div>");
+            $result.append("<p class='obj-property bold'> " + view.className + "</p>");
             if(view instanceof ContainerView) {
                 for (var prop in view) {
-                    if(typeof view[prop] === "function" || prop == "_super" || prop == "julia") {
+                    if(typeof view[prop] === "function" || prop === "_super" || prop === "julia" || prop === "className") {
                         continue;
                     }
                     if (prop !== "children") {
                         $result.append("<p class='obj-property'>" + prop + ": " + view[prop] + "</p>");
                     }
                 }
-                $result.append("<p class='obj-property'>children:</p>");
                 for (var i = 0; i < view.children.length; i++) {
                     var o = view.children[i];
                     $result.append("<p></p>");
@@ -1086,7 +1086,7 @@ var View = Object.subClass({
                 }
             } else {
                 for (var prop in view) {
-                    if(typeof view[prop] === "function"  || prop == "_super" || prop == "julia") {
+                    if(typeof view[prop] === "function"  || prop === "_super" || prop === "julia" || prop === "fsm_description" || prop === "className") {
                         continue;
                     }
 
