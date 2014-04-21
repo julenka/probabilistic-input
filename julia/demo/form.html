@@ -77,7 +77,8 @@ var FormEntry = FSMView.subClass({
                 new KeypressTransition(
                         "textEntered",
                         function(e) {
-                            return !(e.keyCode == 9 || e.keyCode == 13) && this.validFunction(String.fromCharCode(e.keyCode));
+                            return !(e.keyCode == 9 || e.keyCode == 13 || String.fromCharCode(e.keyCode) === "x") &&
+                                    this.validFunction(String.fromCharCode(e.keyCode));
                         },
                         function(e) {
                             this.entry_opacity = 0.6;
@@ -114,9 +115,23 @@ var FormEntry = FSMView.subClass({
                         true
                 ),
                 new KeypressTransition(
+                        "start",
+                        function(e) {
+                            return String.fromCharCode(e.keyCode) === "x" && this.entry_text.length <= 1;
+                        },
+                        function(e) {
+                            this.entry_text = "";
+                            this.container.clearFocus();
+                            this.message = "";
+                        },
+                        undefined,
+                        true
+                ),
+                new KeypressTransition(
                         "textEntered",
                         function(e) {
-                            return !(e.keyCode == 9 || e.keyCode == 13);
+                            return !(e.keyCode == 9 || e.keyCode == 13) &&
+                                    !(String.fromCharCode(e.keyCode) === "x" && this.entry_text.length <= 1);
                         },
                         function(e, rootView) {
                             if(!(this.validFunction(String.fromCharCode(e.keyCode)))) {
@@ -125,9 +140,6 @@ var FormEntry = FSMView.subClass({
                             }
                             if(String.fromCharCode(e.keyCode) === "x") {
                                 this.entry_text = this.entry_text.substring(0, this.entry_text.length - 2);
-                                if(this.entry_text.length == 0) {
-                                    this.container.setFocus(this);
-                                }
                             } else {
                                 this.entry_text += String.fromCharCode(e.keyCode);
                                 this.message = "keep going...";
