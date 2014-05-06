@@ -35,12 +35,16 @@
     feedback type:
 </div>
 <div>
-    <input name="fb" type="radio" id="radio_blur"/>
-    <label for="radio_blur">blur</label>
+    <input name="fb" type="radio" id="radio_none"/>
+    <label for="radio_none">none</label>
 </div>
 <div>
     <input name="fb" type="radio" id="radio_opacity" checked="True"/>
     <label for="radio_opacity">opacity</label>
+</div>
+<div>
+    <input name="fb" type="radio" id="radio_most_likely"/>
+    <label for="radio_most_likely">most_likely</label>
 </div>
 <table >
     <tr>
@@ -83,10 +87,12 @@
     $("#radio_blur").click(function(){
         feedback = new SimpleFeedback(julia, BlurOpacityView);
     });
-    $("#radio_opacity").click(function() {
-        feedback = new SimpleFeedback(julia, FeedbackOpacityView);
+    $("#radio_none").click(function() {
+        feedback = new RootViewFeedback(julia);
     });
-
+    $("#radio_most_likely").click(function() {
+        feedback = new MostLikelyFeedback(julia);
+    });
     julia.dispatchCompleted = function(new_alternatives, uiUpdated) {
         if(!uiUpdated) {
             return;

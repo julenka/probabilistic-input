@@ -1676,6 +1676,28 @@ var Button = FSMView.subClass({
 
 
 //region Feedback
+var RootViewFeedback = Object.subClass({
+    className: "RootViewFeedback",
+    init: function(julia) {
+        this.julia = julia;
+    },
+    draw: function($el) {
+        this.julia.rootView.draw($el);
+        return this.julia.rootView;
+    }
+});
+
+var MostLikelyFeedback = Object.subClass({
+    className: "MostLikelyFeedback",
+    init: function(julia) {
+        this.julia = julia;
+    },
+    draw: function($el) {
+        var result = this.julia.alternatives.length > 0 ? this.julia.alternatives[0].view : this.julia.rootView;
+        result.draw($el);
+        return result;
+    }
+});
 var SimpleFeedback = Object.subClass({
     className: "OpacityFeedback",
     init: function(julia, feedbackType) {
@@ -1751,19 +1773,4 @@ var FeedbackOpacityView = View.subClass({
     }
 });
 
-var BlurOpacityView = View.subClass({
-    className: "FeedbackOpacityView",
-    init: function(julia, view, probability) {
-        this.view = view;
-        this.probability = probability;
-        var snap = Snap();
-        this.filter = snap.filter(Snap.filter.blur(2, 2));
-    },
-    draw: function($el) {
-        var s = Snap($el[0]);
-        var group = s.group();
-        group.attr({filter: this.filter});
-        this.view.draw($(group.node));
-    }
-});
 //endregion
