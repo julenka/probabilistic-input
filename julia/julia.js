@@ -1646,11 +1646,13 @@ var Button = FSMView.subClass({
         }
     },
     draw: function ($el) {
-        var c = this.current_state === "start" ? "white" : "gray";
+        var c = this.current_state === "start" ? "white" : "black";
+        var c2 = this.current_state === "start" ? "black" : "white";
         // in this case $el will be an SVG element
         var s = Snap($el[0]);
-        s.rect(this.x, this.y, this.w, this.h, 10, 10).attr({stroke: "black", fill: c});
-        s.text(this.x + 20, this.y + 20, this.x + ", " + this.y);
+        s.rect(this.x, this.y, this.w, this.h).attr({stroke: "black", "stroke-width": 3, fill: c});
+        s.text(this.x + this.w / 2, this.y + this.h / 2, this.x + ", " + this.y)
+            .attr({stroke:c2, fill: c2, fontFamily: "Helvetica", "text-anchor": "middle", "alignment-baseline": "middle"});
     },
     clone: function() {
         var result = new Button(this.julia, this.x, this.y, this.w, this.h);
