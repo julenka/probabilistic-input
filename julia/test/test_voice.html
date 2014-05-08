@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <script type="text/javascript" src="../lib/jquery.js"></script>
+    <title>Testing web speech API</title>
+</head>
+<body>
+
+<input type="button" id="start_speech" value="start speech"/>
+<input type="button" id="stop_speech" value="stop speech"/>
+<div id="speech-state">speech off</div>
+<hr/>
+<div>interim results:</div>
+<div id="interim-results"></div>
+<hr/>
+<div>final results:</div>
+<div id="final-results"></div>
+
+<script>
+$(function() {
+    var recognizing = false;
+    var ignore_onend = false;
+    if (!('webkitSpeechRecognition' in window)) {
+        window.alert("Web Speech API is not supported by this browser. Upgrade to Chrome version 25 or later");
+    } else {
+        var recognition = new webkitSpeechRecognition();
+        recognition.maxAlternatives = 10;
+        var $state = $("#speech-state");
+        var $interim = $("#interim-results");
+        var $final = $("#final-results");
+        recognition.continuous = true;
+        recognition.interimResults = true;
+
+        recognition.onstart = function() {
+            recognizing = true;
+            $state.html("speech on. speak into microphone...");
+        };
+
+        recognition.onerror = function(event) {
+            if (event.error == 'no-speech') {
+                $state.html("No speech was detected. You may need to adjust your microphone settings");
+                ignore_onend = true;
+            }
+            if (event.error == 'audio-capture') {
+                $state.html("No microphone installed");
+                ignore_onend = true;
+            }
+            if (event.error == 'not-allowed') {
+                $state.html("Click the 'Allow' button above to enable your microphone");
+                ignore_onend = true;
+            }
+        };
+
+        recognition.onend = function() {
+            recognizing = false;
+            if (ignore_onend) {
+                return;
+            }
+            $state.html("speech ended   ...");
+        };
+
+        recognition.onresult = function(event) {
+            $interim.empty();
+            $final.empty();
+            var interim_transcript = '';
+            for (var i = event.resultIndex; i < event.results.length; ++i) {
+                if (event.results[i].isFinal) {
+                    for (var j = 0; j < event.results[i].length; j++) {
+                        $final.append($("<div>" + j + ": " + event.results[i][j].transcript + ", " + event.results[i][j].confidence + "</div>"));
+                    }
+                } else {
+                    for (var j = 0; j < event.results[i].length; j++) {
+                        $interim.append($("<div>" + j + ": " + event.results[i][j].transcript + ", " + event.results[i][j].confidence + "</div>"));
+                    }
+                }
+            }
+        };
+
+        $("#start_speech").click(function(){
+            if(recognizing) {
+                recognition.stop();
+                recognizing = false;
+            }
+            $state.html("starting speech...");
+            recognition.lang = "en-US";
+            recognition.start();
+            recognizing = true;
+        });
+
+        $("#stop_speech").click(function(){
+            $state.html("speech stopped");
+            recognition.stop();
+        });
+    }
+});
+
+</script>
+
+</body>
+</html>
