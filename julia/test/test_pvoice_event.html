@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test PVoiceEvent</title>
+
+    <!-- JQuery -->
+    <script type="text/javascript" src="../lib/jquery.js"></script>
+
+    <!-- Snap SVG library -->
+    <script type="text/javascript" src="../lib/snap.svg.js"></script>
+    <!-- Julia library -->
+    <script type="text/javascript" src="../julia.js"></script>
+    <style>
+        .indent1 {
+            margin-left: 20px;
+        }
+    </style>
+</head>
+<body>
+<input type="button" id="start_speech" value="start speech"/>
+<input type="button" id="stop_speech" value="stop speech"/>
+<div>status:</div>
+<div id="status"></div>
+<hr/>
+<div>debug:</div>
+<div id="debug"></div>
+<script>
+    var $dbg = $("#debug");
+    var $state = $("#status");
+    // Your JavaScript here
+    var source = new PVoiceEventSource();
+    source.onerror = function(event) {
+        if (event.error == 'no-speech') {
+            $state.html("No speech was detected. You may need to adjust your microphone settings");
+        }
+        if (event.error == 'audio-capture') {
+            $state.html("No microphone installed");
+        }
+        if (event.error == 'not-allowed') {
+            $state.html("Click the 'Allow' button above to enable your microphone");
+        }
+    };
+    source.onend = function() {
+        $state.html("speech ended");
+    };
+    source.onstart = function() {
+        $state.html("speech started. Speak into microphone.");
+    };
+    source.onend = function() {
+        $state.html("speech stopped.");
+    };
+    source.addListener(function(e) {
+        var newDiv = $("<div></div>");
+        newDiv.append($("<div>New voice event. Samples: </div>"));
+        e.getSamples().forEach(function(sample) {
+            for(var prop in sample) {
+                if(typeof (sample[prop]) !== "function") {
+                    newDiv.append($("<div class='indent1'>" + prop + ":" + sample[prop] + "</div>"));
+                }
+            }
+            newDiv.append("<p></p>");
+        });
+        $dbg.prepend(newDiv);
+    });
+
+    $("#start_speech").click(function(){
+        source.start();
+    });
+    $("#stop_speech").click(function(){
+        source.stop();
+    });
+</script>
+</body>
+</html>
