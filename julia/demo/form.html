@@ -23,7 +23,10 @@ When you press enter, a finalization request is made, the most likely interface 
     <link rel="stylesheet" type="text/css" href="../julia.css"/>
 </head>
 <body>
-
+<input type="button" id="start_speech" value="start speech"/>
+<input type="button" id="stop_speech" value="stop speech"/>
+<div>voice status:</div>
+<div id="status"></div>
 <table>
 
     <tr>
@@ -72,6 +75,7 @@ var FormEntry = FSMView.subClass({
         this.onCompleteFn = onCompleteFn;
         this.validFunction = inputValidFunction;
         this.entryTextValidFunction = entryTextValidFunction;
+        this.interim_text = "";
         this.fsm_description = {
             start: [
                 new KeypressTransition(
@@ -88,9 +92,68 @@ var FormEntry = FSMView.subClass({
                         }, // feedback
                         undefined,
                         true
+                ),
+                new VoiceTransition(
+                        "textEntered",
+                        "interim",
+                        function(e) { return this.validFunction(e.transcript); },
+                        function(e) {
+                            this.entry_opacity = 0.6;
+                            this.interim_text = e.transcript;
+                            this.container.setFocus(this);
+                            this.message = "keep going...";
+                        },
+                        undefined,
+                        true
+                        // to,source,type,predicate,feedback_action,final_action,handles_event)
+                ),
+                new VoiceTransition(
+                        "textEntered",
+                        "final",
+                        function(e) { return this.validFunction(e.transcript); },
+                        function(e) {
+                            this.entry_opacity = 0.6;
+                            this.entry_text += e.transcript;
+                            this.interim_text = "";
+                            this.container.setFocus(this);
+                            this.message = "keep going...";
+                        },
+                        undefined,
+                        true
+                        // to,source,type,predicate,feedback_action,final_action,handles_event)
                 )
             ],
             textEntered : [
+                    // voice and interim (assume entry is valid?)
+
+                new VoiceTransition(
+                        "textEntered",
+                        "interim",
+                        function(e) { return this.validFunction(e.transcript); },
+                        function(e) {
+                            this.entry_opacity = 0.6;
+                            this.interim_text = e.transcript;
+                            this.message = "keep going...";
+                        },
+                        undefined,
+                        true
+                        // to,source,type,predicate,feedback_action,final_action,handles_event)
+                ),
+                new VoiceTransition(
+                        "textEntered",
+                        "final",
+                        function(e) { return this.validFunction(e.transcript); },
+                        function(e) {
+                            this.entry_opacity = 0.6;
+                            this.entry_text += e.transcript;
+                            this.interim_text = "";
+                            this.message = "keep going...";
+                        },
+                        undefined,
+                        true
+                        // to,source,type,predicate,feedback_action,final_action,handles_event)
+                ),
+                /** Pressing the enter key and entry is valid **/
                 new KeypressTransition(
                         "done",
                         function(e, rootView) { return e.keyCode == 13 && this.entryTextValidFunction(this.entry_text); }, // 9 is tab, 13 is enter
@@ -105,6 +168,7 @@ var FormEntry = FSMView.subClass({
                         }, // final
                         true
                 ),
+                /** Pressing the enter key but entry is invalid **/
                 new KeypressTransition(
                         "textEntered",
                         function(e) { return e.keyCode == 13 && !this.entryTextValidFunction(this.entry_text); }, // 9 is tab, 13 is enter
@@ -114,6 +178,7 @@ var FormEntry = FSMView.subClass({
                         undefined, // final
                         true
                 ),
+                /** Pressing 'x' deletes text...if no text then we shoudl clear our focus **/
                 new KeypressTransition(
                         "start",
                         function(e) {
@@ -127,6 +192,7 @@ var FormEntry = FSMView.subClass({
                         undefined,
                         true
                 ),
+                /** Pressing some other key. Check if the text is valid if not, we should kill the alternative. If it is valid, then keep doing **/
                 new KeypressTransition(
                         "textEntered",
                         function(e) {
@@ -159,7 +225,7 @@ var FormEntry = FSMView.subClass({
     draw: function($el) {
         var s = Snap($el[0]);
         s.text(this.x,this.y, this.label + ": ");
-        s.text(this.x + 130, this.y, this.entry_text).attr({opacity: this.entry_opacity});
+        s.text(this.x + 130, this.y, this.entry_text + this.interim_text).attr({opacity: this.entry_opacity});
         s.text(this.x + 300, this.y, this.message);
     },
     clone: function() {
@@ -170,18 +236,43 @@ var FormEntry = FSMView.subClass({
         result.entry_opacity = this.entry_opacity;
         result.message = this.message;
         result.onCompleteFn = this.onCompleteFn;
+        result.interim_text = this.interim_text;
         return result;
     },
     equals: function(other) {
         if(!this._super(other)) {
             return false;
         }
-        return this.label === other.label && this.entry_text === other.entry_text;
+        return this.label === other.label && this.entry_text === other.entry_text && this.interim_text === other.interim_text;
     }
 });
 
 var $sketch = $("#main_interface");
 var $sketches = $("#alternative_interfaces");
+var $state = $("#status");
+
+var source = new PVoiceEventSource();
+source.onerror = function(event) {
+    if (event.error == 'no-speech') {
+        $state.html("No speech was detected. You may need to adjust your microphone settings");
+    }
+    if (event.error == 'audio-capture') {
+        $state.html("No microphone installed");
+    }
+    if (event.error == 'not-allowed') {
+        $state.html("Click the 'Allow' button above to enable your microphone");
+    }
+};
+source.onend = function() {
+    $state.html("speech ended");
+};
+source.onstart = function() {
+    $state.html("speech started. Speak into microphone.");
+};
+source.onend = function() {
+    $state.html("speech stopped.");
+};
+
 
 $("#dbg_dumptext").click(function(){
     $("#debug").empty();
@@ -202,33 +293,34 @@ function reset() {
     var starty = 50;
     var dy = 30;
     var fields = [];
-    fields.push(new FormEntry(julia, "name (last, first)", function(input) { return /[a-zA-z, ]/.test(input);},
+    fields.push(new FormEntry(julia, "name (last, first)", function(input) { return /[a-zA-z, ]+/.test(input);},
             function(current_text) { return /^\s*\w+\s*,\s*\w+\s*$/.test(current_text)},
             labelx, starty
     ));
     starty += dy;
 
-    fields.push(new FormEntry(julia, "dob (mm/dd/yyyy)", function(input) { return /[0-9\/x]/.test(input);},
+    fields.push(new FormEntry(julia, "dob (mm/dd/yyyy)", function(input) { return /[0-9\/x]+/.test(input);},
             function(current_text) { return /^\d{2}\/\d{2}\/\d{4}$/.test(current_text)},
             labelx, starty
     ));
     starty += dy;
 
-    fields.push(new FormEntry(julia, "email", function(input) { return /[\w@\.]/.test(input);},
+    fields.push(new FormEntry(julia, "email", function(input) { return /[\w@\.]+/.test(input);},
             function(currentText) { return /^\w+@\w+\.[a-zA-Z]+$/.test(currentText); }, labelx, starty)); // (julia, label, validFunction, x, y) {)
     starty += dy;
 
 
-    fields.push(new FormEntry(julia, "ssn", function(input) { return /[x\d]/.test(input) && /^\d{0,8}$/.test(this.entry_text); },
+    fields.push(new FormEntry(julia, "ssn", function(input) { return /[x\d]+/.test(input) && /^\d{0,8}$/.test(this.entry_text); },
             function(current_text) { return /^\d{9}$/.test(current_text)}, labelx, starty));
     starty += dy;
-    fields.push(new FormEntry(julia, "phone", function(input) { return /[x\d]/.test(input) && /^\d{0,9}$/.test(this.entry_text); },
+    fields.push(new FormEntry(julia, "phone", function(input) { return /[x\d]+/.test(input) && /^\d{0,9}$/.test(this.entry_text); },
             function(current_text) { return /^(\d{10}|\d{7})$/.test(current_text)}, labelx, starty));
     starty += dy;
-    fields.push(new FormEntry(julia, "fruit", function(input) { return /[a-z]/.test(input); },
+    fields.push(new FormEntry(julia, "fruit", function(input) { return /[a-z]+/.test(input); },
             function(current_text) { return /^(apple|orange|banana)$/.test(current_text)}, labelx, starty));
+
     starty += dy;
-    fields.push(new FormEntry(julia, "vegetable", function(input) { return /[a-z]/.test(input); },
+    fields.push(new FormEntry(julia, "vegetable", function(input) { return /[a-z]+/.test(input); },
             function(current_text) { return /^(bean|carrot|potato)$/.test(current_text)}, labelx, starty));
 
     fields.forEach(function(f){
@@ -242,6 +334,7 @@ function reset() {
 
 var julia = new Julia();
 julia.nSamplesPerEvent = 1;
+
 julia.dispatchCompleted = function(new_alternatives, uiUpdated) {
     if(!uiUpdated) {
         return;
@@ -260,7 +353,16 @@ julia.dispatchCompleted = function(new_alternatives, uiUpdated) {
     });
 };
 julia.addEventSource(new PKeyEventHook(document));
+julia.addEventSource(source);
 reset();
+
+$("#start_speech").click(function(){
+    source.start();
+});
+$("#stop_speech").click(function(){
+    source.stop();
+});
+
 </script>
 
 

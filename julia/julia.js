@@ -332,6 +332,7 @@ var PVoiceEventSource = PEventSource.subClass({
             this.recognition = new webkitSpeechRecognition();
             this.recognition.continuous = true;
             this.recognition.interimResults = true;
+            this.recognition.maxAlternatives = 20;
             var me = this;
             this.recognition.onstart = function() {
                 log(LOG_LEVEL_DEBUG, "speech started");
@@ -399,13 +400,15 @@ var PVoiceEvent = PEvent.subClass({
     className: "PVoiceEvent",
     init: function (e) {
         this._super(1, e);
+        this.source = "voice";
     },
     getSamples: function () {
         var result = [];
         for(var i = this.base_event.resultIndex; i < this.base_event.results.length; i++) {
             for (var j = 0; j < this.base_event.results[i].length; j++) {
                 var alternative = this.base_event.results[i][j];
-                result.push(new PVoiceEventSample(alternative.confidence, alternative.transcript, this.base_event.results[i].isFinal));
+                result.push(new PVoiceEventSample(alternative.confidence, this, alternative.transcript.trim(), this.base_event.results[i].isFinal));
+                log(LOG_LEVEL_DEBUG, alternative.transcript);
             }
         }
         return result;
@@ -417,7 +420,8 @@ var PVoiceEventSample = PEvent.subClass({
     init: function(identity_p, e, transcript, is_final) {
         this._super(identity_p, e);
         this.transcript = transcript;
-        this.is_final = is_final;
+        this.source = "voice";
+        this.type = is_final ? "final" : "interim";
     }
 });
 
@@ -1355,7 +1359,7 @@ var ContainerView = View.subClass({
                     if(isEventHandled) {
                         result.push(actionSequence2);
                         // special case: if this is a keyboard event, and there is no item in focus, add next item to dispatch cue
-                        if(event instanceof PKeyEvent && me.focus_index < 0 && i > 0) {
+                        if((event instanceof PKeyEvent || event instanceof PVoiceEventSample )&& me.focus_index < 0 && i > 0) {
                             dispatchQueue.push({actionSequence: actionSequence, childIndex: i - 1});
                         }
                     } else {
@@ -1510,6 +1514,14 @@ var Transition = Object.subClass({
     }
 });
 
+var VoiceTransition = Transition.subClass({
+    className: "VoiceTransition",
+    init: function(to,type,predicate,feedback_action,final_action,handles_event) {
+        this._super(to, "voice", type, predicate, feedback_action, final_action, handles_event);
+    }
+
+});
+
 var MouseTransition = Transition.subClass({
     className: "MouseTransition",
     init: function(to, type, predicate, feedback_action, final_action, handles_event) {
@@ -1552,6 +1564,7 @@ var KeydownTransition = Transition.subClass({
         this._super(to, "keyboard", "keydown", predicate, feedback_action, final_action, handles_event);
     }
 });
+
 //endregion
 
 //region Controls
