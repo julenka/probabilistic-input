@@ -784,10 +784,12 @@ var Julia = Object.subClass({
      * @param snap_eight the original height of the snap
      * @param snap_scale the amount to scale the snap by
      */
-    dumpAlternativesAsSnap: function($el, snap_width, snap_height, snap_scale) {
+    dumpAlternativesAsSnap: function($el, snap_width, snap_height, snap_scale, on_click) {
         $el.empty();
+        var me = this;
         this.alternatives.forEach(function(view_probability, i) {
             var d = $("<div class='float-left'></div>");
+
             d.append(["<div>","i", i, ":", Math.roundWithSignificance(view_probability.probability, 2), "</div>"].join(" "));
             var s = Snap(snap_width * snap_scale, snap_height * snap_scale);
             var s_dom = s.node;
@@ -795,6 +797,12 @@ var Julia = Object.subClass({
             d.append(s_dom);
             view_probability.view.draw($(s_dom));
             $el.append(d);
+            d.click(function(){
+                me.setRootView(view_probability.view);
+                if(typeof on_click !== 'undefined') {
+                    on_click();
+                }
+            });
         });
     },
 

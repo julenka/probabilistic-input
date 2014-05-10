@@ -344,7 +344,10 @@ julia.dispatchCompleted = function(new_alternatives, uiUpdated) {
         julia.dumpAlternativesAsText($("#debug"));
     }
     if($("#dbg_dumpsnap").is(':checked')) {
-        julia.dumpAlternativesAsSnap($sketches, $sketch.width(), $sketch.height(), 0.5);
+        julia.dumpAlternativesAsSnap($sketches, $sketch.width(), $sketch.height(), 0.5, function() {
+            $sketch.empty();
+            julia.rootView.draw($sketch);
+        });
     }
 
     new_alternatives.forEach(function(view_probability, i) {
