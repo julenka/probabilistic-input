@@ -94,12 +94,12 @@ var FormEntry = FSMView.subClass({
                         true
                 ),
                 new VoiceTransition(
-                        "textEntered",
+                        "voiceEntered",
                         "interim",
                         function(e) { return this.validFunction(e.transcript); },
                         function(e) {
                             this.entry_opacity = 0.6;
-                            this.interim_text = e.transcript;
+                            this.entry_text = e.transcript;
                             this.container.setFocus(this);
                             this.message = "keep going...";
                         },
@@ -108,31 +108,23 @@ var FormEntry = FSMView.subClass({
                         // to,source,type,predicate,feedback_action,final_action,handles_event)
                 ),
                 new VoiceTransition(
-                        "textEntered",
-                        "final",
-                        function(e) { return this.validFunction(e.transcript); },
-                        function(e) {
-                            this.entry_opacity = 0.6;
-                            this.entry_text += e.transcript;
-                            this.interim_text = "";
-                            this.container.setFocus(this);
-                            this.message = "keep going...";
-                        },
+                        "start",
+                        "interim",
+                        function(e) { return true },
+                        function(e) {},
                         undefined,
                         true
                         // to,source,type,predicate,feedback_action,final_action,handles_event)
                 )
             ],
-            textEntered : [
-                    // voice and interim (assume entry is valid?)
-
+            voiceEntered: [
                 new VoiceTransition(
-                        "textEntered",
+                        "voiceEntered",
                         "interim",
                         function(e) { return this.validFunction(e.transcript); },
                         function(e) {
                             this.entry_opacity = 0.6;
-                            this.interim_text = e.transcript;
+
                             this.message = "keep going...";
                         },
                         undefined,
@@ -140,19 +132,26 @@ var FormEntry = FSMView.subClass({
                         // to,source,type,predicate,feedback_action,final_action,handles_event)
                 ),
                 new VoiceTransition(
-                        "textEntered",
+                        "done",
                         "final",
-                        function(e) { return this.validFunction(e.transcript); },
-                        function(e) {
-                            this.entry_opacity = 0.6;
-                            this.entry_text += e.transcript;
-                            this.interim_text = "";
-                            this.message = "keep going...";
-                        },
+                        function(e) { return this.entryTextValidFunction(e.transcript); },
                         undefined,
+                        function(e, rootView) {
+                            this.message = "complete";
+                            this.entry_opacity = 1.0;
+                            this.entry_text = e.transcript;
+                            this.container.clearFocus();
+                            if(typeof this.onCompleteFn !== 'undefined') {
+                                this.onCompleteFn(this, rootView);
+                            }
+                        },
                         true
                         // to,source,type,predicate,feedback_action,final_action,handles_event)
                 ),
+
+            ],
+            textEntered : [
+                // voice and interim (assume entry is valid?)
                 /** Pressing the enter key and entry is valid **/
                 new KeypressTransition(
                         "done",
@@ -225,7 +224,7 @@ var FormEntry = FSMView.subClass({
     draw: function($el) {
         var s = Snap($el[0]);
         s.text(this.x,this.y, this.label + ": ");
-        s.text(this.x + 130, this.y, this.entry_text + this.interim_text).attr({opacity: this.entry_opacity});
+        s.text(this.x + 130, this.y, this.entry_text).attr({opacity: this.entry_opacity});
         s.text(this.x + 300, this.y, this.message);
     },
     clone: function() {
