@@ -70,6 +70,8 @@ var FormEntry = FSMView.subClass({
         this.entry_opacity = 0.6;
         this.x = x;
         this.y = y;
+        this.width = 400;
+        this.height = 30;
         this.label = label;
         this.message = "";
         this.onCompleteFn = onCompleteFn;
@@ -136,42 +138,67 @@ var FormEntry = FSMView.subClass({
                         "final",
                         function(e) { return this.entryTextValidFunction(e.transcript); },
                         undefined,
-                        function(e, rootView) {
-                            this.message = "complete";
-                            this.entry_opacity = 1.0;
-                            this.entry_text = e.transcript;
-                            this.container.clearFocus();
-                            if(typeof this.onCompleteFn !== 'undefined') {
-                                this.onCompleteFn(this, rootView);
-                            }
-                        },
+                        this.entry_completed,
                         true
                         // to,source,type,predicate,feedback_action,final_action,handles_event)
                 ),
-
+                new MouseDownTransition(
+                        "done",
+                        function(e) {
+                            return this.predicate_mouse_in_region(e) && this.entryTextValidFunction(this.entry_text);
+                        },
+                        undefined,
+                        this.entry_completed,
+                        true
+                ),
+                new MouseDownTransition(
+                        "voiceEntered",
+                        function(e) {
+                            return this.predicate_mouse_in_region(e) && !this.entryTextValidFunction(this.entry_text);
+                        },
+                        function() {
+                            this.message = "not valid!"
+                        },
+                        undefined,
+                        false
+                ),
             ],
             textEntered : [
                 // voice and interim (assume entry is valid?)
+
                 /** Pressing the enter key and entry is valid **/
+                new MouseDownTransition(
+                        "done",
+                        function(e) {
+                            return this.predicate_mouse_in_region(e) && this.entryTextValidFunction(this.entry_text);
+                        },
+                        undefined,
+                        this.entry_completed,
+                        true
+                ),
+                new MouseDownTransition(
+                        "textEntered",
+                        function(e) {
+                            return this.predicate_mouse_in_region(e) && !this.entryTextValidFunction(this.entry_text);
+                        },
+                        function() {
+                            this.message = "not valid!"
+                        },
+                        undefined,
+                        false
+                ),
                 new KeypressTransition(
                         "done",
                         function(e, rootView) { return e.keyCode == 13 && this.entryTextValidFunction(this.entry_text); }, // 9 is tab, 13 is enter
                         undefined,
-                        function(e, rootView) {
-                            this.message = "complete";
-                            this.entry_opacity = 1.0;
-                            this.container.clearFocus();
-                            if(typeof this.onCompleteFn !== 'undefined') {
-                                this.onCompleteFn(this, rootView);
-                            }
-                        }, // final
+                        this.entry_completed, // final
                         true
                 ),
                 /** Pressing the enter key but entry is invalid **/
                 new KeypressTransition(
                         "textEntered",
                         function(e) { return e.keyCode == 13 && !this.entryTextValidFunction(this.entry_text); }, // 9 is tab, 13 is enter
-                        function(e) {
+                        function() {
                             this.message = "not valid!"
                         },
                         undefined, // final
@@ -221,11 +248,30 @@ var FormEntry = FSMView.subClass({
             ]
         }
     },
+    predicate_mouse_in_region: function(e) {
+        var rx = e.element_x - this.x;
+        var ry = e.element_y - this.y + this.height;
+        var result = rx > 0 && ry > 0 && rx < this.width && ry < this.height;
+        log(LOG_LEVEL_DEBUG, e.element_x, e.element_y, this.label, "rx:", rx, "ry:", ry, result);
+        return result;
+    },
+    entry_completed: function(e) {
+        this.message = "complete";
+        this.entry_opacity = 1.0;
+        this.container.clearFocus();
+        if(typeof this.onCompleteFn !== 'undefined') {
+            this.onCompleteFn(this, rootView);
+        }
+    },
     draw: function($el) {
         var s = Snap($el[0]);
         s.text(this.x,this.y, this.label + ": ");
         s.text(this.x + 130, this.y, this.entry_text).attr({opacity: this.entry_opacity});
         s.text(this.x + 300, this.y, this.message);
+        if(this.current_state == "textEntered") {
+            s.rect(this.x, this.y - this.height + 10, this.width, this.height).attr({"fill-opacity": 0, "stroke-width": 1, stroke: "rgb(0,0,0)"});
+        }
+
     },
     clone: function() {
         var result = new FormEntry(this.julia, this.label, this.validFunction, this.entryTextValidFunction, this.x, this.y);
@@ -324,7 +370,9 @@ function reset() {
 
     fields.forEach(function(f){
         rootView.addChildView(f);
-    })
+    });
+//    var cursor = new Cursor(julia);
+//    rootView.addChildView(cursor);
     $sketch.empty();
     $("#debug").empty();
     $("#alternative_interfaces").empty();
@@ -347,6 +395,7 @@ julia.dispatchCompleted = function(new_alternatives, uiUpdated) {
         julia.dumpAlternativesAsSnap($sketches, $sketch.width(), $sketch.height(), 0.5, function() {
             $sketch.empty();
             julia.rootView.draw($sketch);
+            julia.dumpAlternativesAsSnap($sketches, $sketch.width(), $sketch.height(), 0.5);
         });
     }
 
@@ -355,9 +404,13 @@ julia.dispatchCompleted = function(new_alternatives, uiUpdated) {
     });
 };
 julia.addEventSource(new PKeyEventHook(document));
+var mHook = new PMouseEventHook($sketch[0]);
+
+mHook.variance_x_px = 1;
+mHook.variance_y_px = 1;
+julia.addEventSource(mHook);
 julia.addEventSource(source);
 reset();
-
 $("#start_speech").click(function(){
     source.start();
 });

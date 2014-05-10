@@ -1326,7 +1326,7 @@ var ContainerView = View.subClass({
 
         // set tot true if any child handles this event
         var isEventHandled;
-        var childIndex = this.focus_index < 0 ? this.children.length - 1 : this.focus_index;
+        var childIndex = this.focus_index >= 0 && (event instanceof PKeyEvent || event instanceof PVoiceEvent) ? this.focus_index : this.children.length - 1;
         var dispatchQueue = [{actionSequence: new ActionRequestSequence(this, []), childIndex: childIndex}];
         // init: function(rootView, requests) {
         var result = [];
@@ -1373,7 +1373,7 @@ var ContainerView = View.subClass({
                     } else {
                         // If the focus index is >= 0, an item is in focus, don't add it to the dispatch queue (e.g. add
                         // don't dispatch to the next child).
-                        if(i > 0 && me.focus_index < 0 && i > 0) {
+                        if(i > 0 && (me.focus_index < 0 || !(event instanceof PKeyEvent || event instanceof PVoiceEvent))&& i > 0) {
                             dispatchQueue.push({actionSequence: actionSequence2, childIndex: i - 1});
                         } else if(actionSequence2.requests.length > 0){
                             // if i === 0, then we are at the end of dispatch.
