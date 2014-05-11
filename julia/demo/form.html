@@ -50,7 +50,7 @@ When you press enter, a finalization request is made, the most likely interface 
     <tr><td>Go ahead, type something! NOTE: To delete, press 'x', not backspace (sorry, that doesn't work for now)</td></tr>
     <tr>
         <td>
-            <svg id="main_interface" class="border1px" width="500" height="300"></svg>
+            <svg id="main_interface" class="border1px" width="500" height="400"></svg>
         </td>
         <td>
             <div id="alternative_interfaces"></div>
@@ -266,12 +266,13 @@ var FormEntry = FSMView.subClass({
     draw: function($el) {
         var s = Snap($el[0]);
         s.text(this.x,this.y, this.label + ": ");
-        s.text(this.x + 130, this.y, this.entry_text).attr({opacity: this.entry_opacity});
+        s.text(this.x + 140, this.y, this.entry_text).attr({opacity: this.entry_opacity});
         s.text(this.x + 300, this.y, this.message);
+        var color = "rgb(200,200,200)";
         if(this.current_state == "textEntered") {
-            s.rect(this.x, this.y - this.height + 10, this.width, this.height).attr({"fill-opacity": 0, "stroke-width": 1, stroke: "rgb(0,0,0)"});
+            color = "rgb(0,0,0)";
         }
-
+        s.rect(this.x + 130, this.y - this.height + 10, this.width - 250, this.height).attr({"fill-opacity": 0, "stroke-width": 1, stroke: color});
     },
     clone: function() {
         var result = new FormEntry(this.julia, this.label, this.validFunction, this.entryTextValidFunction, this.x, this.y);
@@ -336,7 +337,7 @@ function reset() {
 
     var labelx = 50;
     var starty = 50;
-    var dy = 30;
+    var dy = 50;
     var fields = [];
     fields.push(new FormEntry(julia, "name (last, first)", function(input) { return /[a-zA-z, ]+/.test(input);},
             function(current_text) { return /^\s*\w+\s*,\s*\w+\s*$/.test(current_text)},
