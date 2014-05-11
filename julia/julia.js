@@ -1159,6 +1159,10 @@ var View = Object.subClass({
         throw "not implemented!";
     },
 
+    /**
+     * Dump a textual representation of the interactor tree to given element
+     * @param $el
+     */
     domDump: function($el) {
         $el.empty();
         var renderInteractorTreeHelper = function(view, level) {
@@ -1872,6 +1876,26 @@ var FeedbackOpacityView = View.subClass({
         var s = Snap($el[0]);
         var group = s.group();
         group.attr({opacity: Math.roundWithSignificance(this.probability, 2)});
+        this.view.draw($(group.node));
+    }
+});
+
+/**
+ * Renders a child view with opacity 1
+ * uses Snap library
+ * @type {*}
+ */
+var FeedbackOpacityView1 = View.subClass({
+    className: "FeedbackOpacityView1",
+    init: function(julia, view, probability) {
+        this.view = view;
+        this.probability = probability;
+    },
+    draw: function($el) {
+
+        var s = Snap($el[0]);
+        var group = s.group();
+        group.attr({opacity: 1});
         this.view.draw($(group.node));
     }
 });

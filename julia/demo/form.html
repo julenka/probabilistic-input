@@ -268,10 +268,17 @@ var FormEntry = FSMView.subClass({
         s.text(this.x,this.y, this.label + ": ");
         s.text(this.x + 140, this.y, this.entry_text).attr({opacity: this.entry_opacity});
         s.text(this.x + 300, this.y, this.message);
-        var color = "rgb(200,200,200)";
+        var color = "rgb(0,0,0)";
         if(this.current_state == "textEntered") {
-            color = "rgb(0,0,0)";
+            var char_width = 6.5;
+
+            s.line(this.x + 140 + this.entry_text.length * char_width, this.y, this.x + 140 + this.entry_text.length * char_width + 7, this.y)
+                    .attr({stroke: "rgb(0,0,0)"});
         }
+//        var color = "rgb(200,200,200)";
+//        if(this.current_state == "textEntered") {
+
+//        }
         s.rect(this.x + 130, this.y - this.height + 10, this.width - 250, this.height).attr({"fill-opacity": 0, "stroke-width": 1, stroke: color});
     },
     clone: function() {
@@ -345,8 +352,8 @@ function reset() {
     ));
     starty += dy;
 
-    fields.push(new FormEntry(julia, "dob (mm/dd/yyyy)", function(input) { return /[0-9\/x]+/.test(input);},
-            function(current_text) { return /^\d{2}\/\d{2}\/\d{4}$/.test(current_text)},
+    fields.push(new FormEntry(julia, "dob (mm/dd/yyyy)", function(input) { return /[0-9\/x ]+/.test(input);},
+            function(current_text) { return /^[ ]*\d{2}[ ]*\/[ ]*\d{2}[ ]*\/[ ]*\d{4}[ ]*$/.test(current_text)},
             labelx, starty
     ));
     starty += dy;
@@ -362,12 +369,12 @@ function reset() {
     fields.push(new FormEntry(julia, "phone", function(input) { return /[x\d]+/.test(input) && /^\d{0,9}$/.test(this.entry_text); },
             function(current_text) { return /^(\d{10}|\d{7})$/.test(current_text)}, labelx, starty));
     starty += dy;
-    fields.push(new FormEntry(julia, "fruit", function(input) { return /[a-z]+/.test(input); },
+    fields.push(new FormEntry(julia, "favorite fruit", function(input) { return /[a-z]+/.test(input); },
             function(current_text) { return /^(apple|orange|banana)$/.test(current_text)}, labelx, starty));
 
     starty += dy;
-    fields.push(new FormEntry(julia, "vegetable", function(input) { return /[a-z]+/.test(input); },
-            function(current_text) { return /^(bean|carrot|potato)$/.test(current_text)}, labelx, starty));
+    fields.push(new FormEntry(julia, "favorite color", function(input) { return /[a-z]+/.test(input); },
+            function(current_text) { return /^(red|yellow|blue|orange)$/.test(current_text)}, labelx, starty));
 
     fields.forEach(function(f){
         rootView.addChildView(f);
@@ -381,6 +388,7 @@ function reset() {
 }
 
 var julia = new Julia();
+var feedback = new SimpleFeedback(julia, FeedbackOpacityView1);
 julia.nSamplesPerEvent = 1;
 
 julia.dispatchCompleted = function(new_alternatives, uiUpdated) {
@@ -389,9 +397,13 @@ julia.dispatchCompleted = function(new_alternatives, uiUpdated) {
     }
 
     $sketch.empty();
+    var merged = julia.drawFeedback($sketch, feedback);
+
+
     if($("#dbg_dumptext").is(':checked')) {
-        julia.dumpAlternativesAsText($("#debug"));
+        merged.domDump($("#debug"));
     }
+
     if($("#dbg_dumpsnap").is(':checked')) {
         julia.dumpAlternativesAsSnap($sketches, $sketch.width(), $sketch.height(), 0.5, function() {
             $sketch.empty();
@@ -400,9 +412,9 @@ julia.dispatchCompleted = function(new_alternatives, uiUpdated) {
         });
     }
 
-    new_alternatives.forEach(function(view_probability, i) {
-        view_probability.view.draw($sketch);
-    });
+//    new_alternatives.forEach(function(view_probability, i) {
+//        view_probability.view.draw($sketch);
+//    });
 };
 julia.addEventSource(new PKeyEventHook(document));
 var mHook = new PMouseEventHook($sketch[0]);
