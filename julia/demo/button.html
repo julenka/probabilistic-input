@@ -84,8 +84,8 @@
     var $sketches = $("#sketches");
 
     var feedback = new SimpleFeedback(julia, FeedbackOpacityView);
-    $("#radio_blur").click(function(){
-        feedback = new SimpleFeedback(julia, BlurOpacityView);
+    $("#radio_opacity").click(function(){
+        feedback = new SimpleFeedback(julia, FeedbackOpacityView);
     });
     $("#radio_none").click(function() {
         feedback = new RootViewFeedback(julia);
