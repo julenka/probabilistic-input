@@ -1631,20 +1631,20 @@ var Cursor = FSMView.subClass({
     does_sample_index_match: function(e) {
         return e.sample_index === this.drag_sample_index;
     },
-    update_location: function(e){
+    update_location: function(e, rootView){
         this.x = e.element_x;
         this.y = e.element_y;
     },
-    drag_start: function(e) {
+    drag_start: function(e, rootView) {
         // the index of the event sample that we received when a drag was initiated
         this.drag_sample_index = e.sample_index;
         this.update_location(e);
         this.color = "green";
     },
-    drag_progress: function(e) {
+    drag_progress: function(e, rootView) {
         this.update_location(e);
     },
-    drag_end: function(e) {
+    drag_end: function(e, rootView) {
         this.update_location(e);
         this.color = "black";
         this.drag_sample_index = -1;

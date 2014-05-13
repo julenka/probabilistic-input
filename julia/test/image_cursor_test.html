@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Template</title>
+
+    <!-- JQuery -->
+    <script type="text/javascript" src="../lib/jquery.js"></script>
+
+    <!-- Snap SVG library -->
+    <script type="text/javascript" src="../lib/snap.svg.js"></script>
+    <!-- Julia library -->
+    <script type="text/javascript" src="../julia.js"></script>
+
+    <!-- Julia CSS -->
+    <link type="text/css" rel="stylesheet" href="../julia.css"/>
+</head>
+<body>
+<div>'a' for circle, 's' for move, 'd' for resive horiz 'f' for resize vert</div>
+<svg id="svg" class="border1px" width="500" height="500"></svg>
+<script>
+    // Your JavaScript here
+
+    var ImageCursor = Cursor.subClass({
+        className: "ImageCursor",
+        init: function(julia) {
+            this._super(julia);
+            this.img_src = "";
+            this.w = 0;
+            this.h = 0;
+        },
+        clone: function() {
+            var result = new ImageCursor(this.julia);
+            this.copyFsm(result);
+            this.cloneActionRequests(result);
+            this.copyProperties(result);
+            return result;
+        },
+        copyProperties: function(clone) {
+            this._super(clone);
+            clone.img_src = this.img_src;
+            clone.w = this.w;
+            clone.h = this.h;
+        },
+        drag_progress: function(e) {
+        },
+        drag_end: function(e) {
+        },
+        draw: function ($el) {
+            var s = Snap($el[0]);
+            s.image(this.img_src, this.x - this.w / 2, this.y - this.h / 2, this.w, this.h);
+        },
+        setImage: function(src) {
+            this.img_src = src;
+        }
+    });
+    var $sketch = $("#svg");
+    var julia = new Julia();
+    var rootView = new ContainerView(julia);
+    var cursor = new ImageCursor(julia);
+    cursor.img_src = "../imgs/cursor_circle.png";
+    rootView.addChildView(cursor);
+    julia.setRootView(rootView);
+    julia.nSamplesPerEvent = 1;
+    var mouseHook = new PMouseEventHook($sketch[0]);
+    mouseHook.variance_x_px = 0;
+    mouseHook.variance_y_px = 0;
+    julia.addEventSource(mouseHook);
+
+    var feedback = new MostLikelyFeedback(julia);
+    julia.dispatchCompleted = function(new_alternatives, uiUpdated) {
+        if(!uiUpdated) {
+            return;
+        }
+        $sketch.empty();
+        julia.drawFeedback($sketch, feedback);
+    };
+
+    var im_circle = $("<img src='../imgs/cursor_circle.png'/>");
+    var im_move = $("<img src='../imgs/cursor_move.png'/>");
+    var im_rv = $("<img src='../imgs/cursor_resize_horiz.png'/>");
+    var im_rh = $("<img src='../imgs/cursor_resize_vert.png'/>");
+
+    $(document).keypress(function(e){
+        var c = String.fromCharCode(e.which);
+        var cursor = julia.rootView.children[0];
+        if(c === "a") {
+            cursor.img_src = "../imgs/cursor_circle.png";
+            cursor.w = im_circle[0].naturalWidth;
+            cursor.h = im_circle[0].naturalHeight;
+        } else if (c === "s") {
+            cursor.img_src = "../imgs/cursor_move.png";
+            cursor.w = im_move[0].naturalWidth;
+            cursor.h = im_move[0].naturalHeight;
+        } else if (c === "d") {
+            cursor.img_src = "../imgs/cursor_resize_horiz.png";
+            cursor.w = im_rh[0].naturalHeight;
+            cursor.h = im_rh[0].naturalWidth;
+        } else if (c === "f") {
+            cursor.img_src = "../imgs/cursor_resize_vert.png";
+            cursor.w = im_rv[0].naturalHeight;
+            cursor.h = im_rv[0].naturalWidth;
+        }
+
+        log(LOG_LEVEL_DEBUG, cursor.img_src, cursor.w, cursor.h);
+    });
+</script>
+</body>
+</html>

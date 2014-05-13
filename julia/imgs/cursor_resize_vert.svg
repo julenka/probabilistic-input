@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generator: Adobe Illustrator 16.0.0, SVG Export Plug-In . SVG Version: 6.00 Build 0)  -->
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
+	 width="128px" height="128px" viewBox="0 0 128 128" enable-background="new 0 0 128 128" xml:space="preserve">
+<g>
+	<title>Resize</title>
+</g>
+<g>
+	<g>
+		<path fill="none" stroke="#000000" stroke-width="8" stroke-linecap="square" stroke-miterlimit="10" d="M64.005,137.545V-7.412"
+			/>
+		<path d="M64.854,153.243l13.93-21.567c0.425-0.707,0.142-1.272-0.707-1.272H49.934c-0.849,0-1.131,0.565-0.707,1.272l13.93,21.567
+			C63.58,153.95,64.43,153.949,64.854,153.243z"/>
+		<path d="M63.156-25.231L49.227-3.664c-0.424,0.707-0.142,1.272,0.707,1.272l28.072-0.07c0.848-0.001,1.131-0.565,0.707-1.272
+			l-13.93-21.567C64.43-25.938,63.58-25.938,63.156-25.231L63.156-25.231z"/>
+	</g>
+</g>
+<g transform="translate(0 50)" display="none">
+	<g>
+		<path display="inline" fill="none" stroke="#000000" stroke-width="8" stroke-linecap="square" stroke-miterlimit="10" d="M114,14
+			H14"/>
+		<path display="inline" d="M126.7,13.2L105.3,0.8c-0.7-0.4-1.3-0.1-1.3,0.7v25c0,0.8,0.6,1.2,1.3,0.7l21.4-12.5
+			C127.4,14.3,127.4,13.7,126.7,13.2z"/>
+		<path display="inline" d="M1.3,14.8l21.4,12.5c0.7,0.4,1.3,0.101,1.3-0.7v-25c0-0.8-0.6-1.2-1.3-0.7L1.3,13.2
+			C0.6,13.7,0.6,14.3,1.3,14.8z"/>
+	</g>
+</g>
+<g transform="translate(50)" display="none">
+	<g>
+		<path display="inline" fill="none" stroke="#000000" stroke-width="8" stroke-linecap="square" stroke-miterlimit="10" d="M14,14
+			v100"/>
+		<path display="inline" d="M13.2,1.3L0.8,22.7C0.3,23.4,0.7,24,1.5,24h25c0.8,0,1.2-0.6,0.7-1.3L14.8,1.3
+			C14.3,0.6,13.7,0.6,13.2,1.3z"/>
+		<path display="inline" d="M14.8,126.7l12.5-21.4c0.4-0.7,0.101-1.3-0.7-1.3h-25c-0.8,0-1.2,0.6-0.7,1.3l12.5,21.4
+			C13.7,127.4,14.3,127.4,14.8,126.7z"/>
+	</g>
+</g>
+<g transform="scale(4)" display="none">
+	<g display="inline">
+		<path fill="none" stroke="#000000" stroke-width="3" stroke-linecap="square" stroke-miterlimit="10" d="M28,4L4,28"/>
+		<path d="M31.9,0.5l-0.9,6c0,0.3-0.2,0.3-0.4,0.1l-5.3-5.3c-0.2-0.2-0.1-0.4,0.1-0.4l6-0.9C31.8,0,32,0.2,31.9,0.5z"/>
+		<path d="M0.1,31.5l0.9-6c0-0.3,0.2-0.3,0.4-0.1l5.3,5.3c0.2,0.2,0.1,0.4-0.1,0.4l-6,0.9C0.2,32,0,31.8,0.1,31.5z"/>
+	</g>
+</g>
+<g transform="scale(4) translate(0 11)" display="none">
+	<g transform="translate(0 11)">
+		<path display="inline" fill="none" stroke="#000000" stroke-width="3" stroke-linecap="square" stroke-miterlimit="10" d="M27,4.5
+			H5"/>
+		<path display="inline" d="M31.6,4.8l-5.2,3.9C26.2,8.9,26,8.8,26,8.5v-8c0-0.3,0.2-0.4,0.4-0.2l5.2,3.9
+			C31.8,4.4,31.8,4.6,31.6,4.8L31.6,4.8z"/>
+		<path display="inline" d="M5.6,0.3L0.4,4.2c-0.2,0.2-0.2,0.4,0,0.6l5.2,3.9C5.8,8.9,6,8.8,6,8.5v-8C6,0.2,5.8,0.1,5.6,0.3z"/>
+	</g>
+</g>
+<g transform="scale(4) translate(11)" display="none">
+	<g>
+		<path display="inline" fill="none" stroke="#000000" stroke-width="3" stroke-linecap="square" stroke-miterlimit="10" d="M4.5,5
+			v22"/>
+		<path display="inline" d="M4.8,0.4l3.9,5.2C8.9,5.8,8.8,6,8.5,6h-8C0.2,6,0.1,5.8,0.3,5.6l3.9-5.2C4.4,0.2,4.6,0.2,4.8,0.4
+			L4.8,0.4z"/>
+		<path display="inline" d="M0.3,26.4l3.9,5.2c0.2,0.2,0.4,0.2,0.6,0l3.9-5.2C8.9,26.2,8.8,26,8.5,26h-8C0.2,26,0.1,26.2,0.3,26.4
+			L0.3,26.4z"/>
+	</g>
+</g>
+<g transform="scale(8)" display="none">
+	<g display="inline">
+		<path fill="none" stroke="#000000" stroke-width="2" stroke-linecap="square" stroke-miterlimit="10" d="M13,3L3,13"/>
+		<path d="M16,0v5l-5-5H16z"/>
+		<path d="M0,11v5h5L0,11z"/>
+	</g>
+</g>
+<g transform="scale(8) translate(0 5)" display="none">
+	<g>
+		<path display="inline" fill="none" stroke="#000000" stroke-width="2" stroke-linecap="square" stroke-miterlimit="10" d="M13,3H3
+			"/>
+		<path display="inline" d="M16,3l-3,3V0L16,3z"/>
+		<path display="inline" d="M3,0L0,3l3,3V0z"/>
+	</g>
+</g>
+<g transform="scale(8) translate(5)" display="none">
+	<g>
+		<path display="inline" fill="none" stroke="#000000" stroke-width="2" stroke-linecap="square" stroke-miterlimit="10" d="M3,3v10
+			"/>
+		<path display="inline" d="M3,0l3,3H0L3,0z"/>
+		<path display="inline" d="M0,13l3,3l3-3H0z"/>
+	</g>
+</g>
+<script  class="iconic-api" type="application/ecmascript">//<![CDATA[
+var iconicApis=window._Iconic?window._Iconic.smartIconApis:{};iconicApis["resize"]=iconicApis["resize"]||function(t){var e=function(e){t.setAttribute("data-dimension",e);var i,r,n,c=t.querySelectorAll(".iconic-resize-both"),a=t.querySelectorAll(".iconic-resize-width"),o=t.querySelectorAll(".iconic-resize-height");switch(i=r=n="none",e){case"width":r="inline";break;case"height":n="inline";break;default:i="inline"}for(var s=0;s<c.length;s++)c[s].setAttribute("display",i),a[s].setAttribute("display",r),o[s].setAttribute("display",n)},i=function(){var i=t.getAttribute("data-dimension");i&&e(i)};return{update:i,setDimension:e}};
+//
+	]]>
+</script>
+</svg>
