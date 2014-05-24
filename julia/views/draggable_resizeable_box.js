@@ -3,6 +3,12 @@
  */
 
 // TODO: This depends on Julia. Figure out how to specify this.
+
+
+/**
+ * A rectangle that is draggable
+  * @type {*}
+ */
 var DraggableBox = FSMView.subClass({
     className: "DraggableBox",
     init: function (julia, x, y, w, h, handles_event) {
@@ -20,7 +26,7 @@ var DraggableBox = FSMView.subClass({
         // TODO: make it easy to apply common properties
         this.fsm_description = {
             start: [
-                //   init: function(to, predicate, feedback_action, final_action, handles_event) {
+                //   init: function(to, sample_index_matches, feedback_action, final_action, handles_event) {
                 new MouseDownTransition(
                     "dragging",
                     this.hit_test,
@@ -31,14 +37,14 @@ var DraggableBox = FSMView.subClass({
             dragging: [
                 new MouseMoveTransition(
                     "dragging",
-                    this.does_sample_index_match,
+                    this.sample_index_matches,
                     this.drag_progress,
                     undefined,
                     true
                 ),
                 new MouseUpTransition(
                     "start",
-                    this.does_sample_index_match,
+                    this.sample_index_matches,
                     undefined,
                     this.drag_end,
                     true
@@ -66,7 +72,7 @@ var DraggableBox = FSMView.subClass({
         var coords = this.get_relative(e);
         return (coords.rx > 0 && coords.ry > 0 && coords.rx < this.w && coords.ry < this.h);
     },
-    does_sample_index_match: function(e) {
+    sample_index_matches: function(e) {
         return e.sample_index === this.drag_sample_index;
     },
     /**
@@ -121,6 +127,10 @@ var DraggableBox = FSMView.subClass({
     }
 });
 
+/**
+ * A rectangle that is draggable and resizeable
+ * @type {*}
+ */
 var DraggableResizeableBox = DraggableBox.subClass({
     className: "DraggableResizeableBox",
     init: function (julia, x, y, w, h, resize_padding) {
@@ -129,137 +139,89 @@ var DraggableResizeableBox = DraggableBox.subClass({
         this.resize_padding = resize_padding;
         this.min_h = 10;
         this.min_w = 10;
-        var dragEndTransition = new MouseUpTransition(
-            "start",
-            this.does_sample_index_match,
-            undefined,
-            this.drag_end,
-            true
-        );
-        $.extend(this.fsm_description,
-            {
-                resize_left: [
-                    new MouseMoveTransition(
-                        "resize_left",
-                        this.does_sample_index_match,
-                        this.resize_left_progress,
-                        undefined,
-                        true
-                    ),
-                    dragEndTransition
-                ],
-                resize_top: [
-                    new MouseMoveTransition(
-                        "resize_top",
-                        this.does_sample_index_match,
-                        this.resize_top_progress,
-                        undefined,
-                        true
-                    ),
-                    dragEndTransition
-                ],
-                resize_right: [
-                    new MouseMoveTransition(
-                        "resize_right",
-                        this.does_sample_index_match,
-                        this.resize_right_progress,
-                        undefined,
-                        true
-                    ),
-                    dragEndTransition
-                ],
-                resize_bottom: [
-                    new MouseMoveTransition(
-                        "resize_bottom",
-                        this.does_sample_index_match,
-                        this.resize_bottom_progress,
-                        undefined,
-                        true
-                    ),
-                    dragEndTransition
-                ]
-            }
-        );
 
-        this.fsm_description.start.extend([
-            new MouseDownTransition(
-                "resize_left",
-                this.hit_test_left_edge,
-                this.drag_start,
-                undefined,
-                true),
-            new MouseDownTransition(
-                "resize_right",
-                this.hit_test_right_edge,
-                this.drag_start,
-                undefined,
-                true),
-            new MouseDownTransition(
-                "resize_top",
-                this.hit_test_top_edge,
-                this.drag_start,
-                undefined,
-                true),
-            new MouseDownTransition(
-                "resize_bottom",
-                this.hit_test_bottom_edge,
-                this.drag_start,
-                undefined,
-                true)
-        ]
-        );
+        var new_states = ["resize_left", 'resize_top', "resize_right", "resize_bottom"];
+        for(var i = 0; i < new_states.length; i++) {
+            var name = new_states[i];
+            this.fsm_description.start.push(
+                new MouseDownTransition(
+                    name,
+                    this.hit_test,
+                    this.drag_start,
+                    undefined,
+                    true)
+            );
+            this.fsm_description[name] = [
+                new MouseMoveTransition(
+                    name,
+                    this.sample_index_matches,
+                    this.drag_progress,
+                    undefined,
+                    true
+                ), new MouseUpTransition(
+                    "start",
+                    this.sample_index_matches,
+                    undefined,
+                    this.drag_end,
+                    true
+                )
+            ];
+
+        }
     },
     copyProperties: function(result) {
         this._super(result);
         result.min_h = this.min_h;
         result.min_w = this.min_w;
     },
-    hit_test: function(e) {
-        var coords = this.get_relative(e);
-        return (coords.rx > this.resize_padding && coords.ry > this.resize_padding && coords.rx < this.w - this.resize_padding && coords.ry < this.h - this.resize_padding);
-    },
-    hit_test_left_edge: function(e) {
-        var coords = this.get_relative(e);
-        return (coords.rx > -this.resize_padding && coords.rx < this.resize_padding && coords.ry > 0 && coords.ry < this.h);
-    },
-    hit_test_right_edge: function(e) {
-        var coords = this.get_relative(e);
-        return (coords.rx > this.w - this.resize_padding && coords.rx < this.w + this.resize_padding && coords.ry > 0 && coords.ry < this.h);
-    },
-    hit_test_top_edge: function(e) {
-        var coords = this.get_relative(e);
-        return (coords.ry > - this.resize_padding && coords.ry < this.resize_padding && coords.rx > 0 && coords.rx < this.w);
-    },
-    hit_test_bottom_edge: function(e) {
-        var coords = this.get_relative(e);
-        return (coords.ry > this.h - this.resize_padding && coords.ry < this.h + this.resize_padding && coords.rx > 0 && coords.rx < this.w);
-    },
-    resize_top_progress: function(e) {
+    drag_progress: function(e) {
         var motion = this.get_relative_motion(e);
-        var new_h = this.drag_start_info.my_h - motion.dy;
-        if(new_h < this.min_h) { return;}
-        this.y = this.drag_start_info.my_y + motion.dy;
-        this.h = new_h;
-    },
-    resize_bottom_progress: function(e) {
-        var motion = this.get_relative_motion(e);
-        var new_h = this.drag_start_info.my_h + motion.dy;;
-        if(new_h < this.min_h) { return; }
-        this.h = new_h;
-    },
-    resize_left_progress: function(e) {
-        var motion = this.get_relative_motion(e);
-        var new_w = this.w = this.drag_start_info.my_w - motion.dx;;
-        if(new_w < this.min_w) { return; }
-        this.w = new_w;
-        this.x = this.drag_start_info.my_x + motion.dx;
+        var new_w = this.w;
+        var new_h = this.h;
+        var new_x = this.x;
+        var new_y = this.y;
+        switch(this.current_state) {
+            case "dragging":
+                new_x = this.drag_start_info.my_x + motion.dx;
+                new_y = this.drag_start_info.my_y + motion.dy;
+                break;
+            case "resize_left":
+                new_w = this.w = this.drag_start_info.my_w - motion.dx;
+                new_x = this.drag_start_info.my_x + motion.dx;
+                break;
+            case "resize_right":
+                new_w = this.drag_start_info.my_w + motion.dx;
+                break;
+            case "resize_top":
+                new_h = this.drag_start_info.my_h - motion.dy;
+                new_y = this.drag_start_info.my_y + motion.dy;
+                break;
+            case "resize_bottom":
+                new_h = this.drag_start_info.my_h + motion.dy;;
+                break;
 
-    },
-    resize_right_progress: function(e) {
-        var motion = this.get_relative_motion(e);
-        var new_w = this.drag_start_info.my_w + motion.dx;
+        }
+        if(new_h < this.min_h) { return; }
         if(new_w < this.min_w) { return; }
+        this.x = new_x;
+        this.y = new_y;
         this.w = new_w;
+        this.h = new_h;
+    },
+    hit_test: function(e, transition) {
+        var coords = this.get_relative(e);
+        switch(transition.to) {
+            case "dragging":
+                return (coords.rx > this.resize_padding && coords.ry > this.resize_padding && coords.rx < this.w - this.resize_padding && coords.ry < this.h - this.resize_padding);
+            case "resize_left":
+                return (coords.rx > -this.resize_padding && coords.rx < this.resize_padding && coords.ry > 0 && coords.ry < this.h);
+            case "resize_right":
+                return (coords.rx > this.w - this.resize_padding && coords.rx < this.w + this.resize_padding && coords.ry > 0 && coords.ry < this.h);
+            case "resize_top":
+                return (coords.ry > - this.resize_padding && coords.ry < this.resize_padding && coords.rx > 0 && coords.rx < this.w);
+            case "resize_bottom":
+                return (coords.ry > this.h - this.resize_padding && coords.ry < this.h + this.resize_padding && coords.rx > 0 && coords.rx < this.w);
+        }
     },
     draw: function ($el) {
         // in this case $el will be an SVG element
@@ -296,5 +258,33 @@ var DraggableResizeableBox = DraggableBox.subClass({
             return false;
         }
         return this.w === other.w && this.h === other.h;
+    }
+});
+
+/**
+ * A rectangle that is draggable and resizeable, however it uses the motion at the beginning of the interaction
+ * to disambiguate the user's intention.
+ * If resizing horizontally, only horizontal motions are accepted
+ * If resizing vertically, only vertical motions are accepted
+ * If dragging, only diagonal motions are accepted
+ * @type {*}
+ */
+var DraggableResizeableBox2 = DraggableResizeableBox.subClass({
+    className: "DraggableResizeableBox2",
+    init: function() {
+
+    },
+    clone: function() {
+        var result = new DraggableResizeableBox2(this.julia, this.x, this.y, this.w, this.h, this.resize_padding);
+        this.copyFsm(result);
+        this.cloneActionRequests(result);
+        this.copyProperties(result);
+        return result;
+    },
+    drag_progress: function(e) {
+
+    },
+    drag_start: function(e) {
+
     }
 });

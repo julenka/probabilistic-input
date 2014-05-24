@@ -117,8 +117,8 @@
         var itemSize = 50;
         var maxWidth = $sketch.width() - itemSize;
         var maxHeight = $sketch.height() - itemSize;
-        rootView.addChildView(new DraggableResizeableBox(julia2, Math.randint(0, maxWidth), Math.randint(0, maxHeight), itemSize, itemSize, itemSize / 5).attr({color: "#ffdddd"}));
-        rootView.addChildView(new DraggableBox(julia2, Math.randint(0, maxWidth), Math.randint(0, maxHeight), itemSize, itemSize, itemSize / 5).attr({color: "#ddffdd"}));
+        rootView.addChildView(new DraggableResizeableBox(julia2, Math.randint(0, maxWidth), Math.randint(0, maxHeight), itemSize, itemSize, itemSize / 5).attr({color:  "#ddffdd"}));
+        rootView.addChildView(new DraggableBox(julia2, Math.randint(0, maxWidth), Math.randint(0, maxHeight), itemSize, itemSize, itemSize / 5).attr({color: "#ffdddd"}));
         rootView.addChildView(new MyCursor(julia2));
 
         var mouseHook = new PMouseEventHook($sketch[0]);
