@@ -1166,6 +1166,17 @@ var View = Object.subClass({
         return true;
     },
     /**
+     * Updates attributes using the given map
+     * @param map A map of the form {attr:newValue}. Use this to update the properties of the object
+     * @return the object, in case we want to chain things
+     */
+    attr: function(map) {
+        for(var prop in map) {
+            this[prop] = map[prop];
+        }
+        return this;
+    },
+    /**
      * Dispatches an event to itself and potentially any children.
      * Returns a list action request sequences, where each sequence is a list of action requests.
      * These action requests should be performed one after another, if executed
