@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Draggable Box Test</title>
+
+    <!-- JQuery -->
+    <script type="text/javascript" src="../lib/jquery.js"></script>
+
+    <!-- Snap SVG library -->
+    <script type="text/javascript" src="../lib/snap.svg.js"></script>
+    
+    <!-- Julia library -->
+    <script type="text/javascript" src="../julia.js"></script>
+
+    <!-- Julia CSS -->
+    <link type="text/css" rel="stylesheet" href="../julia.css"/>
+
+    <!-- Draggable/Resizeable -->
+    <script type="text/javascript" src="../views/draggable_resizeable_box.js"></script>
+
+    <style>
+        svg {
+            background-color: #C2CCD1;
+        }
+    </style>
+</head>
+<body>
+<div>This test contains a box that can be dragged around. Use your mouse to drag the box around the canvas</div>
+<table>
+    <tr>
+        <td>
+            <svg id="draggable_svg" class="border1px unselectable" width="300" height="300"></svg>
+        </td>
+        <td>
+            <div id="alternatives" class=" unselectable"></div>
+        </td>
+
+    </tr>
+</table>
+<div>This test contains a box that can be dragged and resized.</div>
+<table>
+    <tr>
+        <td>
+            <svg id="draggable_resizeable_svg" class="border1px unselectable" width="300" height="300"></svg>
+        </td>
+        <td>
+            <div id="alternatives2" class=" unselectable"></div>
+        </td>
+
+    </tr>
+</table>
+<script>
+    var MyCursor = Cursor.subClass({
+        className: "MyCursor",
+        clone: function() {
+            var result = new MyCursor(this.julia);
+            this.copyFsm(result);
+            this.cloneActionRequests(result);
+            this.copyProperties(result);
+            return result;
+        },
+        equals: function(other) { return true}
+    });
+
+    // Global variables
+    var julia = new Julia();
+
+    // We should be doing everything inside the .ready() function.
+    // No more global variables.
+    // This will be part of the template
+    $(document).ready(function(){
+        // Your JavaScript here
+        var $sketch = $("#draggable_svg");
+        var $alternatives = $("#alternatives");
+
+        var rootView = new ContainerView(julia);
+        julia.setRootView(rootView);
+        var itemSize = 50;
+        var maxWidth = $sketch.width() - itemSize;
+        var maxHeight = $sketch.height() - itemSize;
+        rootView.addChildView(new DraggableBox(julia, Math.randint(0, maxWidth), Math.randint(0, maxHeight), itemSize, itemSize, true).attr({color: "#ffdddd"}));
+
+
+        var mouseHook = new PMouseEventHook($sketch[0]);
+        mouseHook.variance_x_px = 0;
+        mouseHook.variance_y_px = 0;
+        julia.addEventSource(mouseHook);
+
+
+        var feedback = new MostLikelyFeedback(julia);
+        julia.drawFeedback($sketch, feedback);
+
+        julia.dispatchCompleted = function(new_alternatives, uiUpdated) {
+            if(!uiUpdated) {
+                return;
+            }
+            $sketch.empty();
+            julia.drawFeedback($sketch, feedback);
+            julia.dumpAlternativesAsSnap($alternatives, $sketch.width(), $sketch.height(), 0.25)
+        };
+    });
+
+    // Global variables
+    var julia2 = new Julia();
+
+    // We should be doing everything inside the .ready() function.
+    // No more global variables.
+    // This will be part of the template
+    $(document).ready(function(){
+        // Your JavaScript here
+        var $sketch = $("#draggable_resizeable_svg");
+        var $alternatives = $("#alternatives2");
+
+        var rootView = new ContainerView(julia);
+        julia2.setRootView(rootView);
+        julia2.nSamplesPerEvent = 10;
+        var itemSize = 50;
+        var maxWidth = $sketch.width() - itemSize;
+        var maxHeight = $sketch.height() - itemSize;
+        rootView.addChildView(new DraggableResizeableBox(julia2, Math.randint(0, maxWidth), Math.randint(0, maxHeight), itemSize, itemSize, itemSize / 5).attr({color: "#ffdddd"}));
+        rootView.addChildView(new DraggableBox(julia2, Math.randint(0, maxWidth), Math.randint(0, maxHeight), itemSize, itemSize, itemSize / 5).attr({color: "#ddffdd"}));
+        rootView.addChildView(new MyCursor(julia2));
+
+        var mouseHook = new PMouseEventHook($sketch[0]);
+        mouseHook.variance_x_px = 10;
+        mouseHook.variance_y_px = 10;
+        julia2.addEventSource(mouseHook);
+
+
+//        var feedback = new MostLikelyFeedback(julia2);
+        var feedback = new SimpleFeedback(julia2, FeedbackOpacityView);
+        julia2.drawFeedback($sketch, feedback);
+
+        julia2.dispatchCompleted = function(new_alternatives, uiUpdated) {
+            if(!uiUpdated) {
+                return;
+            }
+            $sketch.empty();
+            julia2.drawFeedback($sketch, feedback);
+            julia2.dumpAlternativesAsSnap($alternatives, $sketch.width(), $sketch.height(), 0.25);
+//            julia2.dumpAlternativesAsText($alternatives);
+        };
+    });
+</script>
+</body>
+</html>
