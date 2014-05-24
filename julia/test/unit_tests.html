@@ -55,6 +55,16 @@
          ninja instanceof Person, "ninja is a Ninja and a Person");
     });
 
+    test("shallowCopy", function(){
+        var input = {a: 1, b: 1, c: 3};
+        var expected = {a: 1, b: 1, c: 3};
+
+        var output = shallowCopy(input);
+        for (var p in expected) {
+            equal(expected[p], output[p]);
+        }
+    });
+
     test("String.repeat", function() {
         equal("s".repeat(0), "");
         equal("s".repeat(5), "sssss");

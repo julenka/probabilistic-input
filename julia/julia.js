@@ -6,6 +6,22 @@ if(typeof jQuery === 'undefined') {
 
 //region Utilities and object extensions
 
+// Useful functions
+// TODO: Come up with a better naming scheme for this
+var RETURN_TRUE = function() { return true; };
+
+// Makes a shallow copy of the input object.
+// Assumption: input is an object of the form {key1: value1, key2: value2,...}
+// copies only the immediate properties of an object
+var shallowCopy = function(input) {
+    var result = {};
+    for(var prop in input) {
+
+        result[prop] = input[prop];
+    }
+    return result;
+};
+
 // Inheritance
 // Obtained from "Secrets of the JavaScript Ninja", page 145
 (function(){
