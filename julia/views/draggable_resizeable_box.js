@@ -271,20 +271,77 @@ var DraggableResizeableBox = DraggableBox.subClass({
  */
 var DraggableResizeableBox2 = DraggableResizeableBox.subClass({
     className: "DraggableResizeableBox2",
-    init: function() {
-
+    NUM_DRAG_POINTS: 30,
+    VECTOR_RIGHT: {x: 1, y: 0},
+    VECTOR_UP: {x: 0, y: 1},
+    init: function(julia, x, y, w, h, resize_padding) {
+        this._super(julia, x, y, w, h, resize_padding);
     },
     clone: function() {
         var result = new DraggableResizeableBox2(this.julia, this.x, this.y, this.w, this.h, this.resize_padding);
         this.copyFsm(result);
         this.cloneActionRequests(result);
         this.copyProperties(result);
+
+        result.drag_points = this.drag_points;
+        result.drag_vector = this.drag_vector;
+
         return result;
     },
     drag_progress: function(e) {
+        this._super(e);
+        if(this.drag_points.length > this.NUM_DRAG_POINTS) {
+            this.drag_points.shift();
+        }
+        this.drag_points.push({x: e.element_x, y: e.element_y});
+        var n = this.drag_points.length - 1;
+        this.drag_vector = {x: 0, y: 0};
+        for(var i = 0; i < this.drag_points.length - 1; i++) {
+            var p1 = this.drag_points[i];
+            var p2 = this.drag_points[i + 1];
+            this.drag_vector.x += (p2.x - p1.x) / n;
+            this.drag_vector.y += ( p2.y -p1.y) / n;
+        }
+
+        var v1 = this.moveToQuadrant(this.drag_vector);
+        var angleHorizontal = this.getAngle(v1, this.VECTOR_RIGHT);
+        var angleVertical = this.getAngle(v1, this.VECTOR_UP);
+
+        if(angleVertical * angleHorizontal === 0){
+            return;
+        }
+        if(this.resizingHorizontally() && angleVertical < 20) {
+            log(LOG_LEVEL_DEBUG, "vertical angle is ", angleVertical);
+            this.current_state = "dragging";
+            this.w = this.drag_start_info.my_w;
+            this.h = this.drag_start_info.my_h;
+        } else if (this.resizingVertically() && angleHorizontal < 20) {
+            this.current_state = "dragging";
+            this.w = this.drag_start_info.my_w;
+            this.h = this.drag_start_info.my_h;
+        }
 
     },
+    resizingVertically: function() { return this.current_state === "resize_top" || this.current_state === "resize_bottom";},
+    resizingHorizontally: function() { return this.current_state === "resize_left" || this.current_state === "resize_right";},
+    /**
+     * returns the angle between two vectors, in degrees
+     * @param v1
+     * @param v2
+     */
+    getAngle: function(v1, v2) {
+        var dot = v1.x * v2.x + v1.y * v2.y;
+        if(dot === 0){ return 0; }
+        var v1mag = Math.sqrt(v1.x * v1.x + v1.y * v1.y);
+        var v2mag = Math.sqrt(v2.x * v2.x + v2.y * v2.y);
+        var radians = Math.acos(dot / v1mag * v2mag );
+        return radians / Math.PI * 180;
+    },
+    moveToQuadrant: function(v1) {
+        return {x: Math.abs(v1.x), y: Math.abs(v1.y)};
+    },
     drag_start: function(e) {
-
+        this._super(e);
+        this.drag_points = [];
     }
 });

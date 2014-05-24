@@ -22,14 +22,18 @@
         svg {
             background-color: #C2CCD1;
         }
+
+        .description {
+            width: 500px;
+        }
     </style>
 </head>
 <body>
-<div>This test contains a box that can be dragged around. Use your mouse to drag the box around the canvas</div>
+<div class="description">This test contains a box that can be dragged around. Use your mouse to drag the box around the canvas</div>
 <table>
     <tr>
         <td>
-            <svg id="draggable_svg" class="border1px unselectable" width="300" height="300"></svg>
+            <svg id="draggable_svg" class="border1px unselectable" width="400" height="400"></svg>
         </td>
         <td>
             <div id="alternatives" class=" unselectable"></div>
@@ -37,11 +41,11 @@
 
     </tr>
 </table>
-<div>This test contains a box that can be dragged (pink), and a box that can be dragged and resized (green).</div>
+<div class="description">This test contains a box that can be dragged (pink), and a box that can be dragged and resized (green).</div>
 <table>
     <tr>
         <td>
-            <svg id="draggable_resizeable_svg" class="border1px unselectable" width="300" height="300"></svg>
+            <svg id="draggable_resizeable_svg" class="border1px unselectable" width="400" height="400"></svg>
         </td>
         <td>
             <div id="alternatives2" class=" unselectable"></div>
@@ -49,14 +53,14 @@
 
     </tr>
 </table>
-<div>This test contains a box that can be dragged (pink) and  a box that can be dragged and resized, however vertical motions when in the
+<div class="description">This test contains a box that can be dragged (pink) and  a box that can be dragged and resized, however vertical motions when in the
     horizontal resize state cause the interactor to move to the dragging state, and horizontal motions while in the vertical state
     cause the interactor to go to dragging as well. In this way, users can 'snap out' or disambiguate between states.
 </div>
 <table>
     <tr>
         <td>
-            <svg id="draggable_resizeable2_svg" class="border1px unselectable" width="300" height="300"></svg>
+            <svg id="draggable_resizeable2_svg" class="border1px unselectable" width="400" height="400"></svg>
         </td>
         <td>
             <div id="alternatives3" class=" unselectable"></div>
@@ -127,9 +131,9 @@
         julia = new Julia();
         buildTest(julia, $("#draggable_resizeable2_svg"), $("#alternatives3"),
                 [
-                    new DraggableResizeableBox(julia, Math.randint(0, maxWidth), Math.randint(0, maxHeight), itemSize, itemSize, itemSize / 5).attr({color:  "#ddffdd"}),
+                    new DraggableResizeableBox2(julia, Math.randint(0, maxWidth), Math.randint(0, maxHeight), itemSize, itemSize, itemSize / 5).attr({color:  "#ddffdd"}),
                     new DraggableBox(julia, Math.randint(0, maxWidth), Math.randint(0, maxHeight), itemSize, itemSize, itemSize / 5).attr({color: "#ffdddd"}),
-                    new MyCursor(julia)
+//                    new MyCursor(julia)
                 ],
                 new SimpleFeedback(julia, FeedbackOpacityView)
         );
