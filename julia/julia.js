@@ -1549,7 +1549,7 @@ var Transition = Object.subClass({
         this.handles_event = handles_event;
     },
     take: function(e, view) {
-        return this.source === e.source && this.type === e.type && this.predicate.call(view, e);
+        return this.source === e.source && this.type === e.type && this.predicate.call(view, e, this);
     }
 });
 
