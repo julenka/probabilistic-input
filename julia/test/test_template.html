@@ -8,12 +8,50 @@
 
     <!-- Snap SVG library -->
     <script type="text/javascript" src="../lib/snap.svg.js"></script>
+
     <!-- Julia library -->
     <script type="text/javascript" src="../julia.js"></script>
+
+    <style>
+        #test_svg {
+            background-color: #C2CCD1;
+        }
+    </style>
 </head>
 <body>
+<div>Describe your test here</div>
+<svg id="test_svg" class="border1px" width="500" height="500"></svg>
 <script>
-    // Your JavaScript here
+// Add any controls here
+
+</script>
+
+<script>
+    // Global variables
+    var julia = new Julia();
+
+    // Put your initialization code here
+    $(document).ready(function(){
+        var $sketch = $("#test_svg");
+
+        // set up Julia
+        julia.nSamplesPerEvent = 1;
+        var mouseHook = new PMouseEventHook($sketch[0]);
+        mouseHook.variance_x_px = 0;
+        mouseHook.variance_y_px = 0;
+        julia.addEventSource(mouseHook);
+
+        // Set up views
+        var rootView = new ContainerView(julia);
+        julia.setRootView(rootView);
+
+
+        // Do stuff when an event has been dispatched
+        julia.dispatchCompleted = function(new_alternatives) {
+
+        };
+    });
+
 </script>
 </body>
 </html>
