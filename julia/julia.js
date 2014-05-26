@@ -1261,16 +1261,23 @@ var View = Object.subClass({
 //noinspection JSUnusedGlobalSymbols
 /**
  * View that contains several children elements
+ * TODO: rather than passing background_color and background_image, we can pass a 'props' variable that sets a wide range of values that govern the display .This can be used for all views.
+ * TODO: using this 'props' object will also make it easier to clone, since we can just use 'shallow_copy' to copy everything.
  * @type {*}
+ * @param julia The Julia object that owns this interface
+ * @param background_color the background color of the view. If undefined, no background is shown
+ * @param background_image the background image of the view. If undefined, no background image is shown
  */
 var ContainerView = View.subClass({
     className: "ContainerView",
-    init: function(julia) {
+    init: function(julia, background_color, background_image) {
         //noinspection JSUnresolvedFunction
         this._super(julia);
         this.children = [];
         // index of the child that is currently in focus
         this.focus_index = -1;
+        this.background_color = background_color;
+        this.background_image = background_image;
     },
     resetDirtyBit: function() {
         this.children.forEach(function(child){
@@ -1301,6 +1308,8 @@ var ContainerView = View.subClass({
     clone: function() {
         var result = new ContainerView(this.julia);
         this.cloneActionRequests(result);
+        result.background_color = this.background_color;
+        result.background_image = this.background_image;
         result.children = [];
         this.children.forEach(function(child){
             var clone = child.clone();
@@ -1315,6 +1324,12 @@ var ContainerView = View.subClass({
      */
     draw: function($el) {
         var i = 0;
+        if(typeof(this.background_color) !== 'undefined') {
+            $el.css('background-color', this.background_color);
+        }
+        if(typeof(this.background_image) !== 'undefined') {
+            $el.css('background-image', this.background_image);
+        }
         for(i; i < this.children.length; i++) {
             this.children[i].draw($el);
         }
@@ -1324,6 +1339,12 @@ var ContainerView = View.subClass({
      */
     equals: function(other) {
         if(!this._super(other)) {
+            return false;
+        }
+        if((this.background_color !== other.background_color)) {
+            return false;
+        }
+        if((this.background_image !== other.background_image)) {
             return false;
         }
         if(this.children.length !== other.children.length) {

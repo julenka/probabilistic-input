@@ -20,7 +20,7 @@
 
     <style>
         svg {
-            background-color: #C2CCD1;
+
         }
 
         .description {
@@ -85,7 +85,7 @@
 
 
     function buildTest(julia, $sketch, $alternatives, childViews, feedback) {
-        var rootView = new ContainerView(julia);
+        var rootView = new ContainerView(julia, "#C2CCD1");
         julia.setRootView(rootView);
 
         childViews.forEach(function(child) {
