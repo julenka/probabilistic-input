@@ -44,9 +44,7 @@
 }
 
 /* Demo properties */
-.demo-description {
 
-}
 
 /* The main interface of the demo */
 /* TODO: user SASS or LESS to inherit these properties more elegantly */
@@ -64,7 +62,7 @@
     border: 1px solid black;
 }
 .demo-description {
-    width: 500px;
+    width: 640px;
 }
 
 /* Test properties */

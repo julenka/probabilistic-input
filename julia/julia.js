@@ -455,8 +455,7 @@ var PMouseEvent = PEvent.subClass({
             PMouseEvent.prototype.button_state = undefined;
         }
         this.source = "mouse";
-    },
-    getSamples: function (n) {
+
         var left = 0, top = 0;
         //noinspection JSUnresolvedVariable
         if (this.base_event.currentTarget !== window) {
@@ -465,13 +464,16 @@ var PMouseEvent = PEvent.subClass({
             left = offset.left;
             top = offset.top;
         }
-
         if(isNaN(left)) {
             left = 0 ;
         }
         if(isNaN(top)) {
             top = 0;
         }
+        this.element_x = e.pageX - left;
+        this.element_y = e.pageY - top;
+    },
+    getSamples: function (n) {
         var result = [];
         var randomValues = this.getRandomValues(n);
         for (var i = 0; i < n; i++) {
@@ -480,8 +482,8 @@ var PMouseEvent = PEvent.subClass({
             result.push(new PMouseEventSample(1 / n, this,
                 this.base_event.pageX + xy.x,
                 this.base_event.pageY + xy.y,
-                this.base_event.pageX + xy.x - left,
-                this.base_event.pageY + xy.y - top));
+                this.element_x + xy.x,
+                this.element_y + xy.y));
         }
         return result;
     },

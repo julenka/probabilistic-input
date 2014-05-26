@@ -1,0 +1,302 @@
+<!-- Created on 5/26/2014 -->
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Resizeable Window & Draggable Icon</title>
+
+    <!-- JQuery -->
+    <script type="text/javascript" src="../lib/jquery.js"></script>
+
+    <!-- Snap SVG library -->
+    <script type="text/javascript" src="../lib/snap.svg.js"></script>
+
+    <!-- Julia library -->
+    <script type="text/javascript" src="../julia.js"></script>
+
+    <!-- Julia CSS -->
+    <link type="text/css" rel="stylesheet" href="../julia.css"/>
+
+    <!-- Draggable/Resizeable -->
+    <script type="text/javascript" src="../views/draggable_resizeable_box.js"></script>
+
+    <style>
+
+        body{
+            overflow:hidden
+        }
+        td {
+            vertical-align: top;
+        }
+    </style>
+</head>
+<body>
+<h3>Resizeable Window and Draggable Icon</h3>
+<div class="demo-description">
+    Try resizing the window horizontally, vertically. Move perpendicularly to 'snap out'.
+    Then try moving the icons underneath.</div>
+<table>
+    <tr>
+        <td><svg id="main_interface" class="demo-interface" width="640" height="640" style="cursor:none"></svg></td>
+        <td><div id="alternatives" class="demo-alternatives"></div></td>
+    </tr>
+</table>
+
+
+<table id="interactor_tree_table">
+    <tr>
+        <td>Interactor tree of main interface:</td>
+    </tr>
+    <tr>
+        <td><div id="interactor_tree_div"/></td>
+    </tr>
+</table>
+
+<script>
+    // Your custom views here
+    var Window = DraggableResizeableBox2.subClass( {
+        className: "Window",
+        clone: function() {
+            var result = new Window(this.julia, this.x, this.y, this.w, this.h, this.resize_padding);
+            this.copyFsm(result);
+            this.cloneActionRequests(result);
+            this.copyProperties(result);
+
+            result.drag_points = this.drag_points;
+            result.drag_vector = this.drag_vector;
+
+            return result;
+        },
+        drag_progress: function(e) {
+            var motion = this.get_relative_motion(e);
+            var new_w = this.w;
+            var new_h = this.h;
+            var new_x = this.x;
+            var new_y = this.y;
+            switch(this.current_state) {
+                case "dragging":
+                    new_x = this.drag_start_info.my_x + motion.dx;
+                    new_y = this.drag_start_info.my_y + motion.dy;
+                    break;
+                case "resize_left":
+                    new_w = this.w = this.drag_start_info.my_w - motion.dx;
+                    new_x = this.drag_start_info.my_x + motion.dx;
+                    break;
+                case "resize_right":
+                    new_w = this.drag_start_info.my_w + motion.dx;
+                    break;
+                case "resize_top":
+                    new_h = this.drag_start_info.my_h - motion.dy;
+                    new_y = this.drag_start_info.my_y + motion.dy;
+                    break;
+                case "resize_bottom":
+                    new_h = this.drag_start_info.my_h + motion.dy;;
+                    break;
+
+            }
+            if(new_h < this.min_h) { return; }
+            if(new_w < this.min_w) { return; }
+            this.x = new_x;
+            this.y = new_y;
+            this.w = new_w;
+            this.h = new_h;
+
+            if(this.drag_points.length > this.NUM_DRAG_POINTS) {
+                this.drag_points.shift();
+            }
+            this.drag_points.push({x: e.element_x, y: e.element_y});
+            var n = this.drag_points.length - 1;
+            this.drag_vector = {x: 0, y: 0};
+            for(var i = 0; i < this.drag_points.length - 1; i++) {
+                var p1 = this.drag_points[i];
+                var p2 = this.drag_points[i + 1];
+                this.drag_vector.x += (p2.x - p1.x) / n;
+                this.drag_vector.y += ( p2.y -p1.y) / n;
+            }
+
+            var v1 = this.moveToQuadrant(this.drag_vector);
+            var angleHorizontal = this.getAngle(v1, this.VECTOR_RIGHT);
+            var angleVertical = this.getAngle(v1, this.VECTOR_UP);
+
+            if(angleVertical * angleHorizontal === 0){
+                return;
+            }
+            if(this.resizingHorizontally() && angleVertical < 20) {
+                log(LOG_LEVEL_DEBUG, "vertical angle is ", angleVertical);
+                this.current_state = "start";
+                this.w = this.drag_start_info.my_w;
+                this.h = this.drag_start_info.my_h;
+                this.x = this.drag_start_info.my_x;
+                this.y = this.drag_start_info.my_y;
+            } else if (this.resizingVertically() && angleHorizontal < 20) {
+                this.current_state = "start";
+                this.w = this.drag_start_info.my_w;
+                this.h = this.drag_start_info.my_h;
+                this.x = this.drag_start_info.my_x;
+                this.y = this.drag_start_info.my_y;
+            }
+        },
+        hit_test: function(e, transition) {
+            var coords = this.get_relative(e);
+            switch(transition.to) {
+                case "dragging":
+                    return (coords.rx > 0 && coords.ry > 0 && coords.rx < this.w && coords.ry < 2 * this.resize_padding);
+                case "resize_left":
+                    return (coords.rx > -this.resize_padding && coords.rx < this.resize_padding && coords.ry > 0 && coords.ry < this.h);
+                case "resize_right":
+                    return (coords.rx > this.w - this.resize_padding && coords.rx < this.w + this.resize_padding && coords.ry > 0 && coords.ry < this.h);
+                case "resize_top":
+                    return (coords.ry > - this.resize_padding && coords.ry < this.resize_padding && coords.rx > 0 && coords.rx < this.w);
+                case "resize_bottom":
+                    return (coords.ry > this.h - this.resize_padding && coords.ry < this.h + this.resize_padding && coords.rx > 0 && coords.rx < this.w);
+            }
+        },
+        draw: function ($el) {
+            // in this case $el will be an SVG element
+            var s = Snap($el[0]);
+            var padding = 5;
+            var border_attrs = {fill: "white", "stroke-width": 1, stroke: "black"};
+            if(this.current_state === "dragging") {
+                s.rect(this.x - padding, this.y - padding, this.w + 2 * padding, this.h + 2 * padding)
+                        .attr(border_attrs);
+            } else if (this.current_state === "resize_left") {
+                s.rect(this.x - padding, this.y - padding, 2 * padding, this.h + 2 * padding)
+                        .attr(border_attrs);
+            } else if (this.current_state === "resize_right") {
+                s.rect(this.x + this.w - padding, this.y - padding, 2 * padding, this.h + 2 * padding)
+                        .attr(border_attrs);
+            } else if (this.current_state === "resize_top") {
+                s.rect(this.x - padding, this.y - padding, this.w + 2 * padding, 2 * padding)
+                        .attr(border_attrs);
+            } else if (this.current_state === "resize_bottom") {
+                s.rect(this.x - padding, this.y + this.h - padding, this.w + 2 * padding, 2 * padding)
+                        .attr(border_attrs);
+            }
+            s.rect(this.x, this.y, this.w, this.h).attr({fill: "#ffdddd"});
+            s.rect(this.x, this.y, this.w, 2 * this.resize_padding).attr({fill: "#CCCCCC"});
+
+            var messages = ["This is a window", "it is located at (" + Math.round(this.x) + "," + Math.round(this.y) + ")",
+                "it has width " + Math.round(this.w) + " and height " + Math.round(this.h)];
+            var h = 30;
+            var y0 = this.y + 10 + 3 * this.resize_padding;
+            var x0 = this.x + 10
+            for(var i = 0; i < messages.length; i++) {
+                s.text(x0, y0 + h * i, messages[i]).attr({'font-family':'Arial, Helvetical'});
+            }
+
+
+            s.text(this.x + 10, this.y + 10 + 3 * this.resize_padding, "This is a window.").attr({'font-family':'Arial, Helvetical'});
+            var pd2 = 5;
+            x0 = this.x + 2 * pd2;
+            y0 = this.y + 2 * pd2;
+            var dx = 3 * pd2;
+            var colors = ["#E33037", "#FBF536","#7DC04A"];
+            colors.forEach(function(c, i){
+                s.circle(x0 + i * dx, y0, pd2).attr({fill: c});
+            });
+
+        },
+    }
+    );
+
+    var Icon = DraggableBox.subClass({
+        className: "Icon",
+        clone: function() {
+            var result = new Icon(this.julia, this.x, this.y, this.w, this.h);
+            this.copyFsm(result);
+            this.cloneActionRequests(result);
+            this.copyProperties(result);
+            return result;
+        },
+        draw: function ($el) {
+            // in this case $el will be an SVG element
+            var s = Snap($el[0]);
+            var regular = "#8dcbfc";
+            var dark = "#6fa0c7";
+            var color = regular;
+            if(this.current_state == "dragging") {
+                color = dark;
+            }
+            s.rect(this.x, this.y, 40, 30).attr({fill: color, rx: 5, ry: 5});
+            s.rect(this.x, this.y + 10, this.w, this.h - 10).attr({fill: color, rx: 3, ry:3});
+            var messages = ["I am an icon", "(" + Math.round(this.x) + "," + Math.round(this.y) + ")"];
+            var h = 30;
+            var y0 = this.y + 40;
+            var x0 = this.x + 10
+            for(var i = 0; i < messages.length; i++) {
+                s.text(x0, y0 + h * i, messages[i]).attr({'font-family':'Arial, Helvetical'});
+            }
+
+        }
+    });
+</script>
+<script>
+
+    /**
+     * Set up the interface here
+     * @param rootView
+     */
+    function setup(julia, rootView) {
+        rootView.addChildView(new Icon(julia, 234,205, 110, 90));
+        rootView.addChildView(new Icon(julia, 464,231, 110, 90));
+        rootView.addChildView(new Icon(julia, 269,364, 110, 90));
+        rootView.addChildView(new Icon(julia, 404, 428, 110, 90));
+        rootView.addChildView(new Window(julia, 25, 20, 268, 228, 10));
+        rootView.addChildView(new Window(julia, 333, 19, 268, 228, 10));
+        rootView.addChildView(new Window(julia, 31, 333, 268, 228, 10));
+//        rootView.addChildView(new MyCursor());
+    }
+
+    /**
+     * Return the feedback method to display here
+     * @param julia
+     * @returns {SimpleFeedback}
+     */
+    function getFeedback(julia) {
+        return new SimpleFeedback(julia, FeedbackOpacityView);
+    }
+
+    var mouseX = 0;
+    var mouseY = 0;
+    var variance = 0;
+    /**
+     * Executed when the document loads. Intended to be boilerplate, shouldn't have to replace much here (for now).
+     */
+    $(document).ready(function(){
+        var mouse_variance = 10;
+        var julia = new Julia();
+        var rootView = new ContainerView(julia, "black", "url(../imgs/stardust.png)");
+        julia.setRootView(rootView);
+
+        setup(julia, rootView);
+
+        var $alternatives = $("#alternatives");
+        var $mainInterface = $("#main_interface");
+        // Add an event source
+        var mouseHook = new PMouseEventHook($mainInterface[0]);
+        mouseHook.variance_x_px = mouse_variance;
+        mouseHook.variance_y_px = mouse_variance;
+
+
+        mouseHook.addListener(function(e) {
+            mouseX = e.element_x;
+            mouseY = e.element_y;
+            variance = e.sigma_x;
+        });
+        julia.addEventSource(mouseHook);
+
+        julia.drawFeedback($mainInterface, getFeedback(julia));
+
+        julia.dispatchCompleted = function(new_alternatives, uiUpdated) {
+            var s = Snap($mainInterface[0]);
+            $mainInterface.empty();
+            julia.drawFeedback($mainInterface, getFeedback(julia));
+
+            s.circle(mouseX, mouseY, 2 * variance).attr({fill: "#D636FB"});
+            julia.dumpAlternativesAsSnap($alternatives, $mainInterface.width(), $mainInterface.height(), 0.5);
+        };
+
+        $("#interactor_tree_table").hide();
+    });
+</script>
+</body>
+</html>
