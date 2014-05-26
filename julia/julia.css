@@ -10,6 +10,7 @@
     cursor: default;
 }
 
+/* Properties for dumping the interactor hierarchy */
 .indent-level-0 {
     margin-left: 0px;
 }
@@ -42,6 +43,50 @@
     margin: 0px;
 }
 
+/* Demo properties */
+.demo-description {
+
+}
+
+/* The main interface of the demo */
+/* TODO: user SASS or LESS to inherit these properties more elegantly */
+.demo-interface {
+    /* Inherit from unselectable */
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -khtml-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+    cursor: default;
+
+    /* Inherit from border 1 px */
+    border: 1px solid black;
+}
+.demo-description {
+    width: 500px;
+}
+
+/* Test properties */
+.test-description {
+    width: 500px;
+}
+
+.test-interface {
+    /* Inherit from unselectable */
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -khtml-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+    cursor: default;
+
+    /* Inherit from border 1 px */
+    border: 1px solid black;
+}
+
 .bold {
     font-weight: bold;
 }
+

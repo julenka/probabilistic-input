@@ -49,17 +49,22 @@
 <table >
     <tr>
         <td>
-            <svg class="unselectable border1px" id="sketch" width="320" height="200"></svg>
+            <svg class="demo-interface" id="sketch" width="320" height="200"></svg>
         </td>
         <td>
             <div id="sketches"></div>
         </td>
 
     </tr>
-    <td>Interactor tree of main interface:</td>
+
+</table>
+
+<table id="interactor_tree_table">
+    <tr>
+        <td>Interactor tree of main interface:</td>
     </tr>
     <tr>
-        <td><div id="debug"/></td>
+        <td><div id="interactor_tree_div"/></td>
     </tr>
 </table>
 
@@ -100,7 +105,7 @@
         julia.dumpAlternativesAsSnap($sketches, $sketch.width(), $sketch.height(), 0.5);
         $sketch.empty();
         var merged = julia.drawFeedback($sketch, feedback);
-        merged.domDump($("#debug"));
+        merged.domDump($("#interactor_tree_div"));
     };
 
     var mouseHook = new PMouseEventHook($sketch[0]);
@@ -113,7 +118,7 @@
         mouseHook.variance_y_px = parseInt($("#sampleVarianceY").val());
         julia.setRootView(rootView);
         var merged = julia.drawFeedback($sketch, feedback);
-        merged.domDump($("#debug"));
+        merged.domDump($("#interactor_tree_div"));
     }
     update();
 
