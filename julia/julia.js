@@ -330,7 +330,9 @@ var PTouchEventHook = DOMEventSource.subClass({
     addListener: function(fn) {
         var me = this;
         ['touchstart', 'touchmove', 'touchend', 'touchleave', 'touchcancel'].forEach(function(type) {
+
             var fn2 = function(e) {
+                e.preventDefault();
                 // convert touch events into mouse events for maximal compatibility
                 fn(new PMouseEvent(1, JSON.stringify(e, me.variance_x_px, me.variance_y_px, type));
             };
