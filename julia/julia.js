@@ -319,6 +319,29 @@ var PMouseEventHook = DOMEventSource.subClass({
     }
 });
 
+var PTouchEventHook = DOMEventSource.subClass({
+    className: "PTouchEventHook",
+    init: function(el) {
+        //noinspection JSUnresolvedFunction
+        this._super(el);
+        this.variance_x_px = 100;
+        this.variance_y_px = 100;
+    },
+    addListener: function(fn) {
+        var me = this;
+        ['touchstart', 'touchmove', 'touchend', 'touchleave', 'touchcancel'].forEach(function(type) {
+            var fn2 = function(e) {
+                // convert touch events into mouse events for maximal compatibility
+                fn(new PMouseEvent(1, JSON.stringify(e), me.variance_x_px, me.variance_y_px, type));
+            };
+            me.event_listeners.push({type: type, fn: fn2});
+            me.el.addEventListener(type, fn2);
+        });
+    }
+});
+
+
+
 var PKeyEventHook = DOMEventSource.subClass({
     className: "PKeyEventHook",
     init: function(el) {

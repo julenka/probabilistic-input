@@ -4,6 +4,8 @@
     <title>Event Hook Test</title>
     <script type="text/javascript" src="../lib/jquery.js"></script>
     <script type="text/javascript" src="../julia.js"></script>
+    <!-- Julia CSS -->
+    <link type="text/css" rel="stylesheet" href="../julia.css"/>
 </head>
 <body>
 <div id="mouse" style="background-color: gray; width: 300px; height: 300px">
@@ -20,10 +22,15 @@
     <input type="checkbox" id="chk1" checked="True"/>
     <label for="chk1">listeners on?</label>
 </div>
+<div>Console:</div>
+<div id="console"></div>
 <script type="text/javascript">
     var mouseHook = new PMouseEventHook(document.getElementById("mouse"));
     var keyHook = new PKeyEventHook();
+    var touchHook = new PTouchEventHook(document.getElementById("mouse"));
 
+    var console_div = $("#console");
+    var event_history_size = 10;
     var logEvent = function(e) {
         var ea = [];
         for(var p in e) {
@@ -32,7 +39,11 @@
             }
             ea.push(p + ":" + e[p]);
         }
-        console.log("captured " + e.type + " : " + ea.join("\n"));
+
+        while(console_div.children().length > event_history_size) {
+            console_div.children().last().remove();
+        }
+        console_div.prepend($("<div class='border1px'>captured " + e.type + " : " + ea.join("<br/>") + "</div>"));
     };
 
     mouseHook.addListener(logEvent);
@@ -50,5 +61,6 @@
         }
     })
 </script>
+
 </body>
 </html>
