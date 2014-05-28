@@ -329,12 +329,14 @@ var PTouchEventHook = DOMEventSource.subClass({
     },
     addListener: function(fn) {
         var me = this;
+	var conversions = { touchstart: 'mousedown', touchmove: 'mousemove', touchend: 'mouseup', touchcancel: 'mouseup' };
         ['touchstart', 'touchmove', 'touchend', 'touchleave', 'touchcancel'].forEach(function(type) {
 
             var fn2 = function(e) {
                 e.preventDefault();
+		
                 // convert touch events into mouse events for maximal compatibility
-                fn(new PMouseEvent(1, JSON.stringify(e, me.variance_x_px, me.variance_y_px, type));
+                fn(new PMouseEvent(1, e, me.variance_x_px, me.variance_y_px, conversions[type]));
             };
             me.event_listeners.push({type: type, fn: fn2});
             me.el.addEventListener(type, fn2);
@@ -468,12 +470,12 @@ var PVoiceEventSample = PEvent.subClass({
 
 var PMouseEvent = PEvent.subClass({
     className: "PMouseEvent",
-    init: function (identity_p, e, sigma_x, sigma_y) {
+    init: function (identity_p, e, sigma_x, sigma_y, type) {
         //noinspection JSUnresolvedFunction
         this._super(identity_p, e);
         this.sigma_x = sigma_x;
         this.sigma_y = sigma_y;
-        this.type = e.type;
+        this.type = type;
         if(e.type === "mousedown") {
             PMouseEvent.prototype.button_state = "down";
         } else if (e.type === "mouseup") {

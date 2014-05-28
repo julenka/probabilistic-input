@@ -24,7 +24,9 @@
 <table>
     <tr>
         <td>
-            <svg id="draggable_svg" class="test-interface" width="400" height="400"></svg>
+	  <div id="test">
+          <svg id="draggable_svg" class="test-interface" width="400" height="400"></svg>
+</div>
         </td>
         <td>
             <div id="alternatives" class=" unselectable"></div>
@@ -84,10 +86,13 @@
         });
 
         var mouseHook = new PMouseEventHook($sketch[0]);
+        var touchHook = new PTouchEventHook(document.getElementById("test"));
+        touchHook.variance_x_px = 10;
+        touchHook.variance_y_px = 10;
         mouseHook.variance_x_px = 10;
         mouseHook.variance_y_px = 10;
         julia.addEventSource(mouseHook);
-
+        julia.addEventSource(touchHook);
         julia.drawFeedback($sketch, feedback);
 
         julia.dispatchCompleted = function(new_alternatives, uiUpdated) {
@@ -127,7 +132,7 @@
                 ],
                 new SimpleFeedback(julia, FeedbackOpacityView)
         );
-
+ 
     });
 </script>
 </body>
