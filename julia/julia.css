@@ -43,12 +43,18 @@
     margin: 0px;
 }
 
+h3 {
+    font-family: Helvetica, sans-serif;
+    margin-top: 10pt;
+    margin-bottom: 10pt;
+}
+
 /* Demo properties */
 
 
 /* The main interface of the demo */
 /* TODO: user SASS or LESS to inherit these properties more elegantly */
-.demo-interface {
+#demo_interface {
     /* Inherit from unselectable */
     -webkit-touch-callout: none;
     -webkit-user-select: none;
@@ -61,16 +67,22 @@
     /* Inherit from border 1 px */
     border: 1px solid black;
 }
-.demo-description {
+#demo_description {
     width: 640px;
 }
 
+#demo_settings {
+    width: 640px;
+    margin-top: 10pt;
+    margin-bottom: 10pt;
+}
+
 /* Test properties */
-.test-description {
+.test_description {
     width: 500px;
 }
 
-.test-interface {
+.test_interface {
     /* Inherit from unselectable */
     -webkit-touch-callout: none;
     -webkit-user-select: none;

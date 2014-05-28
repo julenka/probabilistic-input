@@ -20,15 +20,18 @@
 
 </head>
 <body>
-<h2>Your Demo Title Here</h2>
-<div class="demo-description">Describe your demo here</div>
+<h3>Your Demo Title Here</h3>
+<div id="top_bar"></div>
+
+<div id="demo_description">Describe your demo here</div>
 <table>
     <tr>
-        <td><svg id="main_interface" class="demo-interface" width="640" height="480"></svg></td>
-        <td><div id="alternatives" class="demo-alternatives"></div></td>
+        <td><svg id="demo_interface" width="640" height="480"></svg></td>
+        <td><div id="demo_alternatives"></div></td>
     </tr>
 </table>
 
+<div id="demo_settings">Demo Settings go here</div>
 
 <table id="interactor_tree_table">
     <tr>
@@ -72,8 +75,8 @@
 
         setup(rootView);
 
-        var $alternatives = $("#alternatives");
-        var $mainInterface = $("#main_interface");
+        var $alternatives = $("#demo_alternatives");
+        var $mainInterface = $("#demo_interface");
         // Add an event source
         var mouseHook = new PMouseEventHook($mainInterface[0]);
         mouseHook.variance_x_px = mouse_variance;

@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Cursor Demo</title>
+    <title>History Cursor</title>
     <!-- JQuery -->
     <script type="text/javascript" src="../lib/jquery.js"></script>
     <script type="text/javascript" src="../lib/snap.svg.js"></script>
@@ -10,31 +10,40 @@
     <link type="text/css" rel="stylesheet" href="../julia.css"/>
 </head>
 <body>
-<div>
-    <label for="numSamples">number of event samples:</label>
-    <input type="text" id="numSamples" value="10"/>
+<h3> History Cursor </h3>
+<div id="top_bar"></div>
+<div id="demo_description">
+    More of a paintbrush than a cursor. Try dragging to see for yourself.
 </div>
-<div>
-    <label for="numAlternatives">number of alternatives to keep:</label>
-    <input type="text" id="numAlternatives" value ="50"/>
+<div id="demo_settings">
+    <div>
+        <label for="numSamples">number of event samples:</label>
+        <input type="text" id="numSamples" value="10"/>
+    </div>
+    <div>
+        <label for="numAlternatives">number of alternatives to keep:</label>
+        <input type="text" id="numAlternatives" value ="50"/>
+    </div>
+    <div>
+        <label for="sampleVarianceX">sample x variance:</label>
+        <input type="text" id="sampleVarianceX" value="10"/>
+    </div>
+    <div>
+        <label for="sampleVarianceY">sample y variance:</label>
+        <input type="text" id="sampleVarianceY" value="10"/>
+    </div>
+    <div>
+        <label for="circleRadius">circle radius:</label>
+        <input type="text" id="circleRadius" value="50"/>
+    </div>
+    <div>
+        <label for="draw_history">paintbrush mode</label>
+        <input type="checkbox" id="draw_history" checked="true">
+    </div>
+    <button onclick="update()">Update Settings</button>
+
 </div>
-<div>
-    <label for="sampleVarianceX">sample x variance:</label>
-    <input type="text" id="sampleVarianceX" value="10"/>
-</div>
-<div>
-    <label for="sampleVarianceY">sample y variance:</label>
-    <input type="text" id="sampleVarianceY" value="10"/>
-</div>
-<div>
-    <label for="circleRadius">circle radius:</label>
-    <input type="text" id="circleRadius" value="50"/>
-</div>
-<div>
-    <label for="draw_history">paintbrush mode</label>
-    <input type="checkbox" id="draw_history" defaultChecked="0">
-</div>
-<button onclick="update()">Update Settings</button>
+
 <table>
     <tr>
         <td>
@@ -46,8 +55,6 @@
 
     </tr>
 </table>
-
-
 
 <script type="text/javascript">
 

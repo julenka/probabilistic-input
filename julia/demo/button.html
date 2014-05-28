@@ -1,7 +1,7 @@
     <!DOCTYPE html>
 <html>
     <head>
-        <title>Button Demo</title>
+        <title>Probabilistic Buttons</title>
         <!-- JQuery -->
         <script type="text/javascript" src="../lib/jquery.js"></script>
         <script type="text/javascript" src="../lib/snap.svg.js"></script>
@@ -12,47 +12,58 @@
         </style>
     </head>
 <body>
-<div id="form">
-<div>
-    <label for="numSamples">number of event samples:</label>
-    <input type="text" id="numSamples" value="1000"/>
+<h3> Probabilistic Buttons </h3>
+<div id="top_bar"></div>
+<div id="demo_description">
+    Demonstrates probabilistic tracking of button state, as well as selection of different feedback mechanisms.
 </div>
-<div>
-    <label for="numAlternatives">number of alternatives to keep:</label>
-    <input type="text" id="numAlternatives" value ="10"/>
+
+
+<div id="demo_settings">
+    <div>
+        <label for="numSamples">number of event samples:</label>
+        <input type="text" id="numSamples" value="1000"/>
+    </div>
+    <div>
+        <label for="numAlternatives">number of alternatives to keep:</label>
+        <input type="text" id="numAlternatives" value ="10"/>
+    </div>
+    <div>
+        <label for="sampleVarianceX">sample x variance:</label>
+        <input type="text" id="sampleVarianceX" value="10"/>
+    </div>
+    <div>
+        <label for="sampleVarianceY">sample y variance:</label>
+        <input type="text" id="sampleVarianceY" value="10"/>
+    </div>
+     <button onclick="update()">Update Settings</button>
+
+    <div>
+        feedback type:
+    </div>
+    <div>
+        <input name="fb" type="radio" id="radio_none"/>
+        <label for="radio_none">none</label>
+    </div>
+    <div>
+        <input name="fb" type="radio" id="radio_opacity" checked="True"/>
+        <label for="radio_opacity">opacity</label>
+    </div>
+    <div>
+        <input name="fb" type="radio" id="radio_most_likely"/>
+        <label for="radio_most_likely">most_likely</label>
+    </div>
+
 </div>
-<div>
-    <label for="sampleVarianceX">sample x variance:</label>
-    <input type="text" id="sampleVarianceX" value="10"/>
-</div>
-<div>
-    <label for="sampleVarianceY">sample y variance:</label>
-    <input type="text" id="sampleVarianceY" value="10"/>
-</div>
-<button onclick="update()">Update Settings</button>
-</div>
-<div>
-    feedback type:
-</div>
-<div>
-    <input name="fb" type="radio" id="radio_none"/>
-    <label for="radio_none">none</label>
-</div>
-<div>
-    <input name="fb" type="radio" id="radio_opacity" checked="True"/>
-    <label for="radio_opacity">opacity</label>
-</div>
-<div>
-    <input name="fb" type="radio" id="radio_most_likely"/>
-    <label for="radio_most_likely">most_likely</label>
-</div>
+
+
 <table >
     <tr>
         <td>
-            <svg class="demo-interface" id="sketch" width="320" height="200"></svg>
+            <svg id="demo_interface" width="320" height="200"></svg>
         </td>
         <td>
-            <div id="sketches"></div>
+            <div id="demo_alternatives"></div>
         </td>
 
     </tr>
@@ -85,8 +96,8 @@
     });
     julia.setRootView(rootView);
 
-    var $sketch = $("#sketch");
-    var $sketches = $("#sketches");
+    var $sketch = $("#demo_interface");
+    var $sketches = $("#demo_alternatives");
 
     var feedback = new SimpleFeedback(julia, FeedbackOpacityView);
     $("#radio_opacity").click(function(){

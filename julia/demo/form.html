@@ -1,20 +1,8 @@
 <!DOCTYPE html>
-<!--
-Form Option 1:
-As you type, text gets entered in to the object that is in focus
-If no object is in focus, then a random object is picked to be in focus and then input dispatched
-When you press tab, the focus is again set to null
-When you press submit, pick the most likely form, then check that all fields are in. if so, log to console (or something)
 
-Form Option 2:
-As you type, a 'text entry' feedback item shows you the letters entered (maybe not even probabilistic)
-When you press tab, a 'form input' event is sent, and dispatched to a random interactor
-Show feedback by updating the possible interfaces
-When you press enter, a finalization request is made, the most likely interface is then shown
--->
 <html>
 <head>
-    <title>Form Demo</title>
+    <title>Focus-Free Text Entry</title>
     <!-- JQuery -->
     <script type="text/javascript" src="../lib/jquery.js"></script>
     <script type="text/javascript" src="../lib/snap.svg.js"></script>
@@ -23,43 +11,43 @@ When you press enter, a finalization request is made, the most likely interface 
     <link rel="stylesheet" type="text/css" href="../julia.css"/>
 </head>
 <body>
-<input type="button" id="start_speech" value="start speech"/>
-<input type="button" id="stop_speech" value="stop speech"/>
-<div>voice status:</div>
-<div id="status"></div>
+<div id="top_bar"></div>
+<h3>Focus-Free Text Entry</h3>
+<div id="demo_description">
+    A form which does not require focus. Type in text, no need to specify which field. The program will figure it out.
+    NOTE: To delete, press 'x', not backspace (sorry, that doesn't work for now)
+    <div>voice status:</div>
+    <div id="status"></div>
+</div>
+
+<div id="demo_settings">
+    <div>
+        <input id="dbg_dumptext" type="checkbox" />
+        <label for="dbg_dumptext">dump alternatives as text</label>
+    </div>
+
+    <div>
+        <input id="dbg_dumpsnap" type="checkbox" checked="true"/>
+        <label for="dbg_dumpsnap">dump alternative renderings</label>
+
+    </div>
+
+    <input type="button" id="start_speech" value="start speech"/>
+    <input type="button" id="stop_speech" value="stop speech"/>
+    <input type="button" id="reset_button" value="reset"/>
+</div>
+
 <table>
-
     <tr>
         <td>
-            <input id="dbg_dumptext" type="checkbox" />
-            <label for="dbg_dumptext">dump alternatives as text</label>
-        </td>
-
-    </tr>
-    <tr>
-        <td>
-            <input id="dbg_dumpsnap" type="checkbox" checked="true"/>
-            <label for="dbg_dumpsnap">dump alternative renderings</label>
-        </td>
-    </tr>
-    <tr>
-        <td>
-            <input type="button" id="reset_button" value="reset"/>
-        </td>
-    </tr>
-    <tr><td>Go ahead, type something! NOTE: To delete, press 'x', not backspace (sorry, that doesn't work for now)</td></tr>
-    <tr>
-        <td>
-            <svg id="main_interface" class="border1px" width="500" height="400"></svg>
+            <svg id="demo_interface" class="border1px" width="500" height="400"></svg>
         </td>
         <td>
-            <div id="alternative_interfaces"></div>
+            <div id="demo_alternatives"></div>
         </td>
     </tr>
 </table>
-<div id="debug">
-
-</div>
+<div id="debug"></div>
 
 <script>
 var FormEntry = FSMView.subClass({
@@ -166,7 +154,7 @@ var FormEntry = FSMView.subClass({
             textEntered : [
                 // voice and interim (assume entry is valid?)
 
-                /** Pressing the enter key and entry is valid **/
+            /** Pressing the enter key and entry is valid **/
                 new MouseDownTransition(
                         "done",
                         function(e) {
@@ -194,7 +182,7 @@ var FormEntry = FSMView.subClass({
                         this.entry_completed, // final
                         true
                 ),
-                /** Pressing the enter key but entry is invalid **/
+            /** Pressing the enter key but entry is invalid **/
                 new KeypressTransition(
                         "textEntered",
                         function(e) { return e.keyCode == 13 && !this.entryTextValidFunction(this.entry_text); }, // 9 is tab, 13 is enter
@@ -204,7 +192,7 @@ var FormEntry = FSMView.subClass({
                         undefined, // final
                         true
                 ),
-                /** Pressing 'x' deletes text...if no text then we shoudl clear our focus **/
+            /** Pressing 'x' deletes text...if no text then we shoudl clear our focus **/
                 new KeypressTransition(
                         "start",
                         function(e) {
@@ -218,7 +206,7 @@ var FormEntry = FSMView.subClass({
                         undefined,
                         true
                 ),
-                /** Pressing some other key. Check if the text is valid if not, we should kill the alternative. If it is valid, then keep doing **/
+            /** Pressing some other key. Check if the text is valid if not, we should kill the alternative. If it is valid, then keep doing **/
                 new KeypressTransition(
                         "textEntered",
                         function(e) {
@@ -266,11 +254,11 @@ var FormEntry = FSMView.subClass({
     draw: function($el) {
         var s = Snap($el[0]);
         s.text(this.x,this.y, this.label + ": ");
-        s.text(this.x + 140, this.y, this.entry_text).attr({opacity: this.entry_opacity});
+        s.text(this.x + 140, this.y, this.entry_text).attr({opacity: this.entry_opacity, "font-family": "monospace"});
         s.text(this.x + 300, this.y, this.message);
         var color = "rgb(0,0,0)";
         if(this.current_state == "textEntered") {
-            var char_width = 6.5;
+            var char_width = 8;
 
             s.line(this.x + 140 + this.entry_text.length * char_width, this.y, this.x + 140 + this.entry_text.length * char_width + 7, this.y)
                     .attr({stroke: "rgb(0,0,0)"});
@@ -299,9 +287,12 @@ var FormEntry = FSMView.subClass({
         return this.label === other.label && this.entry_text === other.entry_text && this.interim_text === other.interim_text;
     }
 });
+</script>
 
-var $sketch = $("#main_interface");
-var $sketches = $("#alternative_interfaces");
+<script>
+
+var $sketch = $("#demo_interface");
+var $sketches = $("#demo_alternatives");
 var $state = $("#status");
 
 var source = new PVoiceEventSource();
@@ -412,9 +403,6 @@ julia.dispatchCompleted = function(new_alternatives, uiUpdated) {
         });
     }
 
-//    new_alternatives.forEach(function(view_probability, i) {
-//        view_probability.view.draw($sketch);
-//    });
 };
 julia.addEventSource(new PKeyEventHook(document));
 var mHook = new PMouseEventHook($sketch[0]);
