@@ -1925,9 +1925,23 @@ var MostLikelyFeedback = Object.subClass({
 });
 var SimpleFeedback = Object.subClass({
     className: "OpacityFeedback",
-    init: function(julia, feedbackType) {
+    /**
+     * A simple feedback that adds multiple views directly onto the interface without moving or cropping anything
+     * the props parameter specifies multiple optional parameters that we may want.
+     * feedbackType: the style of overlay feedback to use. Defaults to FeedbackOpacityView
+     * renderThreshold: only interfaces above this value get rendered. Defaults to 0.01
+     * showOriginal: show the original interface as well as alternatives. Defaults to true
+     * @param julia
+     * @param props extra properties we may have.
+     */
+    init: function(julia, props) {
         this.julia = julia;
-        this.feedbackType = feedbackType;
+        this.feedbackType = FeedbackOpacityView;
+        this.renderThreshold = 0.01;
+        this.showOriginal = true;
+        for (var option in props) {
+            this[option] = props[option];
+        }
     },
     draw: function($el) {
         // creates a merged UI combining the interface alternatives
@@ -1939,15 +1953,17 @@ var SimpleFeedback = Object.subClass({
                 // base case
                 var dirty_vps = [];
                 for(var i = 0; i < alternatives.length; i++) {
-                    var vp = alternatives[i];
-                    // TODO remove magic number
+                    var viewAndProbability = alternatives[i];
                     // Don't render feedback for extremely unlikely things
-                    if(vp.view._dirty && vp.probability > 0.01) {
-                        dirty_vps.push(vp);
+                    if(viewAndProbability.view._dirty && viewAndProbability.probability > me.renderThreshold) {
+                        dirty_vps.push(viewAndProbability);
                     }
                 }
                 if(dirty_vps.length > 0) {
                     var result = new ContainerView();
+                    if(me.showOriginal) {
+                        result.addChildView(root);
+                    }
                     dirty_vps.forEach(function(vp){
                         result.addChildView(new me.feedbackType(me.julia, vp.view, vp.probability));
                     });
@@ -1994,6 +2010,37 @@ var FeedbackOpacityView = View.subClass({
         var s = Snap($el[0]);
         var group = s.group();
         group.attr({opacity: Math.roundWithSignificance(this.probability, 2)});
+        this.view.draw($(group.node));
+    }
+});
+
+/**
+ * Renders
+ * uses Snap library
+ * @type {*}
+ */
+var FeedbackOpacityGrayScaleView = View.subClass({
+    className: "FeedbackOpacityGrayScaleView",
+    init: function(julia, view, probability) {
+        this.julia = julia;
+        this.view = view;
+        this.probability = probability;
+        // HACK. We set up julia to have a Snap reference so we can get filters
+        if(typeof(julia.snap) === 'undefined') {
+            julia.snap = Snap();
+        }
+        if(typeof(julia.snap_filter_grayscale === 'undefined')) {
+            julia.snap_filter_grayscale = julia.snap.filter(Snap.filter.grayscale(1));
+        }
+    },
+    draw: function($el) {
+
+        var s = Snap($el[0]);
+        var group = s.group();
+        group.attr({
+            opacity: Math.roundWithSignificance(this.probability, 2),
+            filter: this.julia.snap_filter_grayscale
+        });
         this.view.draw($(group.node));
     }
 });

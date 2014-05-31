@@ -249,14 +249,6 @@
 //        rootView.addChildView(new MyCursor());
     }
 
-    /**
-     * Return the feedback method to display here
-     * @param julia
-     * @returns {SimpleFeedback}
-     */
-    function getFeedback(julia) {
-        return new SimpleFeedback(julia, FeedbackOpacityView);
-    }
 
     var mouseX = 0;
     var mouseY = 0;
@@ -270,6 +262,11 @@
         var julia = new Julia();
         var rootView = new ContainerView(julia, "#333333");
         julia.setRootView(rootView);
+
+        // Initialize feedback
+        julia.feedback = new SimpleFeedback(julia,
+                {feedbackType:  FeedbackOpacityGrayScaleView,
+                    renderThreshold: 0.01});
 
         setup(julia, rootView);
 
@@ -298,12 +295,12 @@
         julia.addEventSource(mouseHook);
         julia.addEventSource(touchHook);
 
-        julia.drawFeedback($mainInterface, getFeedback(julia));
+        julia.drawFeedback($mainInterface, julia.feedback);
 
         julia.dispatchCompleted = function(new_alternatives, uiUpdated) {
             var s = Snap($mainInterface[0]);
             $mainInterface.empty();
-            julia.drawFeedback($mainInterface, getFeedback(julia));
+            julia.drawFeedback($mainInterface, julia.feedback);
 
             s.circle(mouseX, mouseY, 2 * variance).attr({fill: "#D636FB"});
             julia.dumpAlternativesAsSnap($alternatives, $mainInterface.width(), $mainInterface.height(), 0.5);

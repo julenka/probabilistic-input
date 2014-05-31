@@ -55,14 +55,6 @@
 
     }
 
-    /**
-     * Return the feedback method to display here
-     * @param julia
-     * @returns {SimpleFeedback}
-     */
-    function getFeedback(julia) {
-        return new SimpleFeedback(julia, FeedbackOpacityView);
-    }
 
     /**
      * Executed when the document loads. Intended to be boilerplate, shouldn't have to replace much here (for now).
@@ -83,14 +75,19 @@
         mouseHook.variance_y_px = mouse_variance;
         julia.addEventSource(mouseHook);
 
-        julia.drawFeedback($mainInterface, getFeedback(julia));
+        // Initialize feedback
+        julia.feedback = new SimpleFeedback(julia,
+                {feedbackType:  FeedbackOpacityView,
+                    renderThreshold: 0.01});
+
+        julia.drawFeedback($mainInterface, julia.feedback);
 
         julia.dispatchCompleted = function(new_alternatives, uiUpdated) {
             if(!uiUpdated) {
                 return;
             }
             $mainInterface.empty();
-            julia.drawFeedback($mainInterface, getFeedback(julia));
+            julia.drawFeedback($mainInterface, julia.feedback);
             julia.dumpAlternativesAsSnap($alternatives, $mainInterface.width(), $mainInterface.height(), 0.25);
         };
 
