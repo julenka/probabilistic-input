@@ -266,6 +266,7 @@
      */
     $(document).ready(function(){
         var mouse_variance = 10;
+        var touch_variance = 10;
         var julia = new Julia();
         var rootView = new ContainerView(julia, "#333333");
         julia.setRootView(rootView);
@@ -276,16 +277,26 @@
         var $mainInterface = $("#main_interface");
         // Add an event source
         var mouseHook = new PMouseEventHook($mainInterface[0]);
+        var touchHook = new PTouchEventHook($mainInterface[0]);
+
         mouseHook.variance_x_px = mouse_variance;
         mouseHook.variance_y_px = mouse_variance;
-
+        touchHook.variance_x_px = touch_variance;
+        touchHook.variance_x_px = touch_variance;
 
         mouseHook.addListener(function(e) {
             mouseX = e.element_x;
             mouseY = e.element_y;
             variance = e.sigma_x;
         });
+        touchHook.addListener(function(e) {
+            mouseX = e.element_x;
+            mouseY = e.element_y;
+            variance = e.sigma_x;
+        });
+
         julia.addEventSource(mouseHook);
+        julia.addEventSource(touchHook);
 
         julia.drawFeedback($mainInterface, getFeedback(julia));
 

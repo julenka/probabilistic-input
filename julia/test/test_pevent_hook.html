@@ -3,31 +3,52 @@
 <head>
     <title>Event Hook Test</title>
     <script type="text/javascript" src="../lib/jquery.js"></script>
+    <script type="text/javascript" src="../lib/snap.svg.js"></script>
     <script type="text/javascript" src="../julia.js"></script>
     <!-- Julia CSS -->
     <link type="text/css" rel="stylesheet" href="../julia.css"/>
+    <style>
+        #boxes {
+            position: absolute;
+            right: 0;
+            width: 300px;
+            top: 0;
+            bottom: 0;
+        }
+    </style>
 </head>
 <body>
-<div id="mouse" style="background-color: gray; width: 300px; height: 300px">
-    Mouse region
+<div id="boxes">
+    div mouse touch
+    <div id="mouse" style="background-color: gray; width: 300px; height: 300px">
+
+    </div>
+
+    svg touch
+    <svg id="s" style="background-color: gray; width: 300px; height: 300px">
+        <rect x="10" y="10" width="50" height="50" fill="#ffdddd"></rect>
+    </svg>
+
+    canvas touch
+    <canvas id="c" style="background-color: gray; width: 300px; height: 300px">
+
+    </canvas>
 </div>
 
-<h2>Instructions</h2>
-<ul>
-    <li>Mouse down, move, up in mouse region should be captured and displayed in console as Events</li>
-    <li>key down, up should be captured and displayed in console as Events</li>
-    <li>unchecking 'listeners on?' removes event listeners, checking adds them back again.</li>
-</ul>
 <div>
     <input type="checkbox" id="chk1" checked="True"/>
-    <label for="chk1">listeners on?</label>
+    <label for="chk1">listeners on? (test remove listeners)</label>
 </div>
-<div>Console:</div>
-<div id="console"></div>
+<pre>
+    <div id="console"></div>
+</pre>
+
 <script type="text/javascript">
     var mouseHook = new PMouseEventHook(document.getElementById("mouse"));
     var keyHook = new PKeyEventHook();
     var touchHook = new PTouchEventHook(document.getElementById("mouse"));
+    var touchHook3 = new PTouchEventHook(document.getElementById("s"));
+    var touchHook4 = new PTouchEventHook(document.getElementById("c"));
 
     var console_div = $("#console");
     var event_history_size = 10;
@@ -43,12 +64,15 @@
         while(console_div.children().length > event_history_size) {
             console_div.children().last().remove();
         }
-        console_div.prepend($("<div class='border1px'>captured " + e.type + " : " + ea.join("<br/>") + "</div>"));
+        console_div.prepend($("<div class='border1px'>" +  new Date().getTime() + " " + e.type + "\n" + ea.join("\n") + "</div>"));
     };
 
     mouseHook.addListener(logEvent);
     keyHook.addListener(logEvent);
     touchHook.addListener(logEvent);
+    touchHook3.addListener(logEvent);
+    touchHook4.addListener(logEvent);
+
     $("#chk1").click(function(){
         console.log("clicked");
         if(this.checked) {
@@ -59,7 +83,13 @@
             mouseHook.removeEventListeners();
             keyHook.removeEventListeners();
         }
-    })
+    });
+
+    setInterval(function(){
+        var s = Snap(document.getElementById("s"));
+        $("#s").empty();
+        s.rect(Math.randint(0, 200), Math.randint(0, 200), 100, 100).attr({fill: "#006699"});
+    }, 1000);
 </script>
 
 </body>

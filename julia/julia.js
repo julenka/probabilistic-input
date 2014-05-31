@@ -311,7 +311,7 @@ var PMouseEventHook = DOMEventSource.subClass({
         var me = this;
         ['mousedown', 'mousemove', 'mouseup', 'click'].forEach(function(type) {
             var fn2 = function(e) {
-                fn(new PMouseEvent(1, e, me.variance_x_px, me.variance_y_px, type));
+                fn(new PMouseEvent(1, e, me.variance_x_px, me.variance_y_px, type, e.currentTarget));
             };
             me.event_listeners.push({type: type, fn: fn2});
             me.el.addEventListener(type, fn2);
@@ -326,21 +326,56 @@ var PTouchEventHook = DOMEventSource.subClass({
         this._super(el);
         this.variance_x_px = 100;
         this.variance_y_px = 100;
+        this.conversions = { touchstart: 'mousedown', touchmove: 'mousemove', touchend: 'mouseup', touchcancel: 'mouseup' };
+    },
+    makeMouseEvent: function(e) {
+        // ***NOTE*** If we ever update what we do with PMouseEvents, we will need to update this as well
+        var pageX, pageY;
+        if(e.targetTouches.length == 0) {
+            pageX = 0;
+            pageY = 0
+        } else {
+            pageX = e.targetTouches[0].pageX;
+            pageY = e.targetTouches[0].pageY;
+        }
+
+
+        var event = document.createEvent("MouseEvents");
+        event.initMouseEvent(this.conversions[e.type], true, true, this.el, 0, pageX, pageY, pageX, pageY,
+            false, false, false, false, 0, null);
+        return event;
     },
     addListener: function(fn) {
         var me = this;
-	var conversions = { touchstart: 'mousedown', touchmove: 'mousemove', touchend: 'mouseup', touchcancel: 'mouseup' };
-        ['touchstart', 'touchmove', 'touchend', 'touchleave', 'touchcancel'].forEach(function(type) {
 
-            var fn2 = function(e) {
-                e.preventDefault();
-		
-                // convert touch events into mouse events for maximal compatibility
-                fn(new PMouseEvent(1, e, me.variance_x_px, me.variance_y_px, conversions[type]));
+        // according to http://www.html5rocks.com/en/mobile/touchandmouse/
+        // when dealing with svgs, we shoul register a touch down handler, then once this happens, add move handlers,
+        // then on touch end remove them
+        var touchStartListener = function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            var event = me.makeMouseEvent(e);
+
+            var moveFn = function(e) {
+                var event = me.makeMouseEvent(e);
+                fn(new PMouseEvent(1, event, me.variance_x_px, me.variance_y_px, me.conversions[e.type], me.el));
             };
-            me.event_listeners.push({type: type, fn: fn2});
-            me.el.addEventListener(type, fn2);
-        });
+            var endFn = function(e) {
+                var event = me.makeMouseEvent(e);
+                fn(new PMouseEvent(1, event, me.variance_x_px, me.variance_y_px, me.conversions[e.type], me.el));
+
+                me.el.removeEventListener("touchmove", moveFn);
+                me.el.removeEventListener(endFn);
+            };
+            // add move, end event handlers to this.el
+            e.target.addEventListener("touchmove", moveFn);
+            e.target.addEventListener("touchend", endFn);
+            e.target.addEventListener("touchcancel", endFn);
+
+            fn(new PMouseEvent(1, event, me.variance_x_px, me.variance_y_px, me.conversions[e.type], me.el));
+        };
+        this.el.addEventListener("touchstart", touchStartListener);
+        me.event_listeners.push({type: "touchstart", fn: touchStartListener});
     }
 });
 
@@ -470,7 +505,7 @@ var PVoiceEventSample = PEvent.subClass({
 
 var PMouseEvent = PEvent.subClass({
     className: "PMouseEvent",
-    init: function (identity_p, e, sigma_x, sigma_y, type) {
+    init: function (identity_p, e, sigma_x, sigma_y, type, currentTarget) {
         //noinspection JSUnresolvedFunction
         this._super(identity_p, e);
         this.sigma_x = sigma_x;
@@ -485,9 +520,9 @@ var PMouseEvent = PEvent.subClass({
 
         var left = 0, top = 0;
         //noinspection JSUnresolvedVariable
-        if (this.base_event.currentTarget !== window) {
+        if (currentTarget !== window) {
             //noinspection JSHint
-            var offset = $(this.base_event.currentTarget).offset();
+            var offset = $(currentTarget).offset();
             left = offset.left;
             top = offset.top;
         }
