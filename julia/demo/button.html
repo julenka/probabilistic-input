@@ -94,6 +94,7 @@
         button.addClickHandler(function(){ window.alert("button at (" + button.x + ", " + button.y + ") clicked!")});
         rootView.addChildView(button);
     });
+    julia.mediator.mediationThreshold = 0.1;
     julia.setRootView(rootView);
 
     var $sketch = $("#demo_interface");

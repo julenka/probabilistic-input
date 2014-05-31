@@ -972,7 +972,11 @@ var ActionRequestCombiner = Object.subClass({
 });
 var Mediator = Object.subClass({
     className: "Mediator",
-    init: function(){},
+    init: function(){
+        // By default, we set the mediation threshold for 0, for now. Demos that want to show mediation
+        // can increase this value, or create their own mediator.
+        this.mediationThreshold = 0.0;
+    },
     /**
      * Mediator takes as input a list of action requests and returns a list of resulting actions to execute
      * By default, all actions are returned and accepted
@@ -1016,18 +1020,20 @@ var Mediator = Object.subClass({
         var cmp = function(a,b) { return b.weight - a.weight;};
         var finalSorted = finalRequests.sort(cmp);
         var feedbackSorted = reversibleRequests.sort(cmp);
-        var mediationThreshold = 0.1;
 
         // finalRequests.length > 0 here
         var w = finalSorted[0].weight;
-        var finalShouldBeAccepted = finalSorted.length === 1 || w - finalSorted[1].weight > mediationThreshold;
+        var finalShouldBeAccepted = finalSorted.length === 1 || w - finalSorted[1].weight > this.mediationThreshold;
+        if(this.mediationThreshold === 0) {
+            finalShouldBeAccepted = true;
+        }
         if(finalShouldBeAccepted) {
             return [new MediationReply(finalSorted[0], true, finalSorted[0].weight)];
         } else {
             // add deferred action items
             var result = this.mediationReplyFromActionSequences(feedbackSorted);
             result.push(new MediationReply(finalSorted[0], false, finalSorted[0].weight));
-            for(var i = 1; i < finalSorted.length && w - finalSorted[i].weight < mediationThreshold; i++) {
+            for(var i = 1; i < finalSorted.length && w - finalSorted[i].weight < this.mediationThreshold; i++) {
                 result.push(new MediationReply(finalSorted[i], false, finalSorted[i].weight));
             }
             return result;
