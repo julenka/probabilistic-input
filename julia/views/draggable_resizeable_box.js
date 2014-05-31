@@ -278,9 +278,6 @@ var DraggableResizeableBox = DraggableBox.subClass({
  */
 var DraggableResizeableBox2 = DraggableResizeableBox.subClass({
     className: "DraggableResizeableBox2",
-    NUM_DRAG_POINTS: 30,
-    VECTOR_RIGHT: {x: 1, y: 0},
-    VECTOR_UP: {x: 0, y: 1},
     init: function(julia, x, y, w, h, resize_padding) {
         this._super(julia, x, y, w, h, resize_padding);
     },
@@ -289,40 +286,18 @@ var DraggableResizeableBox2 = DraggableResizeableBox.subClass({
         this.copyFsm(result);
         this.cloneActionRequests(result);
         this.copyProperties(result);
-
-        result.drag_points = this.drag_points;
-        result.drag_vector = this.drag_vector;
-
         return result;
     },
     drag_progress: function(e) {
         this._super(e);
-        if(this.drag_points.length > this.NUM_DRAG_POINTS) {
-            this.drag_points.shift();
-        }
-        this.drag_points.push({x: e.element_x, y: e.element_y});
-        var n = this.drag_points.length - 1;
-        this.drag_vector = {x: 0, y: 0};
-        for(var i = 0; i < this.drag_points.length - 1; i++) {
-            var p1 = this.drag_points[i];
-            var p2 = this.drag_points[i + 1];
-            this.drag_vector.x += (p2.x - p1.x) / n;
-            this.drag_vector.y += ( p2.y -p1.y) / n;
-        }
-
-        var v1 = this.moveToQuadrant(this.drag_vector);
-        var angleHorizontal = this.getAngle(v1, this.VECTOR_RIGHT);
-        var angleVertical = this.getAngle(v1, this.VECTOR_UP);
-
-        if(angleVertical * angleHorizontal === 0){
-            return;
-        }
-        if(this.resizingHorizontally() && angleVertical < 20) {
-            log(LOG_LEVEL_DEBUG, "vertical angle is ", angleVertical);
+        var dx = Math.abs(this.drag_start_info.mouse_x - e.element_x);
+        var dy = Math.abs(this.drag_start_info.mouse_y - e.element_y);
+        // TODO: this should be resolution independent, and should have to do with probabilities...
+        if(this.resizingHorizontally() && dy > 30) {
             this.current_state = "dragging";
             this.w = this.drag_start_info.my_w;
             this.h = this.drag_start_info.my_h;
-        } else if (this.resizingVertically() && angleHorizontal < 20) {
+        } else if (this.resizingVertically() && dx > 30) {
             this.current_state = "dragging";
             this.w = this.drag_start_info.my_w;
             this.h = this.drag_start_info.my_h;
