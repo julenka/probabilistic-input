@@ -2045,6 +2045,33 @@ var FeedbackOpacityGrayScaleView = View.subClass({
     }
 });
 
+
+
+/**
+ * Renders items with opacity & grayscale, and optionally an 'outline' view, if present
+ * uses Snap library
+ * @type {*}
+ */
+var FeedbackOpacityGrayScaleOutlineView = FeedbackOpacityGrayScaleView.subClass({
+    className: "FeedbackOpacityGrayScaleOutlineView",
+    init: function(julia, view, probability) {
+        this._super(julia, view, probability);
+    },
+    draw: function($el) {
+        var s = Snap($el[0]);
+        var group = s.group();
+        group.attr({
+            opacity: Math.roundWithSignificance(this.probability, 2),
+            filter: this.julia.snap_filter_grayscale
+        });
+        if(typeof(this.view.drawAmbiguous) !== 'undefined') {
+            this.view.drawAmbiguous($(group.node));
+        } else {
+            this.view.draw($(group.node));
+        }
+    }
+});
+
 /**
  * Renders a child view with opacity 1
  * uses Snap library

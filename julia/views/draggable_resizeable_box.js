@@ -111,6 +111,13 @@ var DraggableBox = FSMView.subClass({
         }
         s.rect(this.x, this.y, this.w, this.h).attr({fill: this.color});
     },
+    drawAmbiguous: function($el) {
+        this.draw($el);
+        var s = Snap($el[0]);
+        var x = this.x + this.w / 2 - 12;
+        var y = this.y + this.h / 2 + 24;
+        s.text(x, y, "?").attr({'font-family':'Arial, Helvetical', 'font-size': '48px', opacity: 0.5});
+    },
     clone: function() {
         var result = new DraggableBox(this.julia, this.x, this.y, this.w, this.h);
         this.copyFsm(result);

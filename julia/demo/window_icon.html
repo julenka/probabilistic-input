@@ -197,7 +197,8 @@
                 s.circle(x0 + i * dx, y0, pd2).attr({fill: c});
             });
 
-        },
+        }
+
     }
     );
 
@@ -228,7 +229,6 @@
             for(var i = 0; i < messages.length; i++) {
                 s.text(x0, y0 + h * i, messages[i]).attr({'font-family':'Arial, Helvetical'});
             }
-
         }
     });
 </script>
@@ -265,7 +265,7 @@
 
         // Initialize feedback
         julia.feedback = new SimpleFeedback(julia,
-                {feedbackType:  FeedbackOpacityGrayScaleView,
+                {feedbackType:  FeedbackOpacityGrayScaleOutlineView,
                     renderThreshold: 0.01});
 
         setup(julia, rootView);
