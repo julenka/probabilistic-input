@@ -22,6 +22,31 @@ var shallowCopy = function(input) {
     return result;
 };
 
+/**
+ * Determines if two variables are equal (shallow comparison, type conversion)
+ * Returns true if equal, false otherwise.
+ */
+var shallowEquals = function(a, b) {
+    var a_keys = Object.keys(a);
+    var b_keys = Object.keys(b);
+    if(a_keys.length !== b_keys.length) {
+        return false;
+    }
+    var examined = {};
+    for(var prop in a) {
+        examined[prop] = true;
+        if(a[prop] !== b[prop]) {
+            return false;
+        }
+    }
+    for(var prop in b) {
+        if(!(prop in examined)) {
+            return false;
+        }
+    }
+    return true;
+};
+
 // Inheritance
 // Obtained from "Secrets of the JavaScript Ninja", page 145
 (function(){
@@ -76,6 +101,7 @@ var shallowCopy = function(input) {
                 this.init.apply(this, arguments);
                 this.className = properties.className;
                 this.toString = function() { return this.className; };
+                this.constructor = Class;
             }
         }
 
@@ -301,11 +327,11 @@ var DOMEventSource = PEventSource.subClass({
 
 var PMouseEventHook = DOMEventSource.subClass({
     className: "PMouseEventHook",
-    init: function(el) {
+    init: function(el, variance_x_px, variance_y_px) {
         //noinspection JSUnresolvedFunction
         this._super(el);
-        this.variance_x_px = 100;
-        this.variance_y_px = 100;
+        this.variance_x_px = variance_x_px;
+        this.variance_y_px = variance_y_px;
     },
     addListener: function(fn) {
         var me = this;
@@ -321,11 +347,11 @@ var PMouseEventHook = DOMEventSource.subClass({
 
 var PTouchEventHook = DOMEventSource.subClass({
     className: "PTouchEventHook",
-    init: function(el) {
+    init: function(el, variance_x_px, variance_y_px) {
         //noinspection JSUnresolvedFunction
         this._super(el);
-        this.variance_x_px = 100;
-        this.variance_y_px = 100;
+        this.variance_x_px = variance_x_px;
+        this.variance_y_px = variance_y_px;
         this.conversions = { touchstart: 'mousedown', touchmove: 'mousemove', touchend: 'mouseup', touchcancel: 'mouseup' };
     },
     makeMouseEvent: function(e) {
@@ -1183,19 +1209,23 @@ var ActionRequestSequence = Object.subClass({
 //noinspection JSUnusedGlobalSymbols
 /**
  * Represents a component of a user interface (or, potentially, an entire interface).
- * @type {*}
+ * @type {View}
  */
 var View = Object.subClass({
     className: "View",
-    init: function(julia) {
-        this.julia = julia;
-    },
     /**
-     * Creates an identical copy of this view
+     * Represents a component of a user interface (or, potentially, an entire interface).
+     * @param julia Julia object
+     * @param properties list of visual properties object has. These get automatically cloned. Should be a 'shallow' object
      */
-    clone: function() {
-        // TODO make the clone method more generic: 1. Create a new object 2. copy action requests 3. copy all properties
-        throw "not implemented!";
+    init: function(julia, properties, defaults) {
+        this.julia = julia;
+        this.properties = typeof(properties) === 'undefined' ? {} : properties;
+        for (var property in defaults) {
+            if(!(property in this.properties)) {
+                this.properties[property] = defaults[property];
+            }
+        }
     },
     /**
      * If this has any action requests that it points to, make sure to move the action requests to
@@ -1214,11 +1244,14 @@ var View = Object.subClass({
         this.actionRequests = undefined;
     },
     /**
-     * Copy any view-specific properties here
-     * @param clone
+     * Creates an identical copy of this view
      */
-    cloneProperties: function(clone) {
-        throw "not implemented!";
+    clone: function() {
+        // TODO make the clone method more generic: 1. Create a new object 2. copy action requests 3. copy all properties
+        var result = new this.constructor(this.julia, this.properties);
+        this.cloneActionRequests(result);
+        result.properties = shallowCopy(this.properties);
+        return result;
     },
     /**
      * Draws the view
@@ -1340,14 +1373,12 @@ var View = Object.subClass({
  */
 var ContainerView = View.subClass({
     className: "ContainerView",
-    init: function(julia, background_color, background_image) {
+    init: function(julia, properties) {
         //noinspection JSUnresolvedFunction
-        this._super(julia);
+        this._super(julia, properties, {"background_color": undefined, "background_image": undefined});
         this.children = [];
         // index of the child that is currently in focus
         this.focus_index = -1;
-        this.background_color = background_color;
-        this.background_image = background_image;
     },
     resetDirtyBit: function() {
         this.children.forEach(function(child){
@@ -1376,10 +1407,7 @@ var ContainerView = View.subClass({
      * Creates an identical copy of this view
      */
     clone: function() {
-        var result = new ContainerView(this.julia);
-        this.cloneActionRequests(result);
-        result.background_color = this.background_color;
-        result.background_image = this.background_image;
+        var result = this._super();
         result.children = [];
         this.children.forEach(function(child){
             var clone = child.clone();
@@ -1394,11 +1422,11 @@ var ContainerView = View.subClass({
      */
     draw: function($el) {
         var i = 0;
-        if(typeof(this.background_color) !== 'undefined') {
-            $el.css('background-color', this.background_color);
+        if(typeof(this.properties.background_color) !== 'undefined') {
+            $el.css('background-color', this.properties.background_color);
         }
-        if(typeof(this.background_image) !== 'undefined') {
-            $el.css('background-image', this.background_image);
+        if(typeof(this.properties.background_image) !== 'undefined') {
+            $el.css('background-image', this.properties.background_image);
         }
         for(i; i < this.children.length; i++) {
             this.children[i].draw($el);
@@ -1411,10 +1439,7 @@ var ContainerView = View.subClass({
         if(!this._super(other)) {
             return false;
         }
-        if((this.background_color !== other.background_color)) {
-            return false;
-        }
-        if((this.background_image !== other.background_image)) {
+        if(!shallowEquals(this.properties, other.properties)) {
             return false;
         }
         if(this.children.length !== other.children.length) {
@@ -1527,9 +1552,14 @@ var ContainerView = View.subClass({
 
 var FSMView = View.subClass({
     className: "FSMView",
-    init: function(julia) {
+    /**
+     * Base class for a view controlled by a FSM
+     * @param julia
+     * @param properties
+     */
+    init: function(julia, properties, defaults) {
         //noinspection JSUnresolvedFunction
-        this._super(julia);
+        this._super(julia, properties, defaults);
         this.fsm_description = {};
         this.current_state = "start";
     },
@@ -1555,13 +1585,9 @@ var FSMView = View.subClass({
         }
 
     },
-    copyProperties: function(clone) {
-        throw "copyProperties not implemented!";
-    },
     clone: function() {
-        var result = new FSMView(this.julia);
+        var result = this._super();
         this.copyFsm(result);
-        this.cloneActionRequests(result);
         return result;
     },
     draw: function($el) {
@@ -1697,20 +1723,33 @@ var KeydownTransition = Transition.subClass({
 
 //endregion
 
-//region Controls
+//region Views
 
 var Cursor = FSMView.subClass({
     className: "Cursor",
-    init: function (julia) {
-        this._super(julia);
-        this.color = "black";
-        this.x = 0;
-        this.y = 0;
-        this.radius = 10;
-        this.opacity = 1.0;
-        this.current_state = "start";
-        this.drag_sample_index = -1;
-        this.handles_event = false;
+    /**
+     * A simple cursor. Properties are:
+     * x:
+     * y:
+     * radius:
+     * opacity:
+     * current_state:
+     * drag_sample_index:
+     * handles_event:
+     * @param julia
+     * @param properties
+     */
+    init: function (julia, properties) {
+        var defaults = {
+            color: "black",
+            x: 0,
+            y: 0,
+            opacity: 1.0,
+            radius: 10,
+            drag_sample_index: -1,
+            handles_event: false
+        };
+        this._super(julia, properties, defaults);
         var t = function() { return true; };
         // TODO: make it easy to apply common properties
         this.fsm_description = {
@@ -1747,67 +1786,63 @@ var Cursor = FSMView.subClass({
         };
     },
     does_sample_index_match: function(e) {
-        return e.sample_index === this.drag_sample_index;
+        return e.sample_index === this.properties.drag_sample_index;
     },
     update_location: function(e, rootView){
-        this.x = e.element_x;
-        this.y = e.element_y;
+        this.properties.x = e.element_x;
+        this.properties.y = e.element_y;
     },
     drag_start: function(e, rootView) {
         // the index of the event sample that we received when a drag was initiated
-        this.drag_sample_index = e.sample_index;
+        this.properties.drag_sample_index = e.sample_index;
         this.update_location(e);
-        this.color = "green";
+        this.properties.color = "green";
     },
     drag_progress: function(e, rootView) {
         this.update_location(e);
     },
     drag_end: function(e, rootView) {
         this.update_location(e);
-        this.color = "black";
-        this.drag_sample_index = -1;
+        this.properties.color = "black";
+        this.properties.drag_sample_index = -1;
     },
     draw: function ($el) {
         // TODO are we okay with drawing this to a Snap?
         // in this case $el will be an SVG element
         var s = Snap($el[0]);
-        s.circle(this.x, this.y, this.radius).attr({fill: this.color, opacity: this.opacity});
-    },
-    clone: function() {
-        var result = new Cursor(this.julia);
-        this.copyFsm(result);
-        this.cloneActionRequests(result);
-        this.copyProperties(result);
-        return result;
-    },
-    copyProperties: function(clone) {
-        clone.color = this.color;
-        clone.x = this.x;
-        clone.y = this.y;
-        clone.radius = this.radius;
-        clone.opacity = this.opacity;
-        clone.drag_sample_index = this.drag_sample_index;
-        clone.handles_event = this.handles_event;
+        s.circle(this.properties.x, this.properties.y, this.properties.radius)
+            .attr({fill: this.properties.color, opacity: this.properties.opacity});
     },
     equals: function(other) {
         if(!this._super(other)) {
             return false;
         }
-        return this.x === other.x && this.y === other.y;
+        return this.properties.x === other.properties.x && this.properties.y === other.properties.y;
     }
 });
 
 
+/**
+ * A simple button. Moving outside of the button while it is down will move button to the start state
+ * Properties:
+ * x:
+ * y:
+ * w:
+ * h:
+ * @type {Button}
+ * @param properties list of properties.
+ */
 var Button = FSMView.subClass({
     className: "Button",
-    init: function (julia, x, y, w, h) {
-        this._super(julia);
-        this.x = x;
-        this.y = y;
-        this.w = w;
-        this.h = h;
+    init: function (julia, properties) {
+        var defaults = {
+            x: 0,
+            y: 0,
+            w: 0,
+            h: 0
+        };
+        this._super(julia, properties, defaults);
         this.click_handlers = [];
-        this.current_state = "start";
         // TODO: make it easy to apply common properties
         this.fsm_description = {
             start: [
@@ -1846,9 +1881,9 @@ var Button = FSMView.subClass({
         };
     },
     hit_test: function(e) {
-        var rx = e.element_x - this.x;
-        var ry = e.element_y - this.y;
-        return (rx > 0 && ry > 0 && rx < this.w && ry < this.h);
+        var rx = e.element_x - this.properties.x;
+        var ry = e.element_y - this.properties.y;
+        return (rx > 0 && ry > 0 && rx < this.properties.w && ry < this.properties.h);
     },
     on_out: function(e) {
 
@@ -1875,14 +1910,16 @@ var Button = FSMView.subClass({
         var c2 = this.current_state === "start" ? "black" : "white";
         // in this case $el will be an SVG element
         var s = Snap($el[0]);
-        s.rect(this.x, this.y, this.w, this.h).attr({stroke: "black", "stroke-width": 3, fill: c});
-        s.text(this.x + this.w / 2, this.y + this.h / 2, this.x + ", " + this.y)
+        var x = this.properties.x;
+        var y = this.properties.y;
+        var w = this.properties.w;
+        var h = this.properties.h;
+        s.rect(x, y, w, h).attr({stroke: "black", "stroke-width": 3, fill: c});
+        s.text(x + w / 2, y + h / 2, x + ", " + y)
             .attr({stroke:c2, fill: c2, fontFamily: "Helvetica", "text-anchor": "middle", "alignment-baseline": "middle"});
     },
     clone: function() {
-        var result = new Button(this.julia, this.x, this.y, this.w, this.h);
-        this.copyFsm(result);
-        this.cloneActionRequests(result);
+        var result = this._super();
         result.click_handlers.extend(this.click_handlers);
         return result;
     },
@@ -1896,6 +1933,8 @@ var Button = FSMView.subClass({
         }
     }
 });
+
+
 
 //endregion
 

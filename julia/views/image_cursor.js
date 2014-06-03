@@ -5,40 +5,29 @@
 // Requires julia.js
 var ImageCursor = Cursor.subClass({
     className: "ImageCursor",
+    /**
+     * Cursor that displays an image
+     * @param julia
+     */
     init: function(julia) {
         this._super(julia);
     },
-    clone: function() {
-        var result = new ImageCursor(this.julia);
-        this.copyFsm(result);
-        this.cloneActionRequests(result);
-        this.copyProperties(result);
-        return result;
-    },
-    copyProperties: function(clone) {
-        this._super(clone);
-        clone.img_src = this.img_src;
-        clone.w = this.w;
-        clone.h = this.h;
-    },
     set_image_src: function(src) {
-        this.img_src = src;
+        this.properties.img_src = src;
         var me = this;
-        $('<img src="'+ this.img_src +'">').load(function() {
+        $('<img src="'+ this.properties.img_src +'">').load(function() {
             me.src = src;
             var el = $(this)[0];
-            me.w = el.naturalWidth;
-            me.h = el.naturalHeight;
-            log(LOG_LEVEL_DEBUG, "src: " + me.src + " w: " + me.w);
+            me.properties.w = el.naturalWidth;
+            me.properties.h = el.naturalHeight;
         });
-    },
-    drag_progress: function(e) {
-    },
-    drag_end: function(e) {
     },
     draw: function ($el) {
         var s = Snap($el[0]);
-        s.image(this.img_src, this.x - this.w / 2, this.y - this.h / 2, this.w, this.h);
+        s.image(this.properties.img_src,
+            this.properties.x - this.properties.w / 2,
+            this.properties.y - this.properties.h / 2,
+            this.properties.w, this.properties.h);
     },
     setImage: function(src) {
         this.img_src = src;

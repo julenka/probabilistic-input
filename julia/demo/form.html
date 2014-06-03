@@ -51,6 +51,7 @@
 
 <script>
 var FormEntry = FSMView.subClass({
+    // TODO: Migrate this to using properties when you feel like doing mindless refactoring
     className: "FormLabel",
     init: function(julia, label, inputValidFunction, entryTextValidFunction, x, y, onCompleteFn) {
         this._super(julia);

@@ -58,79 +58,12 @@
     // Your custom views here
     var Window = DraggableResizeableBox2.subClass( {
         className: "Window",
-        clone: function() {
-            var result = new Window(this.julia, this.x, this.y, this.w, this.h, this.resize_padding);
-            this.copyFsm(result);
-            this.cloneActionRequests(result);
-            this.copyProperties(result);
-            return result;
-        },
-        drag_progress: function(e) {
-            var motion = this.get_relative_motion(e);
-            var new_w = this.w;
-            var new_h = this.h;
-            var new_x = this.x;
-            var new_y = this.y;
-            switch(this.current_state) {
-                case "dragging":
-                    new_x = this.drag_start_info.my_x + motion.dx;
-                    new_y = this.drag_start_info.my_y + motion.dy;
-                    break;
-                case "resize_left":
-                    new_w = this.w = this.drag_start_info.my_w - motion.dx;
-                    new_x = this.drag_start_info.my_x + motion.dx;
-                    break;
-                case "resize_right":
-                    new_w = this.drag_start_info.my_w + motion.dx;
-                    break;
-                case "resize_top":
-                    new_h = this.drag_start_info.my_h - motion.dy;
-                    new_y = this.drag_start_info.my_y + motion.dy;
-                    break;
-                case "resize_bottom":
-                    new_h = this.drag_start_info.my_h + motion.dy;;
-                    break;
-
-            }
-            if(new_h < this.min_h) { return; }
-            if(new_w < this.min_w) { return; }
-            this.x = new_x;
-            this.y = new_y;
-            this.w = new_w;
-            this.h = new_h;
-
-            var dx = Math.abs(this.drag_start_info.mouse_x - e.element_x);
-            var dy = Math.abs(this.drag_start_info.mouse_y - e.element_y);
-            // TODO: this should be resolution independent, and should have to do with probabilities...
-
-            if(this.resizingHorizontally() && dy > 30) {
-                this.current_state = "start";
-                this.w = this.drag_start_info.my_w;
-                this.h = this.drag_start_info.my_h;
-                this.x = this.drag_start_info.my_x;
-                this.y = this.drag_start_info.my_y;
-            } else if (this.resizingVertically() && dx > 30) {
-                this.current_state = "start";
-                this.w = this.drag_start_info.my_w;
-                this.h = this.drag_start_info.my_h;
-                this.x = this.drag_start_info.my_x;
-                this.y = this.drag_start_info.my_y;
-            }
-        },
         hit_test: function(e, transition) {
             var coords = this.get_relative(e);
-            switch(transition.to) {
-                case "dragging":
-                    return (coords.rx > 0 && coords.ry > 0 && coords.rx < this.w && coords.ry < 2 * this.resize_padding);
-                case "resize_left":
-                    return (coords.rx > -this.resize_padding && coords.rx < this.resize_padding && coords.ry > 0 && coords.ry < this.h);
-                case "resize_right":
-                    return (coords.rx > this.w - this.resize_padding && coords.rx < this.w + this.resize_padding && coords.ry > 0 && coords.ry < this.h);
-                case "resize_top":
-                    return (coords.ry > - this.resize_padding && coords.ry < this.resize_padding && coords.rx > 0 && coords.rx < this.w);
-                case "resize_bottom":
-                    return (coords.ry > this.h - this.resize_padding && coords.ry < this.h + this.resize_padding && coords.rx > 0 && coords.rx < this.w);
+            if(transition.to === "dragging") {
+                return (coords.rx > 0 && coords.ry > 0 && coords.rx < this.properties.w && coords.ry < 2 * this.properties.resize_padding);
             }
+            return this._super(e, transition);
         },
         draw: function ($el) {
             // in this case $el will be an SVG element
@@ -138,50 +71,42 @@
             var padding = 5;
             var border_attrs = {fill: "white", "stroke-width": 1, stroke: "black"};
             if(this.current_state === "dragging") {
-                s.rect(this.x - padding, this.y - padding, this.w + 2 * padding, this.h + 2 * padding)
+                s.rect(this.properties.x - padding, this.properties.y - padding, this.properties.w + 2 * padding, this.properties.h + 2 * padding)
                         .attr(border_attrs);
             } else if (this.current_state === "resize_left") {
-                s.rect(this.x - padding, this.y - padding, 2 * padding, this.h + 2 * padding)
+                s.rect(this.properties.x - padding, this.properties.y - padding, 2 * padding, this.properties.h + 2 * padding)
                         .attr(border_attrs);
             } else if (this.current_state === "resize_right") {
-                s.rect(this.x + this.w - padding, this.y - padding, 2 * padding, this.h + 2 * padding)
+                s.rect(this.properties.x + this.properties.w - padding, this.properties.y - padding, 2 * padding, this.properties.h + 2 * padding)
                         .attr(border_attrs);
             } else if (this.current_state === "resize_top") {
-                s.rect(this.x - padding, this.y - padding, this.w + 2 * padding, 2 * padding)
+                s.rect(this.properties.x - padding, this.properties.y - padding, this.properties.w + 2 * padding, 2 * padding)
                         .attr(border_attrs);
             } else if (this.current_state === "resize_bottom") {
-                s.rect(this.x - padding, this.y + this.h - padding, this.w + 2 * padding, 2 * padding)
+                s.rect(this.properties.x - padding, this.properties.y + this.properties.h - padding, this.properties.w + 2 * padding, 2 * padding)
                         .attr(border_attrs);
             }
-            s.rect(this.x, this.y, this.w, this.h).attr({fill: "#ffdddd"});
-            s.rect(this.x, this.y, this.w, 2 * this.resize_padding).attr({fill: "#CCCCCC"});
+            s.rect(this.properties.x, this.properties.y, this.properties.w, this.properties.h).attr({fill: "#ffdddd"});
+            s.rect(this.properties.x, this.properties.y, this.properties.w, 2 * this.properties.resize_padding).attr({fill: "#CCCCCC"});
 
-            var y0 = this.y + 10 + 3 * this.resize_padding;
-            var x0 = this.x + 10
+            var y0 = this.properties.y + 10 + 3 * this.properties.resize_padding;
+            var x0 = this.properties.x + 10
 
             var pd2 = 5;
-            x0 = this.x + 2 * pd2;
-            y0 = this.y + 2 * pd2;
+            x0 = this.properties.x + 2 * pd2;
+            y0 = this.properties.y + 2 * pd2;
             var dx = 3 * pd2;
             var colors = ["#E33037", "#FBF536","#7DC04A"];
             colors.forEach(function(c, i){
                 s.circle(x0 + i * dx, y0, pd2).attr({fill: c});
             });
 
-        }
-
+        },
     }
     );
 
     var Icon = DraggableBox.subClass({
         className: "Icon",
-        clone: function() {
-            var result = new Icon(this.julia, this.x, this.y, this.w, this.h);
-            this.copyFsm(result);
-            this.cloneActionRequests(result);
-            this.copyProperties(result);
-            return result;
-        },
         draw: function ($el) {
             // in this case $el will be an SVG element
             var s = Snap($el[0]);
@@ -191,8 +116,8 @@
             if(this.current_state == "dragging") {
                 color = dark;
             }
-            s.rect(this.x, this.y, 40, 30).attr({fill: color, rx: 5, ry: 5});
-            s.rect(this.x, this.y + 10, this.w, this.h - 10).attr({fill: color, rx: 3, ry:3});
+            s.rect(this.properties.x, this.properties.y, 40, 30).attr({fill: color, rx: 5, ry: 5});
+            s.rect(this.properties.x, this.properties.y + 10, this.properties.w, this.properties.h - 10).attr({fill: color, rx: 3, ry:3});
         }
     });
 </script>
@@ -203,14 +128,13 @@
      * @param rootView
      */
     function setup(julia, rootView) {
-        rootView.addChildView(new Icon(julia, 234,205, 110, 90));
-        rootView.addChildView(new Icon(julia, 464,231, 110, 90));
-        rootView.addChildView(new Icon(julia, 269,364, 110, 90));
-        rootView.addChildView(new Icon(julia, 404, 428, 110, 90));
-        rootView.addChildView(new Window(julia, 25, 20, 268, 228, 10));
-        rootView.addChildView(new Window(julia, 333, 19, 268, 228, 10));
-        rootView.addChildView(new Window(julia, 31, 333, 268, 228, 10));
-//        rootView.addChildView(new MyCursor());
+        rootView.addChildView(new Icon(julia, {x: 234, y: 205, w: 110, h: 90}));
+        rootView.addChildView(new Icon(julia, {x: 464, y: 231, w: 110, h: 90}));
+        rootView.addChildView(new Icon(julia, {x: 269, y: 364, w: 110, h: 90}));
+        rootView.addChildView(new Icon(julia, {x: 404, y: 428, w: 110, h: 90}));
+        rootView.addChildView(new Window(julia, {x: 25, y: 20, w: 268, h: 228, resize_padding: 10}));
+        rootView.addChildView(new Window(julia, {x: 333, y: 19, w: 268, h:228, resize_padding: 10}));
+        rootView.addChildView(new Window(julia, {x: 31, y: 333, w: 268, h: 228, resize_paddding: 10}));
     }
 
 
@@ -221,10 +145,8 @@
      * Executed when the document loads. Intended to be boilerplate, shouldn't have to replace much here (for now).
      */
     $(document).ready(function(){
-        var mouse_variance = 10;
-        var touch_variance = 10;
         var julia = new Julia();
-        var rootView = new ContainerView(julia, "#333333");
+        var rootView = new ContainerView(julia, {background_color: "#333333"});
         julia.setRootView(rootView);
 
         // Initialize feedback
@@ -237,13 +159,8 @@
         var $alternatives = $("#alternatives");
         var $mainInterface = $("#main_interface");
         // Add an event source
-        var mouseHook = new PMouseEventHook($mainInterface[0]);
-        var touchHook = new PTouchEventHook($mainInterface[0]);
-
-        mouseHook.variance_x_px = mouse_variance;
-        mouseHook.variance_y_px = mouse_variance;
-        touchHook.variance_x_px = touch_variance;
-        touchHook.variance_x_px = touch_variance;
+        var mouseHook = new PMouseEventHook($mainInterface[0], 10, 10);
+        var touchHook = new PTouchEventHook($mainInterface[0], 10, 10);
 
         mouseHook.addListener(function(e) {
             mouseX = e.element_x;

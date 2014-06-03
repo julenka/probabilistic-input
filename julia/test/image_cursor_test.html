@@ -36,9 +36,7 @@
         var $sketch = $("#test_svg");
 
         julia.nSamplesPerEvent = 1;
-        var mouseHook = new PMouseEventHook($sketch[0]);
-        mouseHook.variance_x_px = 0;
-        mouseHook.variance_y_px = 0;
+        var mouseHook = new PMouseEventHook($sketch[0], 0, 0);
         julia.addEventSource(mouseHook);
 
         var rootView = new ContainerView(julia);

@@ -60,28 +60,21 @@
 
     var HistoryCursor = Cursor.subClass({
         className: "HistoryCursor",
-        init: function(julia) {
-            this._super(julia);
+        init: function(julia, properties) {
+            this._super(julia, properties);
             this.path = [];
         },
         clone: function() {
-            var result = new HistoryCursor(this.julia);
-            this.copyFsm(result);
-            this.cloneActionRequests(result);
-            this.copyProperties(result);
-
-            return result;
-        },
-        copyProperties: function(clone) {
-            this._super(clone);
+            var clone = this._super();
             clone.path = [];
             clone.path.extend(this.path);
             clone.draw_history = this.draw_history;
+            return clone;
         },
         drag_progress: function(e) {
             this._super(e);
             if(this.draw_history) {
-                this.path.push(this.x + ", " + this.y);
+                this.path.push(this.properties.x + ", " + this.properties.y);
             }
         },
         drag_end: function(e) {
@@ -89,13 +82,13 @@
             this.path = [];
         },
         draw: function ($el) {
+            this._super($el);
             // TODO are we okay with drawing this to a Snap?
             // in this case $el will be an SVG element
             var s = Snap($el[0]);
-            s.circle(this.x, this.y, this.radius).attr({fill: this.color, opacity: this.opacity});
             if (this.path.length > 1) {
-                s.path("M" + this.path.join("L")).attr({stroke: this.color, fill: "none",
-                    "stroke-width": this.radius, opacity: this.opacity});
+                s.path("M" + this.path.join("L")).attr({stroke: this.properties.color, fill: "none",
+                    "stroke-width": this.properties.radius, opacity: this.properties.opacity});
             }
         }
     });
@@ -103,7 +96,7 @@
     var julia = new Julia();
     var rootView = new ContainerView(julia);
     var view = new HistoryCursor(julia);
-    view.opacity = 0.2;
+    view.properties.opacity = 0.2;
     rootView.addChildView(view);
     julia.setRootView(rootView);
 

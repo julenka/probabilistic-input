@@ -65,6 +65,20 @@
         }
     });
 
+    test("shallowEquals", function() {
+        var a = {a: 1, b: 1};
+        var b = {a: 1, b: 1};
+        var c = {a: 2, b: 2};
+        var d = {a: a, b: b};
+        var e = {a: a, b: b};
+        var f = {a: '1', b: '1'};
+        ok(shallowEquals(a, b));
+        ok(shallowEquals(d, e));
+        ok(!shallowEquals(a, c));
+        ok(!shallowEquals(f, a));
+        ok(shallowEquals(f, f));
+    });
+
     test("String.repeat", function() {
         equal("s".repeat(0), "");
         equal("s".repeat(5), "sssss");

@@ -61,38 +61,19 @@
     </tr>
 </table>
 <script>
-    var MyCursor = Cursor.subClass({
-        className: "MyCursor",
-        clone: function() {
-            var result = new MyCursor(this.julia);
-            this.copyFsm(result);
-            this.cloneActionRequests(result);
-            this.copyProperties(result);
-            return result;
-        },
-        equals: function(other) { return true}
-    });
-
-    // Global variables
 
 
     function buildTest(julia, $sketch, $alternatives, childViews, feedback) {
-        var rootView = new ContainerView(julia, "#C2CCD1");
+        var rootView = new ContainerView(julia, {"background_color": "#C2CCD1"});
         julia.setRootView(rootView);
 
         childViews.forEach(function(child) {
             rootView.addChildView(child);
         });
 
-        var mouseHook = new PMouseEventHook($sketch[0]);
-        var touchHook = new PTouchEventHook($sketch[0]);
-        touchHook.variance_x_px = 10;
-        touchHook.variance_y_px = 10;
-        mouseHook.variance_x_px = 10;
-        mouseHook.variance_y_px = 10;
-        touchHook.addListener(function(e){
-            $("#ts").html(e.type + ", " + new Date().getTime());
-        });
+        var mouseHook = new PMouseEventHook($sketch[0], 10, 10);
+        var touchHook = new PTouchEventHook($sketch[0], 10, 10);
+
         julia.addEventSource(mouseHook);
         julia.addEventSource(touchHook);
         julia.drawFeedback($sketch, feedback);
@@ -112,16 +93,25 @@
         var maxWidth = $("#draggable_svg").width() - itemSize;
         var maxHeight = $("#draggable_svg").height() - itemSize;
         var julia = new Julia();
+        var propsForColor  = function(color){
+            return    {
+                x: Math.randint(0, maxWidth),
+                y: Math.randint(0, maxHeight),
+                w: itemSize,
+                h: itemSize,
+                color: color
+            };
+
+        };
         buildTest(julia, $("#draggable_svg"), $("#alternatives"),
-                [new DraggableBox(julia, Math.randint(0, maxWidth), Math.randint(0, maxHeight), itemSize, itemSize, true).attr({color: "#ffdddd"})],
+                [new DraggableBox(julia, propsForColor("#ffdddd"))],
                  new MostLikelyFeedback(julia));
 
         julia = new Julia();
         buildTest(julia, $("#draggable_resizeable_svg"), $("#alternatives2"),
                 [
-                    new DraggableResizeableBox(julia, Math.randint(0, maxWidth), Math.randint(0, maxHeight), itemSize, itemSize, itemSize / 5).attr({color:  "#ddffdd"}),
-                    new DraggableBox(julia, Math.randint(0, maxWidth), Math.randint(0, maxHeight), itemSize, itemSize, itemSize / 5).attr({color: "#ffdddd"}),
-                    new MyCursor(julia)
+                    new DraggableResizeableBox(julia, propsForColor("#ddffdd"))
+                    ,new DraggableBox(julia, propsForColor("#ffdddd"))
                 ],
                 new SimpleFeedback(julia)
         );
@@ -129,8 +119,8 @@
         julia = new Julia();
         buildTest(julia, $("#draggable_resizeable2_svg"), $("#alternatives3"),
                 [
-                    new DraggableResizeableBox2(julia, Math.randint(0, maxWidth), Math.randint(0, maxHeight), itemSize, itemSize, itemSize / 5).attr({color:  "#ddffdd"}),
-                    new DraggableBox(julia, Math.randint(0, maxWidth), Math.randint(0, maxHeight), itemSize, itemSize, itemSize / 5).attr({color: "#ffdddd"}),
+                    new DraggableResizeableBox2(julia, propsForColor("#ddffdd")),
+                    new DraggableBox(julia, propsForColor("#ffdddd")),
                 ],
                 new SimpleFeedback(julia)
         );

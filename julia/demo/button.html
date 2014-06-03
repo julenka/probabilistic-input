@@ -85,13 +85,13 @@
     var julia = new Julia();
     var rootView = new ContainerView(julia);
     var buttons = [
-        new Button(julia, 50, 50, 100, 50),
-        new Button(julia, 170, 50, 100, 50),
-        new Button(julia, 50, 120, 100, 50),
-        new Button(julia, 170, 120, 100, 50)
+        new Button(julia, {x: 50, y: 50, w: 100, h: 50}),
+        new Button(julia, {x: 170, y: 50, w: 100, h: 50}),
+        new Button(julia, {x: 50, y: 120, w: 100, h: 50}),
+        new Button(julia, {x: 170, y: 120, w: 100, h: 50})
     ];
     buttons.forEach(function(button) {
-        button.addClickHandler(function(){ window.alert("button at (" + button.x + ", " + button.y + ") clicked!")});
+        button.addClickHandler(function(){ window.alert("button at (" + button.properties.x + ", " + button.properties.y + ") clicked!")});
         rootView.addChildView(button);
     });
     julia.mediator.mediationThreshold = 0.1;
