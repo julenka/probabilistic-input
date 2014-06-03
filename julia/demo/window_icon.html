@@ -156,17 +156,9 @@
             s.rect(this.x, this.y, this.w, this.h).attr({fill: "#ffdddd"});
             s.rect(this.x, this.y, this.w, 2 * this.resize_padding).attr({fill: "#CCCCCC"});
 
-            var messages = ["This is a window", "it is located at (" + Math.round(this.x) + "," + Math.round(this.y) + ")",
-                "it has width " + Math.round(this.w) + " and height " + Math.round(this.h)];
-            var h = 30;
             var y0 = this.y + 10 + 3 * this.resize_padding;
             var x0 = this.x + 10
-            for(var i = 0; i < messages.length; i++) {
-                s.text(x0, y0 + h * i, messages[i]).attr({'font-family':'Arial, Helvetical'});
-            }
 
-
-            s.text(this.x + 10, this.y + 10 + 3 * this.resize_padding, "This is a window.").attr({'font-family':'Arial, Helvetical'});
             var pd2 = 5;
             x0 = this.x + 2 * pd2;
             y0 = this.y + 2 * pd2;
@@ -201,13 +193,6 @@
             }
             s.rect(this.x, this.y, 40, 30).attr({fill: color, rx: 5, ry: 5});
             s.rect(this.x, this.y + 10, this.w, this.h - 10).attr({fill: color, rx: 3, ry:3});
-            var messages = ["I am an icon", "(" + Math.round(this.x) + "," + Math.round(this.y) + ")"];
-            var h = 30;
-            var y0 = this.y + 40;
-            var x0 = this.x + 10
-            for(var i = 0; i < messages.length; i++) {
-                s.text(x0, y0 + h * i, messages[i]).attr({'font-family':'Arial, Helvetical'});
-            }
         }
     });
 </script>
