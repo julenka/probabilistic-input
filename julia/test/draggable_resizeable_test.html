@@ -60,6 +60,21 @@
 
     </tr>
 </table>
+
+<div class="test-description">
+    Resize probability changes based on how horizontal/vertical the interactor is.
+</div>
+<table>
+    <tr>
+        <td>
+            <svg id="draggable_resizeable3_svg" class="test-interface" width="400" height="400"></svg>
+        </td>
+        <td>
+            <div id="alternatives4" class=" unselectable"></div>
+        </td>
+
+    </tr>
+</table>
 <script>
 
 
@@ -93,6 +108,7 @@
         var maxWidth = $("#draggable_svg").width() - itemSize;
         var maxHeight = $("#draggable_svg").height() - itemSize;
         var julia = new Julia();
+        julia.nSamplesPerEvent = 100;
         var propsForColor  = function(color){
             return    {
                 x: Math.randint(0, maxWidth),
@@ -120,6 +136,15 @@
         buildTest(julia, $("#draggable_resizeable2_svg"), $("#alternatives3"),
                 [
                     new DraggableResizeableBox2(julia, propsForColor("#ddffdd")),
+                    new DraggableBox(julia, propsForColor("#ffdddd")),
+                ],
+                new SimpleFeedback(julia)
+        );
+
+        julia = new Julia();
+        buildTest(julia, $("#draggable_resizeable3_svg"), $("#alternatives4"),
+                [
+                    new DraggableResizeableBox3(julia, propsForColor("#ddffdd")),
                     new DraggableBox(julia, propsForColor("#ffdddd")),
                 ],
                 new SimpleFeedback(julia)

@@ -29,7 +29,7 @@ var DraggableBox = FSMView.subClass({
 
         this.fsm_description = {
             start: [
-                //   init: function(to, sample_index_matches, feedback_action, final_action, handles_event) {
+                //   init: function(to, drag_predicate, feedback_action, final_action, handles_event) {
                 new MouseDownTransition(
                     "dragging",
                     this.hit_test,
@@ -40,14 +40,14 @@ var DraggableBox = FSMView.subClass({
             dragging: [
                 new MouseMoveTransition(
                     "dragging",
-                    this.sample_index_matches,
+                    this.drag_predicate,
                     this.drag_progress,
                     undefined,
                     true
                 ),
                 new MouseUpTransition(
                     "start",
-                    this.sample_index_matches,
+                    this.drag_predicate,
                     undefined,
                     this.drag_end,
                     true
@@ -62,16 +62,16 @@ var DraggableBox = FSMView.subClass({
     },
     get_relative_motion: function(e) {
         return {
-            dx:e.element_x - this.drag_start_info.mouse_x,
-            dy:e.element_y - this.drag_start_info.mouse_y
+            dx:e.base_event.element_x - this.drag_start_info.mouse_x,
+            dy:e.base_event.element_y - this.drag_start_info.mouse_y
         };
     },
     hit_test: function(e) {
         var coords = this.get_relative(e);
         return (coords.rx > 0 && coords.ry > 0 && coords.rx < this.properties.w && coords.ry < this.properties.h);
     },
-    sample_index_matches: function(e) {
-        return e.sample_index === this.drag_sample_index;
+    drag_predicate: function(e) {
+        return true;
     },
     /**
      * Called when a gesture (e.g. the drag, in this case) starts.
@@ -79,9 +79,8 @@ var DraggableBox = FSMView.subClass({
      * @param e
      */
     gesture_start: function(e) {
-        this.drag_sample_index = e.sample_index;
-        this.drag_start_info.mouse_x = e.element_x;
-        this.drag_start_info.mouse_y = e.element_y;
+        this.drag_start_info.mouse_x = e.base_event.element_x;
+        this.drag_start_info.mouse_y = e.base_event.element_y;
         this.drag_start_info.my_x = this.properties.x;
         this.drag_start_info.my_y = this.properties.y;
         this.drag_start_info.my_w = this.properties.w;
@@ -97,7 +96,6 @@ var DraggableBox = FSMView.subClass({
         this.properties.y = this.drag_start_info.my_y + motion.dy;
     },
     drag_end: function(e, rootView) {
-        this.properties.drag_sample_index = -1;
     },
     draw: function ($el) {
         // in this case $el will be an SVG element
@@ -119,7 +117,6 @@ var DraggableBox = FSMView.subClass({
     clone: function() {
         var result = this._super();
         result.drag_start_info = shallowCopy(this.drag_start_info);
-        result.drag_sample_index = this.drag_sample_index;
         return result;
     },
 
@@ -166,13 +163,13 @@ var DraggableResizeableBox = DraggableBox.subClass({
             this.fsm_description[name] = [
                 new MouseMoveTransition(
                     name,
-                    this.sample_index_matches,
+                    this.drag_predicate,
                     this.drag_progress,
                     undefined,
                     true
                 ), new MouseUpTransition(
                     "start",
-                    this.sample_index_matches,
+                    this.drag_predicate,
                     undefined,
                     this.drag_end,
                     true
@@ -289,6 +286,40 @@ var DraggableResizeableBox2 = DraggableResizeableBox.subClass({
             this.properties.h = this.drag_start_info.my_h;
         }
 
+    },
+    resizingVertically: function() { return this.current_state === "resize_top" || this.current_state === "resize_bottom";},
+    resizingHorizontally: function() { return this.current_state === "resize_left" || this.current_state === "resize_right";},
+});
+
+/**
+ * A rectangle that is draggable and resizeable, however it uses the motion at the beginning of the interaction
+ * to disambiguate the user's intention.
+ * If resizing horizontally, only horizontal motions are accepted
+ * If resizing vertically, only vertical motions are accepted
+ * Adjusts probability accordingly
+ * @type {*}
+ */
+var DraggableResizeableBox3 = DraggableResizeableBox.subClass({
+    className: "DraggableResizeableBox2",
+    init: function(julia, properties) {
+        this._super(julia, properties);
+    },
+    drag_predicate: function(e) {
+        var dx = Math.abs(this.drag_start_info.mouse_x - e.element_x);
+        var dy = Math.abs(this.drag_start_info.mouse_y - e.element_y);
+        // TODO: this should be resolution independent, and should have to do with probabilities...
+        if(this.resizingHorizontally() && dy > 30) {
+            if(Math.randint(0, 10) === 1) {
+                return false;
+            }
+
+        } else if (this.resizingVertically() && dx > 30) {
+            var x = Math.randint(0,10);
+            if(x === 1) {
+                return false;
+            }
+        }
+        return true;
     },
     resizingVertically: function() { return this.current_state === "resize_top" || this.current_state === "resize_bottom";},
     resizingHorizontally: function() { return this.current_state === "resize_left" || this.current_state === "resize_right";},
