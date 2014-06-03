@@ -1903,6 +1903,10 @@ var Button = FSMView.subClass({
 //region Feedback
 var RootViewFeedback = Object.subClass({
     className: "RootViewFeedback",
+    /**
+     * Feedback method that just shows the root view of the interface, no feedback.
+     * @param julia
+     */
     init: function(julia) {
         this.julia = julia;
     },
@@ -1914,6 +1918,11 @@ var RootViewFeedback = Object.subClass({
 
 var MostLikelyFeedback = Object.subClass({
     className: "MostLikelyFeedback",
+    /**
+     * Feedback method that just shows the most likely alternative. If no alternatives are present,
+     * shows the root view
+     * @param julia
+     */
     init: function(julia) {
         this.julia = julia;
     },
@@ -1926,11 +1935,14 @@ var MostLikelyFeedback = Object.subClass({
 var SimpleFeedback = Object.subClass({
     className: "OpacityFeedback",
     /**
-     * A simple feedback that adds multiple views directly onto the interface without moving or cropping anything
+     * A simple feedback that adds multiple views directly onto the interface without moving or cropping anything.
+     * Optionally shows the original view as well as alternatives.
      * the props parameter specifies multiple optional parameters that we may want.
+     *
      * feedbackType: the style of overlay feedback to use. Defaults to FeedbackOpacityView
      * renderThreshold: only interfaces above this value get rendered. Defaults to 0.01
      * showOriginal: show the original interface as well as alternatives. Defaults to true
+     *
      * @param julia
      * @param props extra properties we may have.
      */
@@ -2052,8 +2064,8 @@ var FeedbackOpacityGrayScaleView = View.subClass({
  * uses Snap library
  * @type {*}
  */
-var FeedbackOpacityGrayScaleOutlineView = FeedbackOpacityGrayScaleView.subClass({
-    className: "FeedbackOpacityGrayScaleOutlineView",
+var FeedbackOpacityGrayScaleAmbiguousView = FeedbackOpacityGrayScaleView.subClass({
+    className: "FeedbackOpacityGrayScaleAmbiguousView",
     init: function(julia, view, probability) {
         this._super(julia, view, probability);
     },
