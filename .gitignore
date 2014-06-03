@@ -1,4 +1,5 @@
 .idea/
+profiler/
 pi.sublime-project
 pi.sublime-workspace
 *.pyc
