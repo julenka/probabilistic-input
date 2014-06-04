@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Size, Color, Jitter Demo</title>
+    <title>OverlayFeedback Test</title>
 
     <!-- JQuery -->
     <script type="text/javascript" src="../lib/jquery.js"></script>
@@ -22,7 +22,7 @@
     </style>
 </head>
 <body>
-<div>Describe your test here</div>
+<div>OverlayFeedback Test</div>
 <table>
     <tr>
         <td>
@@ -46,11 +46,12 @@
     </tr>
     <tr>
         <td>
-            <div>Color Overlay</div>
-            <svg id="color" class="border1px" width="500" height="500"></svg>
+            <div>Blur</div>
+            <svg id="blur" class="border1px" width="500" height="500"></svg>
         </td>
         <td>
-            <div>Jitter</div>
+            <div>Contrast</div>
+            <svg id="contrast" class="border1px" width="500" height="500"></svg>
         </td>
     </tr>
 </table>
@@ -146,6 +147,8 @@
         buildTest(OverlayOpacitySaturation, $("#grayscale"));
         buildTest(OverlayScale, $("#size"));
         buildTest(OverlayProgressBar, $("#progress_bar"));
+        buildTest(OverlayBlur, $("#blur"));
+        buildTest(OverlayContrast, $("#contrast"));
 
     });
 

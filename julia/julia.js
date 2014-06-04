@@ -2066,6 +2066,9 @@ var OverlayFeedbackBase = View.subClass({
         this.julia = julia;
         this.view = view;
         this.probability = probability;
+        if(typeof(julia.snap) === 'undefined') {
+            julia.snap = Snap();
+        }
     },
     draw: function($el) {
         throw "OverlayFeedbackBase should be subclassed! Draw() not implemented"
@@ -2097,9 +2100,7 @@ var OverlayOpacitySaturation = OverlayFeedbackBase.subClass({
     init: function(julia, view, probability) {
         this._super(julia, view, probability);
         // HACK. We set up julia to have a Snap reference so we can get filters
-        if(typeof(julia.snap) === 'undefined') {
-            julia.snap = Snap();
-        }
+
         if(typeof(julia.snap_filter_grayscale === 'undefined')) {
             julia.snap_filter_grayscale = julia.snap.filter(Snap.filter.grayscale(1));
         }
@@ -2162,6 +2163,43 @@ var OverlayScale = OverlayFeedbackBase.subClass({
         this.view.draw($(group.node));
         this.view.properties.x = x;
         this.view.properties.y = y;
+    }
+});
+
+/**
+ * Renders items with a blur factor proportional to likelihood
+ * uses Snap library
+ * @type {*}
+ */
+var OverlayBlur = OverlayFeedbackBase.subClass({
+    className: "OverlayScale",
+    draw: function($el) {
+        var s = Snap($el[0]);
+        var group = s.group();
+        this.julia.snap_filter_blur = this.julia.snap.filter(Snap.filter.blur(5 * (1 - this.probability)));
+        group.attr({
+            filter: this.julia.snap_filter_blur
+        });
+        this.view.draw($(group.node));
+    }
+});
+
+
+/**
+ * Renders items with a contrast proportional to likelihood
+ * uses Snap library
+ * @type {*}
+ */
+var OverlayContrast = OverlayFeedbackBase.subClass({
+    className: "OverlayScale",
+    draw: function($el) {
+        var s = Snap($el[0]);
+        var group = s.group();
+        this.julia.snap_filter_contrast = this.julia.snap.filter(Snap.filter.contrast(this.probability));
+        group.attr({
+            filter: this.julia.snap_filter_contrast
+        });
+        this.view.draw($(group.node));
     }
 });
 
