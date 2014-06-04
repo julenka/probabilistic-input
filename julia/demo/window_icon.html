@@ -150,7 +150,7 @@
         julia.setRootView(rootView);
 
         // Initialize feedback
-        julia.feedback = new SimpleFeedback(julia,
+        julia.feedback = new OverlayFeedback(julia,
                 {feedbackType:  FeedbackOpacityGrayScaleAmbiguousView,
                     renderThreshold: 0.01});
 

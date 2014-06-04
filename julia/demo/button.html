@@ -100,10 +100,10 @@
     var $sketch = $("#demo_interface");
     var $sketches = $("#demo_alternatives");
 
-    var feedback = new SimpleFeedback(julia);
+    var feedback = new OverlayFeedback(julia);
 
     $("#radio_opacity").click(function(){
-        feedback = new SimpleFeedback(julia);
+        feedback = new OverlayFeedback(julia);
     });
     $("#radio_none").click(function() {
         feedback = new RootViewFeedback(julia);

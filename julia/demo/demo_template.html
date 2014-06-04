@@ -76,7 +76,7 @@
         julia.addEventSource(mouseHook);
 
         // Initialize feedback
-        julia.feedback = new SimpleFeedback(julia,
+        julia.feedback = new OverlayFeedback(julia,
                 {feedbackType:  FeedbackOpacityView,
                     renderThreshold: 0.01});
 

@@ -1975,7 +1975,7 @@ var MostLikelyFeedback = Object.subClass({
         return result;
     }
 });
-var SimpleFeedback = Object.subClass({
+var OverlayFeedback = Object.subClass({
     className: "OpacityFeedback",
     /**
      * A simple feedback that adds multiple views directly onto the interface without moving or cropping anything.
@@ -2092,6 +2092,7 @@ var FeedbackOpacityGrayScaleView = View.subClass({
 
         var s = Snap($el[0]);
         var group = s.group();
+        this.julia.snap_filter_grayscale = this.julia.snap.filter(Snap.filter.grayscale(1 - this.probability));
         group.attr({
             opacity: Math.roundWithSignificance(this.probability, 2),
             filter: this.julia.snap_filter_grayscale
@@ -2115,6 +2116,7 @@ var FeedbackOpacityGrayScaleAmbiguousView = FeedbackOpacityGrayScaleView.subClas
     draw: function($el) {
         var s = Snap($el[0]);
         var group = s.group();
+        this.julia.snap_filter_grayscale = this.julia.snap.filter(Snap.filter.grayscale(1 - this.probability));
         group.attr({
             opacity: Math.roundWithSignificance(this.probability, 2),
             filter: this.julia.snap_filter_grayscale
