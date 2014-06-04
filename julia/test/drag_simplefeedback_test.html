@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Size, Color, Jitter Demo</title>
+
+    <!-- JQuery -->
+    <script type="text/javascript" src="../lib/jquery.js"></script>
+
+    <!-- Snap SVG library -->
+    <script type="text/javascript" src="../lib/snap.svg.js"></script>
+
+    <!-- Julia library -->
+    <script type="text/javascript" src="../julia.js"></script>
+
+    <!-- Draggable/Resizeable -->
+    <script type="text/javascript" src="../views/draggable_resizeable_box.js"></script>
+
+    <style>
+        svg {
+            background-color: #C2CCD1;
+        }
+    </style>
+</head>
+<body>
+<div>Describe your test here</div>
+<table>
+    <tr>
+        <td>
+            <div>Opacity</div>
+            <svg id="opacity" class="border1px" width="500" height="500"></svg>
+        </td>
+        <td>
+            <div>Grayscale</div>
+            <svg id="grayscale" class="border1px" width="500" height="500"></svg>
+        </td>
+    </tr>
+    <tr>
+        <td>
+            <div>Size</div>
+            <svg id="size" class="border1px" width="500" height="500"></svg>
+        </td>
+        <td>
+            <div>Progress Bar</div>
+            <svg id="progress_bar" class="border1px" width="500" height="500"></svg>
+        </td>
+    </tr>
+    <tr>
+        <td>
+            <div>Color Overlay</div>
+            <svg id="color" class="border1px" width="500" height="500"></svg>
+        </td>
+        <td>
+            <div>Jitter</div>
+        </td>
+    </tr>
+</table>
+
+
+<script>
+// Add any controls here
+    var MyDraggable = DraggableBox.subClass({
+        className: "MyDraggable",
+        /**
+         * de
+         * @param julia
+         * @param properties
+         */
+        init: function(julia, properties) {
+            this._super(julia, properties, {"goal_x": 0, "goal_y": 0, "goal_radius": 100});
+        },
+        drag_predicate: function(e) {
+            var dx = this.properties.x - this.properties.goal_x;
+            var dy = this.properties.y - this.properties.goal_y;
+            var d = Math.sqrt(dx * dx + dy * dy);
+            if(d < this.properties.goal_radius) {
+                return Math.dieRoll(0.5 + 0.5 * (1 -  d / this.properties.goal_radius));
+            }
+            return Math.dieRoll(0.5);
+        }
+    })
+</script>
+
+<script>
+    // Global variables
+    function buildTest(simpleFeedbackType, $sketch) {
+        var julia = new Julia();
+        var feedback = new SimpleFeedback(julia, {feedbackType: simpleFeedbackType});
+        var goals = [
+            { x: 70, y: 70, color: "red"},
+            { x: 400, y: 70, color: "green"},
+            { x: 400, y : 400, color: "blue"},
+            { x: 70, y : 400, color: "yellow"},
+        ];
+        var goalSize = 50;
+
+        // set up Julia
+        julia.nSamplesPerEvent = 100;
+        var mouseHook = new PMouseEventHook($sketch[0], 40, 40);
+        julia.addEventSource(mouseHook);
+
+        // Set up views
+        var rootView = new ContainerView(julia);
+        julia.setRootView(rootView);
+
+        var dragX = 200;
+        var dragY = 200;
+        var makeProps = function(goal) {
+            return {
+                x: dragX + Math.randint(-50, 50),
+                y: dragY + Math.randint(-50, 50),
+                w: goalSize,
+                h: goalSize,
+                goal_radius: 150,
+                goal_x: goal.x,
+                goal_y: goal.y,
+                color: goal.color
+            }
+        };
+        goals.forEach(function(g){
+
+            rootView.addChildView(new MyDraggable(julia, makeProps(g)));
+        });
+
+        var updateUI = function() {
+            $sketch.empty();
+            var s = Snap($sketch[0]);
+            goals.forEach(function(g){
+                s.circle(g.x, g.y, goalSize).attr({stroke: g.color, "stroke-width": 2, "fill-opacity": 0});
+                s.circle(g.x, g.y, 150).attr({fill: g.color, "fill-opacity": 0.05});
+            });
+            julia.drawFeedback($sketch, feedback);
+        };
+        updateUI();
+        // Do stuff when an event has been dispatched
+        julia.dispatchCompleted = function(x, uiUpdated) {
+            if(!uiUpdated) {
+                return;
+            }
+            updateUI();
+        };
+    }
+
+    // Put your initialization code here
+    $(document).ready(function(){
+        buildTest(FeedbackOpacityView, $("#opacity"));
+        buildTest(FeedbackOpacityGrayScaleView, $("#grayscale"));
+        buildTest(FeedbackScaleView, $("#size"));
+        buildTest(FeedbackProgressBar, $("#progress_bar"));
+
+    });
+
+</script>
+</body>
+</html>

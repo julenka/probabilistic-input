@@ -154,6 +154,10 @@ Math.weightedRandomSample = function(map) {
     return last;
 };
 
+Math.dieRoll = function(probability) {
+    return Math.random() < probability;
+};
+
 Math.roundWithSignificance = function(n, sig) {
     return Math.round(n * Math.pow(10, sig)) / Math.pow(10,sig);
 };
@@ -2122,6 +2126,55 @@ var FeedbackOpacityGrayScaleAmbiguousView = FeedbackOpacityGrayScaleView.subClas
         }
     }
 });
+
+/**
+ * Renders items with a scaling factor proportional to likelihood
+ * uses Snap library
+ * @type {*}
+ */
+var FeedbackScaleView = FeedbackOpacityGrayScaleView.subClass({
+    className: "FeedbackScaleView",
+    init: function(julia, view, probability) {
+        this._super(julia, view, probability);
+    },
+    draw: function($el) {
+        var s = Snap($el[0]);
+        var group = s.group();
+        var scale = 0.3 +  this.probability;
+        var x = this.view.properties.x;
+        var y = this.view.properties.y;
+        this.view.properties.x = 0;
+        this.view.properties.y = 0;
+        group.attr({ transform: "translate(" + x + " " + y + ") " + "scale(" + scale + " " + scale + ") "
+        });
+        this.view.draw($(group.node));
+        this.view.properties.x = x;
+        this.view.properties.y = y;
+    }
+});
+
+/**
+ * Renders items with a scaling factor proportional to likelihood
+ * uses Snap library
+ * @type {*}
+ */
+var FeedbackProgressBar = FeedbackOpacityView.subClass({
+    className: "FeedbackProgressBar",
+    init: function(julia, view, probability) {
+        this._super(julia, view, probability);
+    },
+    draw: function($el) {
+        var s = Snap($el[0]);
+        var group = s.group();
+        this.view.draw($(group.node));
+        var height = 50;
+        var width = 20;
+        s.rect(this.view.properties.x - width, this.view.properties.y, width, height).attr({fill: "gray"});
+        s.rect(this.view.properties.x - width,
+            this.view.properties.y + height * (1 - this.probability), width, height * this.probability).attr({fill: "green"});
+    }
+});
+
 
 /**
  * Renders a child view with opacity 1
