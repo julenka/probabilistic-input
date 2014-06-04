@@ -39,6 +39,9 @@
     float: left
 }
 
+.float-clear {
+    clear:both;
+}
 .obj-property {
     margin: 0px;
 }

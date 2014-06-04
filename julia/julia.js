@@ -432,7 +432,37 @@ var PKeyEventHook = DOMEventSource.subClass({
         var me = this;
         ['keydown', 'keyup', 'keypress'].forEach(function(type) {
             var fn2 = function(e) {
+                var now = new Date().getTime();
                 fn(new PKeyEvent(1, e));
+                if(type === 'keypress') {
+                    e.preventDefault();
+                }
+            };
+            me.event_listeners.push({type: type, fn: fn2});
+            me.el.addEventListener(type, fn2);
+
+        });
+    }
+});
+
+var PCapKeyEventHook = PKeyEventHook.subClass({
+    className: "PCapKeyEventHook",
+    init: function(el) {
+        //noinspection JSUnresolvedFunction
+        this._super(el);
+        this.last_keypress_time = new Date().getTime();
+    },
+    addListener: function(fn) {
+        var me = this;
+        ['keydown', 'keyup', 'keypress'].forEach(function(type) {
+            var fn2 = function(e) {
+                var now = new Date().getTime();
+                fn(new PCapKeyEvent(1, e, now - me.last_keypress_time));
+                if(type === 'keypress') {
+                    me.last_keypress_time = now;
+                    e.preventDefault();
+                }
+
             };
             me.event_listeners.push({type: type, fn: fn2});
             me.el.addEventListener(type, fn2);
@@ -636,6 +666,37 @@ var PKeyEvent = PEvent.subClass({
         this.type = e.type;
     },
     getSamples: function() {
+        return [new PKeyEvent(1, this.base_event)];
+    }
+});
+
+var PCapKeyEvent = PKeyEvent.subClass({
+    className: "PCapKeyEvent",
+    init: function(identity_p, e, time_since_last_keypress) {
+        this._super(identity_p, e);
+        this.time_since_last_keypress = time_since_last_keypress;
+    },
+    getSamples: function() {
+        if(this.time_since_last_keypress > 1000) {
+            var e = this.base_event;
+            var upper = String.fromCharCode(e.keyCode).toUpperCase().charCodeAt(0);
+            // http://stackoverflow.com/questions/6406784/initkeyevent-keypress-only-works-in-firefox-need-a-cross-browser-solution
+            var new_event = document.createEvent("KeyboardEvent");
+            Object.defineProperty(new_event, 'keyCode', {
+                get : function() {
+                    return this.keyCodeVal;
+                }
+            });
+            Object.defineProperty(new_event, 'which', {
+                get : function() {
+                    return this.keyCodeVal;
+                }
+            });
+            new_event.initKeyboardEvent(e.type, e.bubbles, e.cancelable,
+                null, false, false, true, false, upper, upper );
+            new_event.keyCodeVal = upper;
+            return [new PKeyEvent(0.5, new_event), new PKeyEvent(0.5, this.base_event)];
+        }
         return [new PKeyEvent(1, this.base_event)];
     }
 });
@@ -2059,6 +2120,173 @@ var OverlayFeedback = Object.subClass({
         return mergedRoot;
     }
 });
+
+var AnimateFeedback = Object.subClass({
+    className: "AnimateFeedback",
+    init: function(julia, props) {
+        this.julia = julia;
+        this.viewsToUpdate = [];
+        this.feedbackType = AnimateJitterRotate;
+        setInterval(bind(this,"updateViews"), 60);
+        for(var option in props) {
+            this[option] = props[option];
+        }
+    },
+    updateViews: function() {
+        for(var i = 0; i < this.viewsToUpdate.length; i++) {
+            this.viewsToUpdate[i].update();
+        }
+    },
+    draw: function($el) {
+        this.viewsToUpdate = [];
+        // creates a merged UI combining the interface alternatives
+        // root: the certain root that we have
+        // alternatives: all the alternatives for this item
+        var me = this;
+        var mergeHelper = function(root, alternatives) {
+            if(!(root instanceof ContainerView)) {
+                // base case
+                var dirty_vps = [];
+                for(var i = 0; i < alternatives.length; i++) {
+                    var viewAndProbability = alternatives[i];
+                    // Don't render feedback for extremely unlikely things
+                    if(viewAndProbability.view._dirty) {
+                        dirty_vps.push(viewAndProbability);
+                    }
+                }
+                var v = new me.feedbackType(me.julia, dirty_vps, root);
+                me.viewsToUpdate.push(v);
+                return v;
+            }
+
+            // this is a containerview
+            // For now, assume container is NOT dirty
+            // TODO handle the case when the ContainerView is dirty
+            for(var i = 0; i < root.children.length; i++) {
+                var child = root.children[i];
+                var new_alternatives = [];
+                for(var j = 0; j < alternatives.length; j++) {
+                    new_alternatives.push({view: alternatives[j].view.children[i],
+                        probability: alternatives[j].probability});
+                }
+                root.children[i] = mergeHelper(child, new_alternatives);
+            }
+            return root;
+
+        };
+        // merge the interface
+        var mergedRoot = mergeHelper(this.julia.rootView.clone(), this.julia.alternatives);
+        mergedRoot.draw($el);
+        return mergedRoot;
+    }
+});
+
+var AnimateBase = View.subClass({
+    className: "AnimateBase",
+    init: function(julia, dirty_vps, root) {
+    this.julia = julia;
+    this.dirty_vps = dirty_vps;
+    this.root = root;
+    },
+    draw: function($el) {
+        if(this.dirty_vps.length == 0) {
+            this.root.draw($el);
+        } else {
+            var sortedAlternatives = this.dirty_vps.sort(function(a,b) {
+                return b.probability - a.probability;
+            });
+            var snap = Snap($el[0]);
+            this.group = snap.group();
+            this.view = sortedAlternatives[0].view;
+            this.view.draw($(this.group.node));
+
+            this.n_alternatives = sortedAlternatives.length;
+            this.setup();
+        }
+    },
+    setup: function() {
+        throw "AnimateBase.setup() not implemented!";
+    }
+});
+var AnimateJitterRotate = AnimateBase.subClass({
+    className: "AnimateJitterRotate",
+    setup: function() {
+        var amp = 0.5;
+        this.minValue = -amp;
+        this.maxValue = amp;
+        this.increment = this.n_alternatives;
+        this.value = 0;
+    },
+    update: function() {
+        if(typeof(this.group) === 'undefined') {
+            return;
+        }
+        var m = new Snap.Matrix();
+        var bbox = this.group.getBBox();
+        m.rotate(this.value, bbox.cx, bbox.cy);
+        this.group.attr({transform: m.toString()});
+        this.value += this.increment;
+        if(this.value < this.minValue || this.value > this.maxValue) {
+            this.increment *= -1;
+            // clamp
+            this.value = Math.remap(this.value, this.minValue, this.maxValue, this.minValue, this.maxValue);
+        }
+    }
+});
+
+var AnimateJitterTranslate = AnimateBase.subClass({
+    className: "AnimateJitterTranslate",
+    setup: function() {
+        var amp = Math.pow(this.n_alternatives, 2) * 0.5;
+        this.minValue = -amp;
+        this.maxValue = amp;
+        this.increment = amp * 5;
+        this.value = 0;
+    },
+    update: function() {
+        if(typeof(this.group) === 'undefined') {
+            return;
+        }
+        var m = new Snap.Matrix();
+        m.translate(this.value, 0);
+        this.group.attr({transform: m.toString()});
+        this.value += this.increment;
+        if(this.value < this.minValue || this.value > this.maxValue) {
+            this.increment *= -1;
+            // clamp
+            this.value = Math.remap(this.value, this.minValue, this.maxValue, this.minValue, this.maxValue);
+        }
+    }
+});
+
+var AnimateJitterScale = AnimateBase.subClass({
+    className: "AnimateJitterTranslate",
+    setup: function() {
+        var amp = this.n_alternatives / 20;
+        this.minValue = 1;
+        this.maxValue = 1 + amp;
+        this.increment = amp / 10;
+        this.value = 1;
+    },
+    update: function() {
+        if(typeof(this.group) === 'undefined') {
+            return;
+        }
+        var m = new Snap.Matrix();
+        var x = this.view.x;
+        var y = this.view.y;
+        var bbox = this.group.getBBox();
+        m.scale(this.value, this.value, bbox.cx, bbox.cy);
+        this.group.attr({transform: m.toString()});
+        this.value += this.increment;
+        if(this.value < this.minValue || this.value > this.maxValue) {
+            this.increment *= -1;
+            // clamp
+            this.value = Math.remap(this.value, this.minValue, this.maxValue, this.minValue, this.maxValue);
+        }
+    }
+});
+
 
 var OverlayFeedbackBase = View.subClass({
     className: "OverlayFeedbackBase",
