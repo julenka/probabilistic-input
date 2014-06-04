@@ -52,7 +52,6 @@
     <div class="float-left">
         <h3>Debug Info</h3>
         <div>
-
             <input id="dbg_dumptext" type="checkbox" />
             <label for="dbg_dumptext">dump alternatives as text</label>
         </div>
@@ -151,35 +150,47 @@ function reset() {
     var starty = 50;
     var dy = 50;
     var fields = [];
-    fields.push(new FormEntry(julia, "name (last, first)", function(input) { return /[a-zA-z, ]+/.test(input);},
-            function(current_text) { return /^\s*\w+\s*,\s*\w+\s*$/.test(current_text)},
-            labelx, starty
+    fields.push(new FormEntry(julia,
+            { x: labelx, y: starty, label: "name (last, first)" }
+            , function(input) { return /[a-zA-z, ]+/.test(input);},
+            function(current_text) { return /^\s*\w+\s*,\s*\w+\s*$/.test(current_text)}
     ));
     starty += dy;
 
-    fields.push(new FormEntry(julia, "dob (mm/dd/yyyy)", function(input) { return /[0-9\/x ]+/.test(input);},
-            function(current_text) { return /^[ ]*\d{2}[ ]*\/[ ]*\d{2}[ ]*\/[ ]*\d{4}[ ]*$/.test(current_text)},
-            labelx, starty
+    fields.push(new FormEntry(julia,
+            { x: labelx, y: starty, label: "dob (mm/dd/yyyy)"},
+             function(input) { return /[0-9\/x ]+/.test(input);},
+            function(current_text) { return /^[ ]*\d{2}[ ]*\/[ ]*\d{2}[ ]*\/[ ]*\d{4}[ ]*$/.test(current_text)}
     ));
     starty += dy;
 
-    fields.push(new FormEntry(julia, "email", function(input) { return /[a-z0-9@\.]+/.test(input);},
-            function(currentText) { return /^[a-z0-9]+@\w+\.[a-z]+$/.test(currentText); }, labelx, starty)); // (julia, label, validFunction, x, y) {)
+    fields.push(new FormEntry(julia,
+            { x: labelx, y: starty, label: "email"},
+            function(input) { return /[a-z0-9@\.]+/.test(input);},
+            function(currentText) { return /^[a-z0-9]+@\w+\.[a-z]+$/.test(currentText); }));
     starty += dy;
 
 
-    fields.push(new FormEntry(julia, "ssn", function(input) { return /[x\d]+/.test(input) && /^\d{0,8}$/.test(this.entry_text); },
-            function(current_text) { return /^\d{9}$/.test(current_text)}, labelx, starty));
+    fields.push(new FormEntry(julia,
+            { x: labelx, y: starty, label: "ssn"},
+            function(input) { return /[x\d]+/.test(input) && /^\d{0,8}$/.test(this.entry_text); },
+            function(current_text) { return /^\d{9}$/.test(current_text)}));
     starty += dy;
-    fields.push(new FormEntry(julia, "phone", function(input) { return /[x\d]+/.test(input) && /^\d{0,9}$/.test(this.entry_text); },
-            function(current_text) { return /^(\d{10}|\d{7})$/.test(current_text)}, labelx, starty));
+    fields.push(new FormEntry(julia,
+            { x: labelx, y: starty, label: "phone"},
+            function(input) { return /[x\d]+/.test(input) && /^\d{0,9}$/.test(this.entry_text); },
+            function(current_text) { return /^(\d{10}|\d{7})$/.test(current_text)}));
     starty += dy;
-    fields.push(new FormEntry(julia, "favorite fruit", function(input) { return /[a-z]+/.test(input); },
-            function(current_text) { return /^(apple|orange|banana)$/.test(current_text)}, labelx, starty));
+    fields.push(new FormEntry(julia,
+            { x: labelx, y: starty, label: "favorite fruit"},
+            function(input) { return /[a-z]+/.test(input); },
+            function(current_text) { return /^(apple|orange|banana)$/.test(current_text)}));
 
     starty += dy;
-    fields.push(new FormEntry(julia, "favorite color", function(input) { return /[a-z]+/.test(input); },
-            function(current_text) { return /^(red|yellow|blue|orange)$/.test(current_text)}, labelx, starty));
+    fields.push(new FormEntry(julia,
+            { x: labelx, y: starty, label: "favorite color"},
+            function(input) { return /[a-z]+/.test(input); },
+            function(current_text) { return /^(red|yellow|blue|orange)$/.test(current_text)}));
 
     fields.forEach(function(f){
         rootView.addChildView(f);
