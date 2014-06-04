@@ -380,7 +380,7 @@ function reset() {
 }
 
 var julia = new Julia();
-var feedback = new OverlayFeedback(julia, {feedbackType: FeedbackOpacityView1});
+var feedback = new OverlayFeedback(julia, {feedbackType: OverlayUnmodified});
 julia.nSamplesPerEvent = 1;
 
 julia.dispatchCompleted = function(new_alternatives, uiUpdated) {

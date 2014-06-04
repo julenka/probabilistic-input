@@ -22,6 +22,11 @@ var shallowCopy = function(input) {
     return result;
 };
 
+
+var valueOrDefault = function(value, default_value) {
+    return typeof(value) === 'undefined' ? default_value : value;
+};
+
 /**
  * Determines if two variables are equal (shallow comparison, type conversion)
  * Returns true if equal, false otherwise.
@@ -331,11 +336,17 @@ var DOMEventSource = PEventSource.subClass({
 
 var PMouseEventHook = DOMEventSource.subClass({
     className: "PMouseEventHook",
+    /**
+     * Captures mouse events on a DOM element and generated PMouseEvents (probabilistic mouse events)
+     * @param el
+     * @param variance_x_px x variance. Default is 10
+     * @param variance_y_px y variance. Default is 10
+     */
     init: function(el, variance_x_px, variance_y_px) {
         //noinspection JSUnresolvedFunction
         this._super(el);
-        this.variance_x_px = variance_x_px;
-        this.variance_y_px = variance_y_px;
+        this.variance_x_px = valueOrDefault(variance_x_px, 10);
+        this.variance_y_px = valueOrDefault(variance_y_px, 10);
     },
     addListener: function(fn) {
         var me = this;
@@ -1982,7 +1993,7 @@ var OverlayFeedback = Object.subClass({
      * Optionally shows the original view as well as alternatives.
      * the props parameter specifies multiple optional parameters that we may want.
      *
-     * feedbackType: the style of overlay feedback to use. Defaults to FeedbackOpacityView
+     * feedbackType: the style of overlay feedback to use. Defaults to OverlayOpacity
      * renderThreshold: only interfaces above this value get rendered. Defaults to 0.01
      * showOriginal: show the original interface as well as alternatives. Defaults to true
      *
@@ -1991,7 +2002,7 @@ var OverlayFeedback = Object.subClass({
      */
     init: function(julia, props) {
         this.julia = julia;
-        this.feedbackType = FeedbackOpacityView;
+        this.feedbackType = OverlayOpacity;
         this.renderThreshold = 0.01;
         this.showOriginal = true;
         for (var option in props) {
@@ -2049,19 +2060,26 @@ var OverlayFeedback = Object.subClass({
     }
 });
 
+var OverlayFeedbackBase = View.subClass({
+    className: "OverlayFeedbackBase",
+    init: function(julia, view, probability) {
+        this.julia = julia;
+        this.view = view;
+        this.probability = probability;
+    },
+    draw: function($el) {
+        throw "OverlayFeedbackBase should be subclassed! Draw() not implemented"
+    }
+
+});
 /**
  * Renders a child view with opacity according to its probability
  * uses Snap library
  * @type {*}
  */
-var FeedbackOpacityView = View.subClass({
-    className: "FeedbackOpacityView",
-    init: function(julia, view, probability) {
-        this.view = view;
-        this.probability = probability;
-    },
+var OverlayOpacity = OverlayFeedbackBase.subClass({
+    className: "OverlayOpacity",
     draw: function($el) {
-
         var s = Snap($el[0]);
         var group = s.group();
         group.attr({opacity: Math.roundWithSignificance(this.probability, 2)});
@@ -2074,12 +2092,10 @@ var FeedbackOpacityView = View.subClass({
  * uses Snap library
  * @type {*}
  */
-var FeedbackOpacityGrayScaleView = View.subClass({
-    className: "FeedbackOpacityGrayScaleView",
+var OverlayOpacitySaturation = OverlayFeedbackBase.subClass({
+    className: "OverlayOpacitySaturation",
     init: function(julia, view, probability) {
-        this.julia = julia;
-        this.view = view;
-        this.probability = probability;
+        this._super(julia, view, probability);
         // HACK. We set up julia to have a Snap reference so we can get filters
         if(typeof(julia.snap) === 'undefined') {
             julia.snap = Snap();
@@ -2108,11 +2124,8 @@ var FeedbackOpacityGrayScaleView = View.subClass({
  * uses Snap library
  * @type {*}
  */
-var FeedbackOpacityGrayScaleAmbiguousView = FeedbackOpacityGrayScaleView.subClass({
-    className: "FeedbackOpacityGrayScaleAmbiguousView",
-    init: function(julia, view, probability) {
-        this._super(julia, view, probability);
-    },
+var OverlayOpacitySaturationAmbiguous = OverlayOpacitySaturation.subClass({
+    className: "OverlayOpacitySaturationAmbiguous",
     draw: function($el) {
         var s = Snap($el[0]);
         var group = s.group();
@@ -2134,11 +2147,8 @@ var FeedbackOpacityGrayScaleAmbiguousView = FeedbackOpacityGrayScaleView.subClas
  * uses Snap library
  * @type {*}
  */
-var FeedbackScaleView = FeedbackOpacityGrayScaleView.subClass({
-    className: "FeedbackScaleView",
-    init: function(julia, view, probability) {
-        this._super(julia, view, probability);
-    },
+var OverlayScale = OverlayFeedbackBase.subClass({
+    className: "OverlayScale",
     draw: function($el) {
         var s = Snap($el[0]);
         var group = s.group();
@@ -2160,11 +2170,8 @@ var FeedbackScaleView = FeedbackOpacityGrayScaleView.subClass({
  * uses Snap library
  * @type {*}
  */
-var FeedbackProgressBar = FeedbackOpacityView.subClass({
-    className: "FeedbackProgressBar",
-    init: function(julia, view, probability) {
-        this._super(julia, view, probability);
-    },
+var OverlayProgressBar = OverlayFeedbackBase.subClass({
+    className: "OverlayProgressBar",
     draw: function($el) {
         var s = Snap($el[0]);
         var group = s.group();
@@ -2183,17 +2190,12 @@ var FeedbackProgressBar = FeedbackOpacityView.subClass({
  * uses Snap library
  * @type {*}
  */
-var FeedbackOpacityView1 = View.subClass({
-    className: "FeedbackOpacityView1",
-    init: function(julia, view, probability) {
-        this.view = view;
-        this.probability = probability;
-    },
+var OverlayUnmodified = OverlayFeedbackBase.subClass({
+    className: "OverlayUnmodified",
     draw: function($el) {
 
         var s = Snap($el[0]);
         var group = s.group();
-        group.attr({opacity: 1});
         this.view.draw($(group.node));
     }
 });
