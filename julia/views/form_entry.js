@@ -4,12 +4,15 @@
 var FormLabel = View.subClass({
     className: "FormLabel",
     init: function(julia, props) {
-        this.super(julia, props, {text: "empty", x: 0, y: 0});
+        this._super(julia, props, {text: "", x: 0, y: 0});
     },
     draw: function($el) {
         var s = Snap($el[0]);
-        s.text(this.properties.x, this.properties.y, this.properties.label);
-    }
+        s.text(this.properties.x, this.properties.y, this.properties.text).attr({"font-family": "monospace"});
+    },
+    dispatchEvent: function() {
+        return [];
+    },
 });
 
 var FormEntry = FSMView.subClass({
@@ -22,10 +25,10 @@ var FormEntry = FSMView.subClass({
         return keyCode === 9 || keyCode === 13;
     },
     updateMessage: function(message, rootView) {
-//        rootView.findViewById(this.properties.label_id).text = "keep going...";
-        this.properties.message = message;
+        // we want to update via attr because this way it sets the dirty bit properly.
+        rootView.findViewById(this.properties.message_id).attr({text: message});
+//        this.properties.message = message;
     },
-
     /**
      *
      * @param julia
@@ -47,8 +50,6 @@ var FormEntry = FSMView.subClass({
             width: 400,
             height: 30,
             interim_text: "",
-            label: "no label",
-            message: "",
             entryCompleted: entryCompleted
         };
         this._super(julia, props, defaults);
@@ -152,7 +153,7 @@ var FormEntry = FSMView.subClass({
                     function(e) {
                         return this.predicate_mouse_in_region(e) && !entryTextValidFunction(this.properties.entry_text);
                     },
-                    function(rootView) {
+                    function(e,rootView) {
                         this.updateMessage("not valid!", rootView);
                     },
                     undefined,
@@ -226,7 +227,7 @@ var FormEntry = FSMView.subClass({
         var rx = e.element_x - this.properties.x;
         var ry = e.element_y - this.properties.y + this.properties.height;
         var result = rx > 0 && ry > 0 && rx < this.properties.width && ry < this.properties.height;
-        log(LOG_LEVEL_DEBUG, e.element_x, e.element_y, this.properties.label, "rx:", rx, "ry:", ry, result);
+        log(LOG_LEVEL_DEBUG, e.element_x, e.element_y, this.properties.width, this.properties.height, "rx:", rx, "ry:", ry, result);
         return result;
     },
     entry_completed: function(e, rootView) {
@@ -239,22 +240,25 @@ var FormEntry = FSMView.subClass({
     },
     draw: function($el) {
         var s = Snap($el[0]);
-        s.text(this.properties.x,this.properties.y, this.properties.label + ": ");
-        s.text(this.properties.x + 140, this.properties.y, this.properties.entry_text).attr({opacity: this.properties.entry_opacity, "font-family": "monospace"});
-        s.text(this.properties.x + 300, this.properties.y, this.properties.message);
+        s.text(this.properties.x, this.properties.y, this.properties.entry_text)
+            .attr({opacity: this.properties.entry_opacity, "font-family": "monospace"});
         var color = "rgb(0,0,0)";
         if(this.current_state == "textEntered") {
             var char_width = 8;
 
-            s.line(this.properties.x + 140 + this.properties.entry_text.length * char_width, this.properties.y, this.properties.x + 140 + this.properties.entry_text.length * char_width + 7, this.properties.y)
+            s.line(this.properties.x + this.properties.entry_text.length * char_width, this.properties.y, this.properties.x + this.properties.entry_text.length * char_width + 7, this.properties.y)
                 .attr({stroke: "rgb(0,0,0)"});
         }
-        s.rect(this.properties.x + 130, this.properties.y - this.properties.height + 10, this.properties.width - 250, this.properties.height).attr({"fill-opacity": 0, "stroke-width": 1, stroke: color});
+        s.rect(this.properties.x - 10,
+            this.properties.y - this.properties.height + 10,
+            this.properties.width - 250,
+            this.properties.height).attr({"fill-opacity": 0, "stroke-width": 1, stroke: color});
     },
     equals: function(other) {
         if(!this._super(other)) {
             return false;
         }
-        return this.properties.label === other.label && this.properties.entry_text === other.entry_text && this.interim_text === other.interim_text;
+        return this.properties.label === other.label && this.properties.entry_text === other.properties.entry_text &&
+            this.properties.interim_text === other.properties.interim_text;
     }
 });

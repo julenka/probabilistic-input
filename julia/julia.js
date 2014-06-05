@@ -51,6 +51,18 @@ var shallowEquals = function(a, b) {
     }
     return true;
 };
+// http://stackoverflow.com/questions/105034/how-to-create-a-guid-uuid-in-javascript
+var guid = (function() {
+    function s4() {
+        return Math.floor((1 + Math.random()) * 0x10000)
+            .toString(16)
+            .substring(1);
+    }
+    return function() {
+        return s4() + s4() + '-' + s4() + '-' + s4() + '-' +
+            s4() + '-' + s4() + s4() + s4();
+    };
+})();
 
 // Inheritance
 // Obtained from "Secrets of the JavaScript Ninja", page 145
@@ -1296,6 +1308,10 @@ var View = Object.subClass({
      */
     init: function(julia, properties, defaults) {
         this.julia = julia;
+        if(typeof(defaults) === 'undefined') {
+            defaults = {};
+        }
+        defaults.id = "" + guid;
         this.properties = typeof(properties) === 'undefined' ? {} : properties;
         for (var property in defaults) {
             if(!(property in this.properties)) {
@@ -1327,6 +1343,7 @@ var View = Object.subClass({
         var result = new this.constructor(this.julia, this.properties);
         this.cloneActionRequests(result);
         result.properties = shallowCopy(this.properties);
+        result.id = this.id;
         return result;
     },
     /**
@@ -1351,8 +1368,9 @@ var View = Object.subClass({
      */
     attr: function(map) {
         for(var prop in map) {
-            this[prop] = map[prop];
+            this.properties[prop] = map[prop];
         }
+        this._dirty = true;
         return this;
     },
     /**
@@ -1455,6 +1473,7 @@ var ContainerView = View.subClass({
         this.children = [];
         // index of the child that is currently in focus
         this.focus_index = -1;
+        this.id_to_child = {};
     },
     resetDirtyBit: function() {
         this.children.forEach(function(child){
@@ -1478,6 +1497,23 @@ var ContainerView = View.subClass({
     addChildView: function(view) {
         view.container = this;
         this.children.push(view);
+        this.id_to_child[view.properties.id] = view;
+    },
+    findViewById: function(id) {
+        if(id in this.id_to_child) {
+            return this.id_to_child[id];
+        }
+        for(var i = 0; i < this.children.length; i++) {
+            var child = this.children[i];
+            if(!(child instanceof ContainerView)) {
+                continue;
+            }
+            var result = child.findViewById(id);
+            if(typeof(result) !== 'undefined') {
+                return result;
+            }
+        }
+        return undefined;
     },
     /**
      * Creates an identical copy of this view
@@ -1489,6 +1525,7 @@ var ContainerView = View.subClass({
             var clone = child.clone();
             clone.container = this;
             result.addChildView(clone);
+            result.id_to_child[child.properties.id] = clone;
         });
         result.focus_index = this.focus_index;
         return result;
@@ -2184,7 +2221,7 @@ var AnimateFeedback = Object.subClass({
 var AnimateBase = View.subClass({
     className: "AnimateBase",
     init: function(julia, dirty_vps, root) {
-    this.julia = julia;
+        this._super(julia, {});
     this.dirty_vps = dirty_vps;
     this.root = root;
     },
@@ -2291,7 +2328,7 @@ var AnimateJitterScale = AnimateBase.subClass({
 var OverlayFeedbackBase = View.subClass({
     className: "OverlayFeedbackBase",
     init: function(julia, view, probability) {
-        this.julia = julia;
+        this._super(julia, {});
         this.view = view;
         this.probability = probability;
         if(typeof(julia.snap) === 'undefined') {
