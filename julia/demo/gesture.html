@@ -108,7 +108,7 @@
         julia.addEventSource(mouseHook);
 
         // Initialize feedback
-        julia.feedback = new OverlayFeedback(julia, {showOriginal: false});
+        julia.feedback = new NBestFeedback(julia);
 
         julia.drawFeedback($mainInterface, julia.feedback);
 

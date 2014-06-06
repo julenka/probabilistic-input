@@ -65,6 +65,16 @@
         }
     });
 
+    test("deepCopy", function(){
+        var p1 = {x: 0, y: 0};
+        var path1 = [p1];
+        var path2 = deepCopy(path1);
+        p1.x = 1;
+        deepEqual(path1[0], p1);
+        notEqual(path2[0], path1[0]);
+        equal(path2[0].x, 0);
+    });
+
     test("shallowEquals", function() {
         var a = {a: 1, b: 1};
         var b = {a: 1, b: 1};

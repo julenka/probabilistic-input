@@ -853,6 +853,9 @@ var Julia = Object.subClass({
         this.mediator = new Mediator();
         this.combiner = new ActionRequestCombiner();
         this.eventSources = [];
+        this.mouseX = 0;
+        this.mouseY = 0;
+
     },
     //TODO test addEventSource
     addEventSource: function(eventSource) {
@@ -912,6 +915,14 @@ var Julia = Object.subClass({
         }
     },
     dispatchPEvent: function(pEvent) {
+        if(pEvent.type === 'mousemove' || pEvent.type === 'mouseup') {
+            this.mouseX = pEvent.element_x;
+            this.mouseY = pEvent.element_y;
+        }
+        // HACKS
+        if(this.__julia_dont_dispatch) {
+            return;
+        }
         this.initDispatchQueue(pEvent);
 
         var actionRequests = [];
@@ -1520,7 +1531,7 @@ var View = Object.subClass({
      * These action requests should be performed one after another, if executed
      * @return
      */
-    dispatchEvent: function() {
+    dispatchEvent: function(e) {
         return [];
     },
 
@@ -2226,100 +2237,7 @@ var MostLikelyFeedback = Object.subClass({
         return result;
     }
 });
-var OverlayFeedback = Object.subClass({
-    className: "OpacityFeedback",
-    /**
-     * A simple feedback that adds multiple views directly onto the interface without moving or cropping anything.
-     * Optionally shows the original view as well as alternatives.
-     * the props parameter specifies multiple optional parameters that we may want.
-     *
-     * feedbackType: the style of overlay feedback to use. Defaults to OverlayOpacity
-     * renderThreshold: only interfaces above this value get rendered. Defaults to 0.01
-     * showOriginal: show the original interface as well as alternatives. Defaults to true
-     *
-     * @param julia
-     * @param props extra properties we may have.
-     */
-    init: function(julia, props) {
-        this.julia = julia;
-        this.feedbackType = OverlayOpacity;
-        this.renderThreshold = 0.01;
-        this.showOriginal = true;
-        for (var option in props) {
-            this[option] = props[option];
-        }
-    },
-    draw: function($el) {
-        // creates a merged UI combining the interface alternatives
-        // root: the certain root that we have
-        // alternatives: all the alternatives for this item
-        var me = this;
-        var mergeHelper = function(root, alternatives) {
-            if(!(root instanceof ContainerView)) {
-                // base case
-                var dirty_vps = [];
-                for(var i = 0; i < alternatives.length; i++) {
-                    var viewAndProbability = alternatives[i];
-                    // Don't render feedback for extremely unlikely things
-                    if(viewAndProbability.view._dirty && viewAndProbability.probability > me.renderThreshold) {
-                        dirty_vps.push(viewAndProbability);
-                    }
-                }
-                if(dirty_vps.length > 0) {
-                    var result = new ContainerView();
-                    if(me.showOriginal) {
-                        result.addChildView(root);
-                    }
-                    dirty_vps.forEach(function(vp){
-                        result.addChildView(new me.feedbackType(me.julia, vp.view, vp.probability));
-                    });
-                    return result;
-                }
-                return root;
-            }
 
-            var dirty_vps = [];
-            for(var j = 0; j < alternatives.length; j++) {
-                var viewAndProbability = alternatives[j];
-                if(viewAndProbability.view.children.length != root.children.length) {
-                    viewAndProbability.view._dirty = true;
-                }
-                if(viewAndProbability.view._dirty && viewAndProbability.probability > me.renderThreshold) {
-                dirty_vps.push({view: alternatives[j].view,
-                    probability: alternatives[j].probability});
-                }
-            }
-
-            if(dirty_vps.length > 0) {
-                var result = new ContainerView();
-                dirty_vps.forEach(function(vp){
-                    result.addChildView(new me.feedbackType(me.julia, vp.view, vp.probability));
-                });
-                return result;
-            } else {
-                // this is a containerview
-                // For now, assume container is NOT dirty
-                // TODO handle the case when the ContainerView is dirty
-                for(var i = 0; i < root.children.length; i++) {
-                    var child = root.children[i];
-                    var new_alternatives = [];
-                    for(var j = 0; j < alternatives.length; j++) {
-                        new_alternatives.push({view: alternatives[j].view.children[i],
-                            probability: alternatives[j].probability});
-                    }
-                    root.children[i] = mergeHelper(child, new_alternatives);
-                }
-            }
-
-            return root;
-
-            }
-        // merge the interface
-        var mergedRoot = mergeHelper(this.julia.rootView.clone(), this.julia.alternatives);
-        mergedRoot.draw($el);
-        return mergedRoot;
-    }
-});
 
 var AnimateFeedback = Object.subClass({
     className: "AnimateFeedback",
@@ -2361,7 +2279,6 @@ var AnimateFeedback = Object.subClass({
 
             // this is a containerview
             // For now, assume container is NOT dirty
-            // TODO handle the case when the ContainerView is dirty
             for(var i = 0; i < root.children.length; i++) {
                 var child = root.children[i];
                 var new_alternatives = [];
@@ -2487,6 +2404,264 @@ var AnimateJitterScale = AnimateBase.subClass({
     }
 });
 
+var NBestFeedback = Object.subClass({
+    className: "NBestFeedback",
+    init: function(julia, props) {
+        this.julia = julia;
+    },
+    draw: function ($el) {
+        $el.off("mousedown");
+        delete this.julia.__julia_dont_dispatch;
+        if(this.julia.alternatives.length === 0) {
+            this.julia.rootView.draw($el);
+            return this.julia.rootView;
+        }
+        // for now, this will only work for one container, at the root.
+        // TODO: make this work at multiple levels
+
+        // we are only going to be showing the top 3 interfaces
+        // and only if they are withing dp of the most likely
+        var most_likely = this.julia.alternatives[0];
+        var max_p = most_likely.probability;
+        var n = 3;
+        var dp = 0.5;
+
+        var mergedRoot = most_likely.view.clone();
+        var root = this.julia.rootView;
+        var nbestcontainer = new NBestContainer(this.julia, {x: this.julia.mouseX + 10, y: this.julia.mouseY + 10});
+        for(var i = 1; i < Math.min(n, this.julia.alternatives.length); i++) {
+            var p = this.julia.alternatives[i].probability;
+            var v = this.julia.alternatives[i].view;
+            if(max_p - p > dp) {
+                break;
+            }
+            var dirty_children = [];
+            for(var j = 0; j < v.children.length; j++) {
+                // Let's just get the case working where we have different children, then worry about 'dirty' children
+                var child = v.children[j];
+//                if(child._dirty) {
+//                    dirty_children.push(child);
+//                }
+                if(typeof(root.findViewById(child.__julia_id)) === 'undefined') {
+                    dirty_children.push(child);
+                }
+            }
+            var dirty_children_container = new ContainerView(this.julia);
+            dirty_children.forEach(function(dirty_child){
+                dirty_children_container.addChildView(dirty_child);
+            });
+            nbestcontainer.addAlternative(v, dirty_children_container, p);
+        }
+        if(nbestcontainer.alternatives.length > 0) {
+            mergedRoot.addChildView(nbestcontainer);
+            // HACKS
+            this.julia.__julia_dont_dispatch = true;
+            var julia = this.julia;
+            $el.on("mousedown",function(){
+                console.log("click1");
+                julia.setRootView(most_likely.view);
+                delete julia.__julia_dont_dispatch;
+                julia.dispatchCompleted(julia.alternatives, true);
+            });
+        }
+
+        mergedRoot.draw($el);
+
+        return mergedRoot;
+    }
+});
+
+var NBestContainer = View.subClass({
+    className: "NBestFrame",
+    /**
+     * Represents an alternative in an n best list
+     * when clicked, set this to be the alternative view of the interface
+     * properties:
+     * x
+     * y
+     * padding
+     * alternative_size (the size of each alternative)
+     * @param julia
+     * @param props
+     */
+    init: function(julia, props ) {
+        var defaults = {x: 0, y:0, w: 0, h: 0, alternative_size: 50, padding: 5};
+        this._super(julia, props, defaults);
+        // [ {root: xxx, view: xxx, probability}]
+        this.alternatives = [];
+    },
+    draw: function($el) {
+        var s = Snap($el[0]);
+        var w = 2 * this.properties.padding + this.alternatives.length * (this.properties.alternative_size + this.properties.padding);
+        var h = 2 * this.properties.padding + this.properties.alternative_size;
+        s.rect(this.properties.x, this.properties.y, w, h).attr({
+            "stroke": "black",
+            "stroke-width": "1px",
+            "fill-opacity": 0
+        });
+        var julia = this.julia;
+        for(var i = 0; i < this.alternatives.length; i++) {
+            var x = this.properties.x + this.properties.padding + i * (this.properties.alternative_size + this.properties.padding);
+            var y = this.properties.y + this.properties.padding;
+            w = this.properties.alternative_size;
+            var boundingRect = s.rect(x, y, w, w).attr({"stroke": "gray", "stroke-width": "1px", "fill-opacity": 0});
+            var m = new Snap.Matrix();
+            var viewCopy = this.alternatives[i].view.clone();
+            viewCopy.x = 0;
+            viewCopy.y = 0;
+            var g = s.group();
+            viewCopy.draw($(g.node));
+            var bbox = g.getBBox();
+            var bbox2 = boundingRect.getBBox();
+            var dx = bbox2.cx - bbox.cx;
+            var dy = bbox2.cy - bbox.cy;
+            g.rect(bbox.x, bbox.y, bbox.w, bbox.h).attr({"fill": "blue", "fill-opacity": 0});
+            var scale = this.properties.alternative_size / Math.max(bbox.w, bbox.h);
+            m.translate(dx, dy);
+            m.scale(scale, scale, bbox.cx, bbox.cy);
+
+            g.attr({transform: m.toString()});
+            var altRoot = this.alternatives[i].root;
+            $(g.node).mousedown(function(){
+                console.log("click2");
+                julia.setRootView(altRoot);
+                delete julia.__julia_dont_dispatch;
+                julia.dispatchCompleted(julia.alternatives, true);
+            });
+
+        }
+
+
+    },
+    /**
+     * Tests if a mouse down was executed over any of the alternatives.
+     * If so, sets this alternative to be the root view, removes ambiguity.
+     * @param e
+     * @returns {*}
+     */
+    dispatchEvent: function(e) {
+        return [];
+//        if(e.type !== "mousedown") {
+//            return [];
+//        }
+//        var event_x = e.base_event.element_x;
+//        var event_y = e.base_event.element_y;
+//        var rx = event_x - this.properties.x;
+//        var ry = event_y - this.properties.y;
+//
+//        if(rx < 0 || ry < 0 || ry > this.alternative_size) {
+//            return [];
+//        }
+//        var alt_index = Math.floor(rx / this.alternative_size);
+//        if(alt_index >= this.alternatives.length) {
+//            return [];
+//        }
+//        var result_request = new ActionRequest(
+//            function() {
+//                julia.setRootView(this.alternatives[alt_index].root);
+//            },
+//            this,
+//            false,
+//            true,
+//            e
+//        );
+//        var result = new ActionRequestSequence(julia.rootView, [result_request]);
+//        return [result];
+    },
+    /**
+     * Adds an alternative to the list of items we are going to present.
+     * @param alternative
+     * @param view_to_render
+     */
+    addAlternative: function(alternative_root, view, probability) {
+        this.alternatives.push({root: alternative_root, view: view, probability: probability});
+    },
+    clone: function() {
+        var result = this._super();
+        result.alternatives = deepClone(this.alternatives);
+    }
+});
+
+var OverlayFeedback = Object.subClass({
+    className: "OverlayFeedback",
+    /**
+     *
+     * for each view in an interface:
+     *   if it is not a container and there are multiple different versions of this view:
+     *     create a new view that overlays all alernative versions of this view, with different transformations.
+     *
+     * This feedback will only show multiple alternatives of the exact same view (e.g. same id).
+     * Optionally shows the original view as well as alternatives.
+     *
+     * Properties:
+     * feedbackType: the style of overlay feedback to use. Defaults to OverlayOpacity
+     * renderThreshold: only interfaces above this value get rendered. Defaults to 0.01
+     * showOriginal: show the original interface as well as alternatives. Defaults to true
+     *
+     * @param julia
+     * @param props extra properties we may have.
+     */
+    init: function(julia, props) {
+        this.julia = julia;
+        this.feedbackType = OverlayOpacity;
+        this.renderThreshold = 0.01;
+        this.showOriginal = true;
+        for (var option in props) {
+            this[option] = props[option];
+        }
+    },
+    draw: function($el) {
+
+        var me = this;
+        // creates a merged UI combining the interface alternatives
+        // root: the certain root that we have
+        // alternatives: all the alternatives for this item
+        var mergeHelper = function(root, alternatives) {
+            if(!(root instanceof ContainerView)) {
+                // This is not a container, so check if the dirty bit is set for any of the alternatives.
+                // If the dirty bit is set, this means that an alternative differs from the base view
+                var dirty_vps = [];
+                for(var i = 0; i < alternatives.length; i++) {
+                    var viewAndProbability = alternatives[i];
+                    // Don't render feedback for extremely unlikely things
+                    if(viewAndProbability.view._dirty && viewAndProbability.probability > me.renderThreshold) {
+                        dirty_vps.push(viewAndProbability);
+                    }
+                }
+                if(dirty_vps.length > 0) {
+                    var result = new ContainerView();
+                    if(me.showOriginal) {
+                        result.addChildView(root);
+                    }
+                    dirty_vps.forEach(function(vp){
+                        result.addChildView(new me.feedbackType(me.julia, vp.view, vp.probability));
+                    });
+                    return result;
+                }
+                return root;
+            }
+
+            // This is a containerview, so just go through all of the children and recursively merge in alternative views
+            // First, check if the number of children match
+            for(var i = 0; i < root.children.length; i++) {
+                var child = root.children[i];
+                var new_alternatives = [];
+                for(var j = 0; j < alternatives.length; j++) {
+                    new_alternatives.push({view: alternatives[j].view.children[i],
+                        probability: alternatives[j].probability});
+                }
+                root.children[i] = mergeHelper(child, new_alternatives);
+            }
+
+            return root;
+
+        }
+        // merge the interface
+        var mergedRoot = mergeHelper(this.julia.rootView.clone(), this.julia.alternatives);
+        mergedRoot.draw($el);
+        return mergedRoot;
+    }
+});
 
 var OverlayFeedbackBase = View.subClass({
     className: "OverlayFeedbackBase",
