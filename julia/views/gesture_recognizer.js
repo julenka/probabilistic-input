@@ -40,7 +40,7 @@ var GestureRecognizer = FSMView.subClass({
                 )
             ]
         };
-        var gestures = ["circle"];
+        var gestures = ["circle", "square"];
         var me = this;
         gestures.forEach(function(gesture) {
             // for now, let's just assume that we are returning true with probably 0.33
@@ -100,6 +100,8 @@ var GestureRecognizer = FSMView.subClass({
             if(probability < 0.2) {
                 probability = 0;
             }
+        } else if (gestureName === "square") {
+            return Math.dieRoll(0.1);
         }
         return Math.dieRoll(probability);
     },

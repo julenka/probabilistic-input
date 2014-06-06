@@ -58,11 +58,41 @@ var Circle = View.subClass({
      */
     init: function(julia, props) {
         this._super(julia, props, {cx: 0, cy: 0, radius: 10, strokeColor: "black",
-        strokeWidth: 5, fillColor: "black", fillOpacity: 0});
+            strokeWidth: 5, fillColor: "black", fillOpacity: 0});
     },
     draw: function($el) {
         var s = Snap($el[0]);
         s.circle(this.properties.cx, this.properties.cy, this.properties.radius).attr({
+            stroke: this.properties.strokeColor,
+            fill: this.properties.fillColor,
+            "stroke-width": this.properties.strokeWidth,
+            "fill-opacity": this.properties.fillOpacity
+        });
+    }
+});
+
+var Rect = View.subClass({
+    className: "Rect",
+    /**
+     * A basic circle
+     * properties:
+     * cx
+     * cy
+     * radius
+     * strokeColor
+     * strokeWidth
+     * fillColor
+     * fillOpacity
+     * @param julia
+     * @param props
+     */
+    init: function(julia, props) {
+        this._super(julia, props, {x: 0, y: 0, w: 10, h: 10, strokeColor: "black",
+            strokeWidth: 5, fillColor: "black", fillOpacity: 0});
+    },
+    draw: function($el) {
+        var s = Snap($el[0]);
+        s.rect(this.properties.x, this.properties.y, this.properties.w, this.properties.h).attr({
             stroke: this.properties.strokeColor,
             fill: this.properties.fillColor,
             "stroke-width": this.properties.strokeWidth,

@@ -20,6 +20,7 @@
     <script type="text/javascript" src="../views/gesture_recognizer.js"></script>
     <!-- TODO:This needs to be a more generic textview -->
     <script type="text/javascript" src="../views/basic_views.js"></script>
+    <script type="text/javascript" src="../views/draggable_resizeable_box.js"></script>
 </head>
 <body>
 <h3>Gesture</h3>
@@ -68,10 +69,16 @@
                         maxy = p.y;
                     }
                 }
+                var new_shape;
 //                log(LOG_LEVEL_DEBUG, path.map(function(el){ return el.x + "," + el.y; }).join(","), minx, miny, maxx, maxy);
-                var new_circle = new Circle(julia, {cx: (minx + maxx) / 2, cy: (miny + maxy) / 2,
-                radius: Math.min((maxy - miny) / 2, (maxx - minx) / 2)});
-                root.addChildView(new_circle);
+                if(gesture_name === "circle") {
+                    new_shape = new Circle(julia, {cx: (minx + maxx) / 2, cy: (miny + maxy) / 2,
+                        radius: Math.min((maxy - miny) / 2, (maxx - minx) / 2)});
+                } else if (gesture_name === "square") {
+                    new_shape = new Rect(julia, {x: minx, y: miny, w: (maxx-minx), h: (maxy - miny)})
+                }
+
+                root.addChildView(new_shape);
 //                root.findViewById(label.__julia_id).attr({text: gesture_name});
 
             },

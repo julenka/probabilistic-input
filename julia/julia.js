@@ -1361,7 +1361,7 @@ var ActionRequest = Object.subClass({
 
 var FSMActionRequest = ActionRequest.subClass({
     className: "FSMActionRequest",
-    init: function(action_fn, viewContext, reversible, handlesEvent, event, destination_state, source_state) {
+    init: function(action_fn, viewContext, reversible, handlesEvent, event, destination_state, source_state, transition_index) {
         var fn2 = function(event, rootView) {
             this.current_state = destination_state;
             action_fn.call(this, event, rootView);
@@ -1370,6 +1370,7 @@ var FSMActionRequest = ActionRequest.subClass({
         this._super(fn2, viewContext, reversible, handlesEvent, event);
         this.destination_state = destination_state;
         this.source_state = source_state;
+        this.transition_index = transition_index;
     },
     // This is for debugging
     // TODO remove (once done with debugging)
@@ -1392,6 +1393,9 @@ var FSMActionRequest = ActionRequest.subClass({
             return false;
         }
         if(other.destination_state !== this.destination_state) {
+            return false;
+        }
+        if(other.transition_index !== this.transition_index) {
             return false;
         }
         if(this.fn.toString() !== other.fn.toString()) {
@@ -1891,7 +1895,8 @@ var FSMView = View.subClass({
                                 transition.handles_event,
                                 e,
                                 transition.to,
-                                transition.from
+                                transition.from,
+                                i
                             ));
                     }
                 });
@@ -2516,20 +2521,30 @@ var NBestContainer = View.subClass({
             var bbox2 = boundingRect.getBBox();
             var dx = bbox2.cx - bbox.cx;
             var dy = bbox2.cy - bbox.cy;
-            g.rect(bbox.x, bbox.y, bbox.w, bbox.h).attr({"fill": "blue", "fill-opacity": 0});
+            g.rect(bbox.x, bbox.y, bbox.w, bbox.h).attr({"fill": "blue", "fill-opacity": 0.5});
             var scale = this.properties.alternative_size / Math.max(bbox.w, bbox.h);
             m.translate(dx, dy);
             m.scale(scale, scale, bbox.cx, bbox.cy);
 
             g.attr({transform: m.toString()});
             var altRoot = this.alternatives[i].root;
-            $(g.node).mousedown(function(e){
-                console.log("click2");
-                julia.setRootView(altRoot);
-                delete julia.__julia_dont_dispatch;
+            // returns a function taht sets the root view for julia to be the input value
+            // JavaScript closures are function level, not scope level.
+            // this means that the enclosign scope is assigned when the function is invoked.
+            // We need to therrefore create a custom event handler that sets the root view to altRoot
+            // by explicitly calling the function here.
+            // Otherwise altrot will always be the last element.
+            // Explanation at http://stackoverflow.com/questions/1451009/javascript-infamous-loop-issue
+            var onDownHandlerForAlternative = function(alternative) {
+                return function(){
+                    console.log("click2");
+                    julia.setRootView(alternative);
+                    delete julia.__julia_dont_dispatch;
 
-                julia.dispatchCompleted(julia.alternatives, true);
-            });
+                    julia.dispatchCompleted(julia.alternatives, true);
+                };
+            };
+            $(g.node).mousedown(onDownHandlerForAlternative(altRoot));
 
         }
 
