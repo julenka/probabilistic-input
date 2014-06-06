@@ -1,19 +1,6 @@
 /**
  * Created by julenka on 6/4/14.
  */
-var FormLabel = View.subClass({
-    className: "FormLabel",
-    init: function(julia, props) {
-        this._super(julia, props, {text: "", x: 0, y: 0});
-    },
-    draw: function($el) {
-        var s = Snap($el[0]);
-        s.text(this.properties.x, this.properties.y, this.properties.text).attr({"font-family": "monospace"});
-    },
-    dispatchEvent: function() {
-        return [];
-    },
-});
 
 var FormEntry = FSMView.subClass({
     // TODO: Migrate this to using properties when you feel like doing mindless refactoring

@@ -9,6 +9,7 @@
 
     <script type="text/javascript" src="../julia.js"></script>
     <script type="text/javascript" src="../views/form_entry.js"></script>
+    <script type="text/javascript" src="../views/basic_views.js"></script>
     <link rel="stylesheet" type="text/css" href="../julia.css"/>
     <style>
         div {
@@ -153,8 +154,8 @@ function reset() {
     var dy = 50;
     var fields = [];
     fields.push({
-        label: new FormLabel(julia, {x: labelx, y: starty, text: "name (last, first)", id:"label-" + starty}),
-        message: new FormLabel(julia, {x: messagex, y: starty, id:"message-" + starty}),
+        label: new TextView(julia, {x: labelx, y: starty, text: "name (last, first)", id:"label-" + starty}),
+        message: new TextView(julia, {x: messagex, y: starty, id:"message-" + starty}),
         entry: new FormEntry(julia,
                 { x: entryx, y: starty, label_id: "label-" + starty, message_id: "message-" + starty}
                 , function(input) { return /[a-zA-z, ]+/.test(input);},
@@ -164,8 +165,8 @@ function reset() {
     starty += dy;
 
     fields.push({
-                label: new FormLabel(julia, {x: labelx, y: starty, text: "dob (mm/dd/yyyy)", id:"label-" + starty}),
-                message: new FormLabel(julia, {x: messagex, y: starty, id:"message-" + starty}),
+                label: new TextView(julia, {x: labelx, y: starty, text: "dob (mm/dd/yyyy)", id:"label-" + starty}),
+                message: new TextView(julia, {x: messagex, y: starty, id:"message-" + starty}),
                 entry: new FormEntry(julia,
                         { x: entryx, y: starty, label_id: "label-" + starty, message_id: "message-" + starty},
                 function(input) { return /[0-9\/x ]+/.test(input);},
@@ -175,8 +176,8 @@ function reset() {
     starty += dy;
 
     fields.push({
-                label: new FormLabel(julia, {x: labelx, y: starty, text: "email", id:"label-" + starty}),
-                message: new FormLabel(julia, {x: messagex, y: starty, id:"message-" + starty}),
+                label: new TextView(julia, {x: labelx, y: starty, text: "email", id:"label-" + starty}),
+                message: new TextView(julia, {x: messagex, y: starty, id:"message-" + starty}),
                 entry: new FormEntry(julia,
                         { x: entryx, y: starty, label_id: "label-" + starty, message_id: "message-" + starty},
                         function(input) { return /[a-z0-9@\.]+/.test(input);},
@@ -187,8 +188,8 @@ function reset() {
 
 
     fields.push({
-                label: new FormLabel(julia, {x: labelx, y: starty, text: "ssn", id:"label-" + starty}),
-                message: new FormLabel(julia, {x: messagex, y: starty, id:"message-" + starty}),
+                label: new TextView(julia, {x: labelx, y: starty, text: "ssn", id:"label-" + starty}),
+                message: new TextView(julia, {x: messagex, y: starty, id:"message-" + starty}),
                 entry: new FormEntry(julia,
                         { x: entryx, y: starty, label_id: "label-" + starty, message_id: "message-" + starty},
                         function(input) { return /[x\d]+/.test(input) && /^\d{0,8}$/.test(this.entry_text); },
@@ -198,8 +199,8 @@ function reset() {
     starty += dy;
 
     fields.push({
-                label: new FormLabel(julia, {x: labelx, y: starty, text: "phone", id:"label-" + starty}),
-                message: new FormLabel(julia, {x: messagex, y: starty, id:"message-" + starty}),
+                label: new TextView(julia, {x: labelx, y: starty, text: "phone", id:"label-" + starty}),
+                message: new TextView(julia, {x: messagex, y: starty, id:"message-" + starty}),
                 entry: new FormEntry(julia,
                         { x: entryx, y: starty, label_id: "label-" + starty, message_id: "message-" + starty},
                         function(input) { return /[x\d]+/.test(input) && /^\d{0,9}$/.test(this.entry_text); },
@@ -209,8 +210,8 @@ function reset() {
     starty += dy;
 
     fields.push({
-                label: new FormLabel(julia, {x: labelx, y: starty, text: "favorite fruit", id:"label-" + starty}),
-                message: new FormLabel(julia, {x: messagex, y: starty, id:"message-" + starty}),
+                label: new TextView(julia, {x: labelx, y: starty, text: "favorite fruit", id:"label-" + starty}),
+                message: new TextView(julia, {x: messagex, y: starty, id:"message-" + starty}),
                 entry: new FormEntry(julia,
                         { x: entryx, y: starty, label_id: "label-" + starty, message_id: "message-" + starty},
                         function(input) { return /[a-z]+/.test(input); },
@@ -220,8 +221,8 @@ function reset() {
     starty += dy;
 
     fields.push({
-                label: new FormLabel(julia, {x: labelx, y: starty, text: "favorite color", id:"label-" + starty}),
-                message: new FormLabel(julia, {x: messagex, y: starty, id:"message-" + starty}),
+                label: new TextView(julia, {x: labelx, y: starty, text: "favorite color", id:"label-" + starty}),
+                message: new TextView(julia, {x: messagex, y: starty, id:"message-" + starty}),
                 entry: new FormEntry(julia,
                         { x: entryx, y: starty, label_id: "label-" + starty, message_id: "message-" + starty},
             function(input) { return /[a-z]+/.test(input); },
