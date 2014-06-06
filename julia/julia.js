@@ -2457,11 +2457,12 @@ var NBestFeedback = Object.subClass({
             // HACKS
             this.julia.__julia_dont_dispatch = true;
             var julia = this.julia;
-            $el.on("mousedown",function(){
+            $el.on("mousedown",function(e){
                 console.log("click1");
                 julia.setRootView(most_likely.view);
                 delete julia.__julia_dont_dispatch;
-                julia.dispatchCompleted(julia.alternatives, true);
+                julia.dispatchPEvent(new PMouseEvent(1, e, 10, 10, 'mousedown', e.currentTarget));
+//                julia.dispatchCompleted(julia.alternatives, true);
             });
         }
 
@@ -2522,10 +2523,11 @@ var NBestContainer = View.subClass({
 
             g.attr({transform: m.toString()});
             var altRoot = this.alternatives[i].root;
-            $(g.node).mousedown(function(){
+            $(g.node).mousedown(function(e){
                 console.log("click2");
                 julia.setRootView(altRoot);
                 delete julia.__julia_dont_dispatch;
+
                 julia.dispatchCompleted(julia.alternatives, true);
             });
 
