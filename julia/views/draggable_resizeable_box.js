@@ -21,7 +21,7 @@ var DraggableBox = FSMView.subClass({
      * @param properties
      */
     init: function (julia, properties, defaults) {
-        var this_defaults = {color:"#444444", x: 0, y: 0, w: 0, h: 0};
+        var this_defaults = {color:"#444444", "stroke-width": 0, stroke: "black", x: 0, y: 0, w: 0, h: 0};
         $.extend(this_defaults, defaults);
         this._super(julia, properties, this_defaults);
         // {mouse_x, mouse_y, my_x, my_y}
@@ -105,7 +105,10 @@ var DraggableBox = FSMView.subClass({
             s.rect(this.properties.x - padding, this.properties.y - padding, this.properties.w + 2 * padding, this.properties.h + 2 * padding)
                 .attr({fill: "white", "stroke-width": 1, stroke: "black"});
         }
-        s.rect(this.properties.x, this.properties.y, this.properties.w, this.properties.h).attr({fill: this.properties.color});
+        s.rect(this.properties.x, this.properties.y, this.properties.w, this.properties.h).attr(
+            {fill: this.properties.color,
+                "stroke-width": this.properties["stroke-width"],
+            stroke: this.properties.stroke});
     },
     drawAmbiguous: function($el) {
         this.draw($el);

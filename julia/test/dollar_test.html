@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test $1 Recognizer</title>
+
+    <!-- JQuery -->
+    <script type="text/javascript" src="../lib/jquery.js"></script>
+
+    <!-- Snap SVG library -->
+    <script type="text/javascript" src="../lib/snap.svg.js"></script>
+    <script type="text/javascript" src="../lib/dollar.js"></script>
+
+    <!-- Julia library -->
+    <script type="text/javascript" src="../julia.js"></script>
+
+    <style>
+        #test_svg {
+            background-color: #C2CCD1;
+            cursor: default;
+        }
+    </style>
+</head>
+<body>
+<svg id="test_svg" class="border1px" width="500" height="500"></svg>
+<script>
+    var mouse_path = [];
+    var is_mouse_down = false;
+    // Put your initialization code here
+    $(document).ready(function(){
+
+        var $svg = $("#test_svg");
+        var snap = Snap("#test_svg");
+        var path = snap.path();
+        var recognizer = new DollarRecognizer();
+        var redraw = function () {
+            $svg.empty();
+            var point_strs = mouse_path.map(function(p){ return p.x + "," + p.y;});
+            snap.path("M" + point_strs.join("L")).attr({"fill": "none", "stroke-width": "2px", "stroke": "black"});
+        };
+        $svg.mousedown(function(e){
+            mouse_path = [];
+            is_mouse_down = true;
+            mouse_path.push({x: e.pageX, y: e.pageY});
+            redraw();
+        });
+        $svg.mousemove(function(e){
+            if(!is_mouse_down) {
+                return;
+            }
+            mouse_path.push({x: e.pageX, y: e.pageY});
+            redraw();
+        })
+        $svg.mouseup(function(){
+            is_mouse_down = false;
+            if(mouse_path.length == 0) {
+                return;
+            }
+            var path_dollar = mouse_path.map(function(p){ return {X: p.x, Y: p.y}});
+            var results = recognizer.Recognize(path_dollar, false);
+            console.log("+++Recognition Results+++");
+            results.forEach(function(r){
+                console.log(r.Name, ":", r.Score);
+            })
+        });
+
+    });
+
+</script>
+</body>
+</html>

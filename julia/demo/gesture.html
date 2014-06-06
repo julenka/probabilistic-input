@@ -18,6 +18,7 @@
 
     <!-- Included Views-->
     <script type="text/javascript" src="../views/gesture_recognizer.js"></script>
+    <script type="text/javascript" src="../lib/dollar.js"></script>
     <!-- TODO:This needs to be a more generic textview -->
     <script type="text/javascript" src="../views/basic_views.js"></script>
     <script type="text/javascript" src="../views/draggable_resizeable_box.js"></script>
@@ -51,35 +52,45 @@
         rootView.addChildView(label);
         var gesture_recognizer = new GestureRecognizer(julia, {
             onGestureRecognized: function(gesture_name, root) {
-                var minx = 10000, miny = 10000, maxx = 0, maxy = 0;
+                var minx = Infinity, miny = Infinity, maxx = 0, maxy = 0, topMost, bottomMost, leftMost, rightMost;
                 var gesture_recognizer_copy = root.findViewById(gesture_recognizer.__julia_id);
                 var path = gesture_recognizer_copy.path;
                 for(var i = 0; i < path.length; i++) {
                     var p = path[i];
                     if(p.x < minx) {
                         minx = p.x;
+                        leftMost = p;
                     }
                     if(p.y < miny) {
                         miny = p.y;
+                        topMost = p;
                     }
                     if(p.x > maxx) {
                         maxx = p.x;
+                        rightMost = p;
                     }
                     if(p.y > maxy) {
                         maxy = p.y;
+                        bottomMost = p;
                     }
                 }
                 var new_shape;
-//                log(LOG_LEVEL_DEBUG, path.map(function(el){ return el.x + "," + el.y; }).join(","), minx, miny, maxx, maxy);
                 if(gesture_name === "circle") {
                     new_shape = new Circle(julia, {cx: (minx + maxx) / 2, cy: (miny + maxy) / 2,
                         radius: Math.min((maxy - miny) / 2, (maxx - minx) / 2)});
-                } else if (gesture_name === "square") {
-                    new_shape = new Rect(julia, {x: minx, y: miny, w: (maxx-minx), h: (maxy - miny)})
+                } else if (gesture_name === "rectangle") {
+                    new_shape = new DraggableBox(julia, {color: "#ffffff",
+                        "stroke-width": "2px",
+                        x: minx, y: miny, w: (maxx-minx), h: (maxy - miny)})
+                } else if (gesture_name === "triangle") {
+                    var thirdPoint = topMost;
+                    if(shallowEquals(topMost, leftMost) || shallowEquals(topMost, rightMost)) {
+                        thirdPoint = bottomMost;
+                    }
+                    new_shape = new Polyline(julia, {}, [leftMost, thirdPoint, rightMost]);
                 }
 
                 root.addChildView(new_shape);
-//                root.findViewById(label.__julia_id).attr({text: gesture_name});
 
             },
             onGestureNotRecognized: function(root) {

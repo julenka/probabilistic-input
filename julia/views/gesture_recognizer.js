@@ -1,6 +1,7 @@
 /**
  * Created by julenka on 6/5/14.
  */
+// THIS DEPENDS ON THE DOLLAR RECOGNIZER LIBRARY
 
 // First, let's just draw out the path to the screen
 var GestureRecognizer = FSMView.subClass({
@@ -39,8 +40,9 @@ var GestureRecognizer = FSMView.subClass({
                     true
                 )
             ]
+
         };
-        var gestures = ["circle", "square"];
+        var gestures = ["circle", "rectangle", "triangle"];
         var me = this;
         gestures.forEach(function(gesture) {
             // for now, let's just assume that we are returning true with probably 0.33
@@ -57,53 +59,29 @@ var GestureRecognizer = FSMView.subClass({
             ));
         });
     },
+    /**
+     * Converts points from a format that I use {x: , y: } to the format used by $1 recognizer {X: ,Y:}
+     * @param points
+     */
+    convertPoints: function(path) {
+        return path.map(function(point) { return {X: point.x, Y: point.y}});
+    },
     recognizeGesture: function(gestureName) {
-        var probability = 0;
-        if(gestureName === "circle") {
-            var minx = 10000, miny = 10000, maxx = 0, maxy = 0;
-            var path = this.path;
-            for(var i = 0; i < path.length; i++) {
-                var p = path[i];
-                if(p.x < minx) {
-                    minx = p.x;
+        var dollarPoints = this.convertPoints(this.path);
+        var recognizer = new DollarRecognizer();
+
+        // This will perform unecessary computations. TODO: cache the recognition result if we have perf issues
+        var results = recognizer.Recognize(dollarPoints, false);
+        for(var i = 0; i < results.length; i++) {
+            if(results[i].Name === gestureName) {
+                var score = results[i].Score;
+                if(score < 0.8) {
+                    return false;
                 }
-                if(p.y < miny) {
-                    miny = p.y;
-                }
-                if(p.x > maxx) {
-                    maxx = p.x;
-                }
-                if(p.y > maxy) {
-                    maxy = p.y;
-                }
+                return Math.dieRoll(results[i].Score);
             }
-            var cx = (minx + maxx) / 2;
-            var cy = (miny + maxy) / 2;
-            var distances = [];
-            for(i = 0; i < path.length; i++) {
-                p = path[i];
-                var dx = p.x - cx;
-                var dy = p.y - cy;
-                distances.push(Math.sqrt(dx * dx + dy * dy));
-            }
-            var stdev = distances.stdev();
-            var mean = distances.mean();
-            var ratio = stdev / mean;
-            probability = Math.remap(ratio, 0, 1, 1, 0);
-            var p1 = path[0];
-            var p2 = path[path.length - 1];
-            var dx = p1.x - p2.x;
-            var dy = p1.y - p2.y;
-            var d = Math.sqrt(dx * dx + dy * dy);
-            var ratio = Math.remap(d / mean, 0, 1, 1, 0);
-            probability *= ratio;
-            if(probability < 0.2) {
-                probability = 0;
-            }
-        } else if (gestureName === "square") {
-            return Math.dieRoll(0.1);
         }
-        return Math.dieRoll(probability);
+        return false;
     },
     clone: function() {
         var result = this._super();

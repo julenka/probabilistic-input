@@ -2491,7 +2491,7 @@ var NBestContainer = View.subClass({
      * @param props
      */
     init: function(julia, props ) {
-        var defaults = {x: 0, y:0, w: 0, h: 0, alternative_size: 50, padding: 5};
+        var defaults = {x: 0, y:0, w: 0, h: 0, alternative_size: 30, padding: 5};
         this._super(julia, props, defaults);
         // [ {root: xxx, view: xxx, probability}]
         this.alternatives = [];
@@ -2521,7 +2521,7 @@ var NBestContainer = View.subClass({
             var bbox2 = boundingRect.getBBox();
             var dx = bbox2.cx - bbox.cx;
             var dy = bbox2.cy - bbox.cy;
-            g.rect(bbox.x, bbox.y, bbox.w, bbox.h).attr({"fill": "blue", "fill-opacity": 0.5});
+            g.rect(bbox.x, bbox.y, bbox.w, bbox.h).attr({"fill": "blue", "fill-opacity": 0.0});
             var scale = this.properties.alternative_size / Math.max(bbox.w, bbox.h);
             m.translate(dx, dy);
             m.scale(scale, scale, bbox.cx, bbox.cy);

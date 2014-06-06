@@ -71,6 +71,58 @@ var Circle = View.subClass({
     }
 });
 
+var Polyline = View.subClass({
+    className: "Polyline",
+    /**
+     * A basic triangle
+     * properties:
+     * points
+     * strokeColor
+     * strokeWidth
+     * fillColor
+     * fillOpacity
+     * @param julia
+     * @param props
+     */
+    init: function(julia, props, points) {
+        this._super(julia, props, {strokeColor: "black",
+            strokeWidth: 5, fillColor: "black", fillOpacity: 0});
+        this.points = points;
+
+    },
+    draw: function($el) {
+        var s = Snap($el[0]);
+        var pts = [];
+        this.points.forEach(function(pt) {
+            pts.push(pt.x);
+            pts.push(pt.y);
+        });
+        s.polygon(pts).attr({
+            stroke: this.properties.strokeColor,
+            fill: this.properties.fillColor,
+            "stroke-width": this.properties.strokeWidth,
+            "fill-opacity": this.properties.fillOpacity
+        });
+    },
+    clone: function(){
+        var result = this._super();
+        result.points = deepCopy(this.points);
+        return result;
+    },
+    equals: function(other) {
+        if(!this._super(other)) { return false;}
+        if (other.points.length != this.points.length) { return false; }
+        for(var i = 0; i < this.points.length; i++) {
+            if(!shallowEquals(this.points[i], other.points[i])) {
+                return false;
+            }
+        }
+        return true;
+    }
+});
+
+
+
 var Rect = View.subClass({
     className: "Rect",
     /**
