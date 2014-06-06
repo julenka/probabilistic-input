@@ -2491,26 +2491,26 @@ var NBestContainer = View.subClass({
      * @param props
      */
     init: function(julia, props ) {
-        var defaults = {x: 0, y:0, w: 0, h: 0, alternative_size: 30, padding: 5};
+        var defaults = {x: 0, y:0, w: 0, h: 0, alternative_size: 50, padding: 8};
         this._super(julia, props, defaults);
         // [ {root: xxx, view: xxx, probability}]
         this.alternatives = [];
     },
     draw: function($el) {
         var s = Snap($el[0]);
-        var w = 2 * this.properties.padding + this.alternatives.length * (this.properties.alternative_size + this.properties.padding);
+        var w = this.properties.padding + this.alternatives.length * (this.properties.alternative_size + this.properties.padding);
         var h = 2 * this.properties.padding + this.properties.alternative_size;
         s.rect(this.properties.x, this.properties.y, w, h).attr({
             "stroke": "black",
             "stroke-width": "1px",
-            "fill-opacity": 0
+            fill: "#313131"
         });
         var julia = this.julia;
         for(var i = 0; i < this.alternatives.length; i++) {
             var x = this.properties.x + this.properties.padding + i * (this.properties.alternative_size + this.properties.padding);
             var y = this.properties.y + this.properties.padding;
             w = this.properties.alternative_size;
-            var boundingRect = s.rect(x, y, w, w).attr({"stroke": "gray", "stroke-width": "1px", "fill-opacity": 0});
+            var boundingRect = s.rect(x - 2, y- 2, w + 4, w + 4).attr({"stroke": "gray", "stroke-width": "1px", "fill-opacity": 1, fill: "#CCC"});
             var m = new Snap.Matrix();
             var viewCopy = this.alternatives[i].view.clone();
             viewCopy.x = 0;
@@ -2549,41 +2549,6 @@ var NBestContainer = View.subClass({
         }
 
 
-    },
-    /**
-     * Tests if a mouse down was executed over any of the alternatives.
-     * If so, sets this alternative to be the root view, removes ambiguity.
-     * @param e
-     * @returns {*}
-     */
-    dispatchEvent: function(e) {
-        return [];
-//        if(e.type !== "mousedown") {
-//            return [];
-//        }
-//        var event_x = e.base_event.element_x;
-//        var event_y = e.base_event.element_y;
-//        var rx = event_x - this.properties.x;
-//        var ry = event_y - this.properties.y;
-//
-//        if(rx < 0 || ry < 0 || ry > this.alternative_size) {
-//            return [];
-//        }
-//        var alt_index = Math.floor(rx / this.alternative_size);
-//        if(alt_index >= this.alternatives.length) {
-//            return [];
-//        }
-//        var result_request = new ActionRequest(
-//            function() {
-//                julia.setRootView(this.alternatives[alt_index].root);
-//            },
-//            this,
-//            false,
-//            true,
-//            e
-//        );
-//        var result = new ActionRequestSequence(julia.rootView, [result_request]);
-//        return [result];
     },
     /**
      * Adds an alternative to the list of items we are going to present.

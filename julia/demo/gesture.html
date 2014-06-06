@@ -27,7 +27,7 @@
 <h3>Gesture</h3>
 <div id="top_bar"></div>
 
-<div id="demo_description">Describe your demo here</div>
+<div id="demo_description">Freehand diagramming demo, shows 'n-best list' style alternatives, focusing on the changed area only.</div>
 <table>
     <tr>
         <td><svg id="demo_interface" width="640" height="480"></svg></td>
@@ -48,8 +48,6 @@
      */
     function setup(rootView) {
         var julia = rootView.julia;
-        var label = new TextView(julia, {x: 200, y: 200, text: "gesture here!"});
-        rootView.addChildView(label);
         var gesture_recognizer = new GestureRecognizer(julia, {
             onGestureRecognized: function(gesture_name, root) {
                 var minx = Infinity, miny = Infinity, maxx = 0, maxy = 0, topMost, bottomMost, leftMost, rightMost;
@@ -120,9 +118,7 @@
         var $alternatives = $("#demo_alternatives");
         var $mainInterface = $("#demo_interface");
         // Add an event source
-        var mouseHook = new PMouseEventHook($mainInterface[0]);
-        mouseHook.variance_x_px = mouse_variance;
-        mouseHook.variance_y_px = mouse_variance;
+        var mouseHook = new PMouseEventHook($mainInterface[0], 0, 0);
         julia.addEventSource(mouseHook);
 
         // Initialize feedback
