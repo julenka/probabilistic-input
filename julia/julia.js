@@ -22,6 +22,114 @@ var shallowCopy = function(input) {
     return result;
 };
 
+// Makes a deep copy of an input object
+var deepCopy = function(o) {
+    var origObjs = {};
+    var objCache = {};
+    var nextObjId = 0;
+    var propName = "__clone_prop_" + Math.random();
+
+    recurseClone = function(o) {
+        // base case
+        switch(typeof(o)) {
+            case 'undefined':
+            case 'boolean':
+            case 'number':
+            case 'string':
+            case 'function':
+                return o;
+            case 'object':
+                break;
+            default:
+                console.log("warning: unknown typeof " + typeof(o));
+                return o;
+        }
+
+        if(o === null)
+            return o;
+        // if we have already cloned this object previously (e.g. circular reference)
+        // then just return the cached version
+        if(propName in o)
+            return objCache[o[propName]];
+
+        // co stands for 'cloned object'
+        var co;
+        // get the type of the object
+        var baseType = Object.prototype.toString.apply(o); // [object X]
+        baseType = baseType.substr(8, baseType.length - 9);
+
+        // more base cases
+        switch(baseType) {
+            case 'Boolean':
+                co = new Boolean(o.valueOf());
+                break;
+            case 'Number':
+                co = new Number(o.valueOf());
+                break;
+            case 'String':
+                co = new String(o.valueOf());
+                break;
+            case 'Date':
+                co = new Date(o.valueOf());
+                break;
+
+            case 'RegExp':
+                co = new RegExp(o);
+                break;
+
+            /* File, Blob, FileList, ImageData */
+
+            case 'Array':
+                // for an array, just get an array of the given length
+                co = new Array(o.length);
+                break;
+
+            default:
+                console.log("warning: unknown object type " + baseType);
+            /* fall through */
+            case 'Object':
+                // for a generic object, create its prototype
+                co = Object.create(Object.getPrototypeOf(o));
+                break;
+        }
+
+        // get all the properties of this object, prepare for copying
+        var props = Object.getOwnPropertyNames(o);
+        // save this object (well,the cloned version) in the cache
+        o[propName] = nextObjId++;
+        objCache[o[propName]] = co;
+        origObjs[o[propName]] = o;
+
+        // copy all values of this property
+        for(var i=0; i<props.length; i++) {
+            var prop = Object.getOwnPropertyDescriptor(o, props[i]);
+            // if this property has a value, update it
+            if('value' in prop) {
+                prop.value = recurseClone(prop.value);
+            }
+            // define a property the 'right' way, assigning its descriptor
+            // this properly preserves the visibility of the property which is nice.
+            Object.defineProperty(co, props[i], prop);
+        }
+
+        return co;
+    }
+
+    var newObj = recurseClone(o);
+
+    /* cleanup */
+    // getOwnPropertyNames returns an array of properties that are found
+    // directly upon a given object. corresponds both the enumerable AND non-enumerable
+    // properties of the object.
+    //
+    var props = Object.getOwnPropertyNames(origObjs);
+    for(var i=0; i<props.length; i++) {
+        // delete the 'nextObjId' identifier of a property in this object
+        delete origObjs[props[i]][propName];
+    }
+
+    return newObj;
+};
 
 var valueOrDefault = function(value, default_value) {
     return typeof(value) === 'undefined' ? default_value : value;
@@ -245,6 +353,21 @@ Array.prototype.min = function() {
 
 Array.prototype.extend = function(ar2) {
     this.push.apply(this, ar2);
+};
+
+Array.prototype.mean = function() {
+    var sum = this.reduce(function(a, b) { return a + b });
+    return sum / this.length;
+};
+
+Array.prototype.stdev = function() {
+    var mean = this.mean();
+    var distances = this.map(function(x) {
+        var d = x - mean;
+        return d * d;
+    });
+    var sum = distances.reduce(function(a, b) { return a + b });
+    return Math.sqrt(sum / this.length);
 };
 
 Array.prototype.shuffle = function() {
@@ -867,9 +990,14 @@ var Julia = Object.subClass({
                     if(!request.reversible) {
                         hasFinalAction = true;
                     }
+                    // TODO: this only works if there is only one container. Figure out how to handle multiple containers
+                    var oldCount = viewClone.children.length;
                     request.fn.call(request.viewContext, request.event, viewClone);
                     // set the viewContext dirty bit
                     request.viewContext._dirty = true;
+                    if(viewClone.children.length !== oldCount) {
+                        viewClone._dirty = true;
+                    }
                 });
                 if((typeof viewClone.kill) === 'undefined') {
                     newAlternatives.push({view: viewClone, probability: mediationReply.probability});
@@ -1311,8 +1439,17 @@ var View = Object.subClass({
         if(typeof(defaults) === 'undefined') {
             defaults = {};
         }
-        defaults.id = "" + guid;
         this.properties = typeof(properties) === 'undefined' ? {} : properties;
+        if(typeof(this.__julia_id) === 'undefined') {
+            // LAZY HACK TO GET THE FORM DEMO TO WORK
+            if('id' in this.properties) {
+                this.__julia_id = this.properties.id;
+            } else {
+                this.__julia_id = guid();
+            }
+
+        }
+
         for (var property in defaults) {
             if(!(property in this.properties)) {
                 this.properties[property] = defaults[property];
@@ -1343,7 +1480,7 @@ var View = Object.subClass({
         var result = new this.constructor(this.julia, this.properties);
         this.cloneActionRequests(result);
         result.properties = shallowCopy(this.properties);
-        result.id = this.id;
+        result.__julia_id = this.__julia_id;
         return result;
     },
     /**
@@ -1359,10 +1496,14 @@ var View = Object.subClass({
         if(this.className !== other.className) {
             return false;
         }
-        return true;
+        return shallowEquals(this.properties, other.properties);
+
     },
     /**
-     * Updates attributes using the given map
+     * TODO: do we also want to make this a getter? Probably.
+     * Updates properties of the object (in .properties) using the given map
+     * When an object is modified in this way, the dirty bit of the object is also set, meanint
+     * this object will be considered 'different' than other objects for feedback purposes
      * @param map A map of the form {attr:newValue}. Use this to update the properties of the object
      * @return the object, in case we want to chain things
      */
@@ -1380,7 +1521,7 @@ var View = Object.subClass({
      * @return
      */
     dispatchEvent: function() {
-        throw "not implemented!";
+        return [];
     },
 
     /**
@@ -1476,6 +1617,7 @@ var ContainerView = View.subClass({
         this.id_to_child = {};
     },
     resetDirtyBit: function() {
+        this._dirty = false;
         this.children.forEach(function(child){
             child._dirty = false;
             if(child instanceof ContainerView) {
@@ -1497,9 +1639,10 @@ var ContainerView = View.subClass({
     addChildView: function(view) {
         view.container = this;
         this.children.push(view);
-        this.id_to_child[view.properties.id] = view;
+        this.id_to_child[view.__julia_id] = view;
     },
     findViewById: function(id) {
+        if(this.__julia_id === id) { return this;}
         if(id in this.id_to_child) {
             return this.id_to_child[id];
         }
@@ -1525,7 +1668,7 @@ var ContainerView = View.subClass({
             var clone = child.clone();
             clone.container = this;
             result.addChildView(clone);
-            result.id_to_child[child.properties.id] = clone;
+            result.id_to_child[child.__julia_id] = clone;
         });
         result.focus_index = this.focus_index;
         return result;
@@ -1846,7 +1989,6 @@ var Cursor = FSMView.subClass({
      * y:
      * radius:
      * opacity:
-     * current_state:
      * drag_sample_index:
      * handles_event:
      * @param julia
@@ -2136,21 +2278,42 @@ var OverlayFeedback = Object.subClass({
                 return root;
             }
 
-            // this is a containerview
-            // For now, assume container is NOT dirty
-            // TODO handle the case when the ContainerView is dirty
-            for(var i = 0; i < root.children.length; i++) {
-                var child = root.children[i];
-                var new_alternatives = [];
-                for(var j = 0; j < alternatives.length; j++) {
-                    new_alternatives.push({view: alternatives[j].view.children[i],
-                        probability: alternatives[j].probability});
+            var dirty_vps = [];
+            for(var j = 0; j < alternatives.length; j++) {
+                var viewAndProbability = alternatives[j];
+                if(viewAndProbability.view.children.length != root.children.length) {
+                    viewAndProbability.view._dirty = true;
                 }
-                root.children[i] = mergeHelper(child, new_alternatives);
+                if(viewAndProbability.view._dirty && viewAndProbability.probability > me.renderThreshold) {
+                dirty_vps.push({view: alternatives[j].view,
+                    probability: alternatives[j].probability});
+                }
             }
+
+            if(dirty_vps.length > 0) {
+                var result = new ContainerView();
+                dirty_vps.forEach(function(vp){
+                    result.addChildView(new me.feedbackType(me.julia, vp.view, vp.probability));
+                });
+                return result;
+            } else {
+                // this is a containerview
+                // For now, assume container is NOT dirty
+                // TODO handle the case when the ContainerView is dirty
+                for(var i = 0; i < root.children.length; i++) {
+                    var child = root.children[i];
+                    var new_alternatives = [];
+                    for(var j = 0; j < alternatives.length; j++) {
+                        new_alternatives.push({view: alternatives[j].view.children[i],
+                            probability: alternatives[j].probability});
+                    }
+                    root.children[i] = mergeHelper(child, new_alternatives);
+                }
+            }
+
             return root;
 
-        };
+            }
         // merge the interface
         var mergedRoot = mergeHelper(this.julia.rootView.clone(), this.julia.alternatives);
         mergedRoot.draw($el);

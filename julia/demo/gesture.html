@@ -1,0 +1,134 @@
+<!-- Created on 5/26/2014 -->
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Gesture</title>
+
+    <!-- JQuery -->
+    <script type="text/javascript" src="../lib/jquery.js"></script>
+
+    <!-- Snap SVG library -->
+    <script type="text/javascript" src="../lib/snap.svg.js"></script>
+
+    <!-- Julia library -->
+    <script type="text/javascript" src="../julia.js"></script>
+
+    <!-- Julia CSS -->
+    <link type="text/css" rel="stylesheet" href="../julia.css"/>
+
+    <!-- Included Views-->
+    <script type="text/javascript" src="../views/gesture_recognizer.js"></script>
+    <!-- TODO:This needs to be a more generic textview -->
+    <script type="text/javascript" src="../views/basic_views.js"></script>
+</head>
+<body>
+<h3>Gesture</h3>
+<div id="top_bar"></div>
+
+<div id="demo_description">Describe your demo here</div>
+<table>
+    <tr>
+        <td><svg id="demo_interface" width="640" height="480"></svg></td>
+        <td><div id="demo_alternatives"></div></td>
+    </tr>
+</table>
+
+<div id="debug"></div>
+
+<script>
+    // Your custom views here
+</script>
+<script>
+
+    /**
+     * Set up the interface here
+     * @param rootView
+     */
+    function setup(rootView) {
+        var julia = rootView.julia;
+        var label = new TextView(julia, {x: 200, y: 200, text: "gesture here!"});
+        rootView.addChildView(label);
+        var gesture_recognizer = new GestureRecognizer(julia, {
+            onGestureRecognized: function(gesture_name, root) {
+                var minx = 10000, miny = 10000, maxx = 0, maxy = 0;
+                var gesture_recognizer_copy = root.findViewById(gesture_recognizer.__julia_id);
+                var path = gesture_recognizer_copy.path;
+                for(var i = 0; i < path.length; i++) {
+                    var p = path[i];
+                    if(p.x < minx) {
+                        minx = p.x;
+                    }
+                    if(p.y < miny) {
+                        miny = p.y;
+                    }
+                    if(p.x > maxx) {
+                        maxx = p.x;
+                    }
+                    if(p.y > maxy) {
+                        maxy = p.y;
+                    }
+                }
+//                log(LOG_LEVEL_DEBUG, path.map(function(el){ return el.x + "," + el.y; }).join(","), minx, miny, maxx, maxy);
+                var new_circle = new Circle(julia, {cx: (minx + maxx) / 2, cy: (miny + maxy) / 2,
+                radius: Math.min((maxy - miny) / 2, (maxx - minx) / 2)});
+                root.addChildView(new_circle);
+//                root.findViewById(label.__julia_id).attr({text: gesture_name});
+
+            },
+            onGestureNotRecognized: function(root) {
+                var gesture_recognizer_copy = root.findViewById(gesture_recognizer.__julia_id);
+                var new_path = new Path(julia, {radius: 1, path: deepCopy(gesture_recognizer_copy.path)
+                        .map(function(el){ return el.x + "," + el.y; })});
+                root.addChildView(new_path);
+//                var label_clone = root.findViewById(label.__julia_id)
+//                label_clone.attr({text: "gesture not recognized"});
+            }
+        });
+        rootView.addChildView(gesture_recognizer);
+    }
+
+
+    /**
+     * Executed when the document loads. Intended to be boilerplate, shouldn't have to replace much here (for now).
+     */
+    $(document).ready(function(){
+        var mouse_variance = 10;
+        var julia = new Julia();
+        var rootView = new ContainerView(julia);
+        julia.setRootView(rootView);
+
+        setup(rootView);
+
+        var $alternatives = $("#demo_alternatives");
+        var $mainInterface = $("#demo_interface");
+        // Add an event source
+        var mouseHook = new PMouseEventHook($mainInterface[0]);
+        mouseHook.variance_x_px = mouse_variance;
+        mouseHook.variance_y_px = mouse_variance;
+        julia.addEventSource(mouseHook);
+
+        // Initialize feedback
+        julia.feedback = new OverlayFeedback(julia, {showOriginal: false});
+
+        julia.drawFeedback($mainInterface, julia.feedback);
+
+        julia.dispatchCompleted = function(new_alternatives, uiUpdated) {
+            if(!uiUpdated) {
+                return;
+            }
+            $mainInterface.empty();
+            julia.drawFeedback($mainInterface, julia.feedback);
+            julia.dumpAlternativesAsSnap($alternatives, $mainInterface.width(), $mainInterface.height(), 0.25,
+                    function() {
+                        $mainInterface.empty();
+                        julia.rootView.draw($mainInterface);
+                        julia.dumpAlternativesAsSnap($alternatives, $mainInterface.width(), $mainInterface.height(), 0.25);
+                    }
+            );
+//            julia.dumpAlternativesAsText($("#debug"));
+        };
+
+    });
+</script>
+</body>
+</html>
