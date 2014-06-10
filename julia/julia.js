@@ -509,7 +509,7 @@ var PTouchEventHook = DOMEventSource.subClass({
         var pageX, pageY;
         if(e.targetTouches.length == 0) {
             pageX = 0;
-            pageY = 0
+            pageY = 0;
         } else {
             pageX = e.targetTouches[0].pageX;
             pageY = e.targetTouches[0].pageY;
@@ -915,7 +915,7 @@ var Julia = Object.subClass({
         }
     },
     dispatchPEvent: function(pEvent) {
-        if(pEvent.type === 'mousemove' || pEvent.type === 'mouseup') {
+        if(pEvent.type === 'mousemove') {
             this.mouseX = pEvent.element_x;
             this.mouseY = pEvent.element_y;
         }
@@ -2411,11 +2411,26 @@ var AnimateJitterScale = AnimateBase.subClass({
 
 var NBestFeedback = Object.subClass({
     className: "NBestFeedback",
+    /**
+     * Given a set of alternate interfaces.
+     * For the N most likely alternatives:
+     *   pick the most likely alternative and render this
+     *
+     *   then, if any alternative contains a child that is not in the root view, adds the child to an 'n-best list'
+     *   that the user can later click on to chose the appropriate alternative
+     * Properties:
+     * n: number of alternatives to consider
+     * dp: maximum difference in probability from the most likely interface to consider.
+     * @param julia
+     * @param props
+     */
     init: function(julia, props) {
         this.julia = julia;
+        this.n_alternatives = valueOrDefault(props.n, 3);
+        this.dp = valueOrDefault(props.dp, 0.5);
     },
     draw: function ($el) {
-        $el.off("mousedown");
+        $el.off("mousedown touchstart");
         delete this.julia.__julia_dont_dispatch;
         if(this.julia.alternatives.length === 0) {
             this.julia.rootView.draw($el);
@@ -2428,26 +2443,24 @@ var NBestFeedback = Object.subClass({
         // and only if they are withing dp of the most likely
         var most_likely = this.julia.alternatives[0];
         var max_p = most_likely.probability;
-        var n = 3;
-        var dp = 0.5;
 
         var mergedRoot = most_likely.view.clone();
         var root = this.julia.rootView;
         var nbestcontainer = new NBestContainer(this.julia, {x: this.julia.mouseX + 10, y: this.julia.mouseY + 10});
-        for(var i = 1; i < Math.min(n, this.julia.alternatives.length); i++) {
+        for(var i = 1; i < Math.min(this.n_alternatives, this.julia.alternatives.length); i++) {
             var p = this.julia.alternatives[i].probability;
             var v = this.julia.alternatives[i].view;
-            if(max_p - p > dp) {
+            if(max_p - p > this.dp) {
                 break;
             }
             var dirty_children = [];
             for(var j = 0; j < v.children.length; j++) {
                 // Let's just get the case working where we have different children, then worry about 'dirty' children
                 var child = v.children[j];
-//                if(child._dirty) {
-//                    dirty_children.push(child);
-//                }
                 if(typeof(root.findViewById(child.__julia_id)) === 'undefined') {
+                    dirty_children.push(child);
+                } else if(child._dirty) {
+                    // If the child is dirty, in other words its state is different from the root view, add it
                     dirty_children.push(child);
                 }
             }
@@ -2462,7 +2475,7 @@ var NBestFeedback = Object.subClass({
             // HACKS
             this.julia.__julia_dont_dispatch = true;
             var julia = this.julia;
-            $el.on("mousedown",function(e){
+            $el.on("mousedown touchstart",function(e){
                 console.log("click1");
                 julia.setRootView(most_likely.view);
                 delete julia.__julia_dont_dispatch;
@@ -2544,7 +2557,7 @@ var NBestContainer = View.subClass({
                     julia.dispatchCompleted(julia.alternatives, true);
                 };
             };
-            $(g.node).mousedown(onDownHandlerForAlternative(altRoot));
+            $(g.node).on("mousedown touchstart", onDownHandlerForAlternative(altRoot));
 
         }
 

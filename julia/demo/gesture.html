@@ -119,10 +119,12 @@
         var $mainInterface = $("#demo_interface");
         // Add an event source
         var mouseHook = new PMouseEventHook($mainInterface[0], 0, 0);
+        var touchHook = new PTouchEventHook($mainInterface[0], 0, 0);
         julia.addEventSource(mouseHook);
+        julia.addEventSource(touchHook);
 
         // Initialize feedback
-        julia.feedback = new NBestFeedback(julia);
+        julia.feedback = new NBestFeedback(julia, {n: 4});
 
         julia.drawFeedback($mainInterface, julia.feedback);
 
