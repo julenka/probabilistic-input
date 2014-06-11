@@ -39,7 +39,7 @@
 
 <table>
     <tr>
-        <td><svg id="main_interface" class="demo-interface" width="640" height="640" style="cursor:none"></svg></td>
+        <td><svg id="main_interface" class="demo-interface" width="640" height="640" ></svg></td>
         <td><div id="alternatives" class="demo-alternatives"></div></td>
     </tr>
 </table>
@@ -118,6 +118,7 @@
             }
             s.rect(this.properties.x, this.properties.y, 40, 30).attr({fill: color, rx: 5, ry: 5});
             s.rect(this.properties.x, this.properties.y + 10, this.properties.w, this.properties.h - 10).attr({fill: color, rx: 3, ry:3});
+            s.text(this.properties.x + 20, this.properties.y + 50, this.properties.text).attr({"font-family": "helvetica"});
         }
     });
 </script>
@@ -128,10 +129,10 @@
      * @param rootView
      */
     function setup(julia, rootView) {
-        rootView.addChildView(new Icon(julia, {x: 234, y: 205, w: 110, h: 90}));
-        rootView.addChildView(new Icon(julia, {x: 464, y: 231, w: 110, h: 90}));
-        rootView.addChildView(new Icon(julia, {x: 269, y: 364, w: 110, h: 90}));
-        rootView.addChildView(new Icon(julia, {x: 404, y: 428, w: 110, h: 90}));
+        rootView.addChildView(new Icon(julia, {x: 234, y: 205, w: 110, h: 90, text: "pictures"}));
+        rootView.addChildView(new Icon(julia, {x: 464, y: 231, w: 110, h: 90, text: "documents"}));
+        rootView.addChildView(new Icon(julia, {x: 269, y: 364, w: 110, h: 90, text: "videos"}));
+        rootView.addChildView(new Icon(julia, {x: 404, y: 428, w: 110, h: 90, text: "thesis"}));
         rootView.addChildView(new Window(julia, {x: 25, y: 20, w: 268, h: 228, resize_padding: 10}));
         rootView.addChildView(new Window(julia, {x: 333, y: 19, w: 268, h:228, resize_padding: 10}));
         rootView.addChildView(new Window(julia, {x: 31, y: 333, w: 268, h: 228, resize_paddding: 10}));
@@ -153,14 +154,14 @@
         julia.feedback = new OverlayFeedback(julia,
                 {feedbackType:  OverlayOpacitySaturationAmbiguous,
                     renderThreshold: 0.01});
-
+//        julia.feedback = new NBestFeedback(julia, {n: 4, dp: 0.9, feedback_type: NBestGate});
         setup(julia, rootView);
 
         var $alternatives = $("#alternatives");
         var $mainInterface = $("#main_interface");
         // Add an event source
-        var mouseHook = new PMouseEventHook($mainInterface[0], 10, 10);
-        var touchHook = new PTouchEventHook($mainInterface[0], 10, 10);
+        var mouseHook = new PMouseEventHook($mainInterface[0], 20, 20);
+        var touchHook = new PTouchEventHook($mainInterface[0], 20, 20);
 
         mouseHook.addListener(function(e) {
             mouseX = e.element_x;
