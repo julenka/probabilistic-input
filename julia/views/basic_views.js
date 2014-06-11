@@ -38,6 +38,9 @@ var Path = View.subClass({
             s.path("M" + this.properties.path.join("L")).attr({stroke: this.properties.color, fill: "none",
                 "stroke-width": this.properties.radius, opacity: this.properties.opacity});
         }
+    },
+    equals: function(other) {
+        return other.__julia_id === this.__julia_id;
     }
 });
 
@@ -112,6 +115,7 @@ var Polyline = View.subClass({
     equals: function(other) {
         if(!this._super(other)) { return false;}
         if (other.points.length != this.points.length) { return false; }
+
         for(var i = 0; i < this.points.length; i++) {
             if(!shallowEquals(this.points[i], other.points[i])) {
                 return false;

@@ -853,8 +853,8 @@ var Julia = Object.subClass({
         this.mediator = new Mediator();
         this.combiner = new ActionRequestCombiner();
         this.eventSources = [];
-        this.mouseX = 0;
-        this.mouseY = 0;
+        this.mouseX = this.mouseXSmooth = 0;
+        this.mouseY = this.mouseYSmooth = 0;
 
     },
     //TODO test addEventSource
@@ -918,10 +918,17 @@ var Julia = Object.subClass({
         if(pEvent.type === 'mousemove') {
             this.mouseX = pEvent.element_x;
             this.mouseY = pEvent.element_y;
+
+            var smoothFactor = 0.97;
+            this.mouseXSmooth = this.mouseXSmooth + (1 - smoothFactor) * (this.mouseX - this.mouseXSmooth);
+            this.mouseYSmooth = this.mouseYSmooth + (1 - smoothFactor) * (this.mouseY - this.mouseYSmooth);
+
         }
         if(pEvent.type === 'mousedown') {
             this.downX = pEvent.element_x;
             this.downY = pEvent.element_y;
+            this.mouseXSmooth = pEvent.element_x;
+            this.mouseYSmooth = pEvent.element_y;
         }
 
         // HACKS
@@ -2120,7 +2127,8 @@ var Button = FSMView.subClass({
             x: 0,
             y: 0,
             w: 0,
-            h: 0
+            h: 0,
+            text: "button"
         };
         this._super(julia, properties, defaults);
         this.click_handlers = [];
@@ -2178,11 +2186,11 @@ var Button = FSMView.subClass({
     on_up: function(e) {
 
     },
-    on_click_final: function(e) {
+    on_click_final: function(e, rootView) {
         var handled = false;
         var i = 0;
         while(i < this.click_handlers.length && !handled) {
-            handled = this.click_handlers[i]();
+            handled = this.click_handlers[i](e, rootView);
             i++;
         }
     },
@@ -2196,7 +2204,7 @@ var Button = FSMView.subClass({
         var w = this.properties.w;
         var h = this.properties.h;
         s.rect(x, y, w, h).attr({stroke: "black", "stroke-width": 3, fill: c});
-        s.text(x + w / 2, y + h / 2, x + ", " + y)
+        s.text(x + w / 2, y + h / 2, this.properties.text)
             .attr({stroke:c2, fill: c2, fontFamily: "Helvetica", "text-anchor": "middle", "alignment-baseline": "middle"});
     },
     clone: function() {
@@ -2611,8 +2619,8 @@ var NBestGate = NBestContainer.subClass({
     className: "NBestGate",
     init: function(julia, props) {
         this._super(julia, props);
-        this.properties.x = julia.mouseX;
-        this.properties.y = julia.downY;
+        this.properties.x = julia.mouseXSmooth;
+        this.properties.y = julia.mouseYSmooth;
     },
     draw: function($el) {
         $el.off("mousemove touchmove");
@@ -2624,7 +2632,9 @@ var NBestGate = NBestContainer.subClass({
         for(var i = 0; i < this.alternatives.length; i++) {
             var x = this.properties.x + this.properties.padding + i * (this.properties.alternative_size + this.properties.padding);
             x -= w / 2;
+
             var y = this.properties.y + this.properties.padding;
+            y -= h * 1.5;
             var g = this.drawSmallAlternative(x, y, s, this.alternatives[i].view.clone());
 
             var altRoot = this.alternatives[i].root;

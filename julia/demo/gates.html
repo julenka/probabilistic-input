@@ -2,7 +2,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Straight vs Curvy Paths</title>
+    <title>Gates</title>
 
     <!-- JQuery -->
     <script type="text/javascript" src="../lib/jquery.js"></script>
@@ -19,6 +19,7 @@
     <!-- Included Views-->
     <script type="text/javascript" src="../views/path_brush.js"></script>
     <script type="text/javascript" src="../views/basic_views.js"></script>
+    <script type="text/javascript" src="../views/draggable_resizeable_box.js"></script>
 </head>
 <body>
 <table>
@@ -39,32 +40,57 @@
         function path2str(el) {
             return el.x + ", " + el.y;
         };
+        var lineColor = "#ddd";
         var onLineCompleted = function(p1, p2, root) {
-            var new_line = new Path(julia, {radius: 1,
+            var new_line = new Path(julia, {radius: 1, color: lineColor,
                 path: [p1, p2].map(path2str)
             });
             root.addChildView(new_line);
         };
 
         var onPathCompleted = function(path, root) {
-            root.addChildView(new Path(julia, {radius: 1,
+            root.addChildView(new Path(julia, {radius: 1, color: lineColor,
                 path: path.map(path2str)
             }));
         };
-        var path_brush = new PathBrush(julia, {onPathCompleted: onPathCompleted, onLineCompleted: onLineCompleted});
+        var path_brush = new PathBrush(julia, {color: lineColor, onPathCompleted: onPathCompleted, onLineCompleted: onLineCompleted});
         rootView.addChildView(path_brush);
+
+        var itemSize = 50;
+        var propsForColor  = function(color){
+            return    {
+                x: Math.randint(0, 300),
+                y: Math.randint(0, 300),
+                w: itemSize,
+                h: itemSize,
+                color: color
+            };
+
+        };
+        var btn = new Button(julia, {x: 20, y: 20, w: 150, h: 50, text:"add draggable"});
+        btn.addClickHandler(function(e, rootView) {
+            rootView.addChildView(new DraggableBox(julia, propsForColor("#bb9999")));
+        });
+        var btn2 = new Button(julia, {x: 200, y: 20, w: 150, h: 50, text:"add dragresizeable"});
+        btn2.addClickHandler(function(e, rootView) {
+            rootView.addChildView(new DraggableResizeableBox(julia, propsForColor("#99bb99")));
+        });
+//        rootView.addChildView(new DraggableResizeableBox(julia, propsForColor("#99bb99")));
+//        rootView.addChildView(new DraggableBox(julia, propsForColor("#bb9999")));
+        rootView.addChildView(btn);
+        rootView.addChildView(btn2);
     }
 
 
     /**
      * Executed when the document loads. Intended to be boilerplate, shouldn't have to replace much here (for now).
-d     */
+     */
     $(document).ready(function(){
         var mouse_variance = 10;
         var julia = new Julia();
-        var rootView = new ContainerView(julia);
+        var rootView = new ContainerView(julia, {background_color: "#333333"});
         julia.setRootView(rootView);
-
+        julia.nSamplesPerEvent = 10;
         setup(rootView);
 
         var $alternatives = $("#demo_alternatives");
@@ -72,7 +98,6 @@ d     */
         // Add an event source
         var mouseHook = new PMouseEventHook($mainInterface[0], mouse_variance, mouse_variance);
         julia.addEventSource(mouseHook);
-
         // Initialize feedback
 //        julia.feedback = new OverlayFeedback(julia,
 //                {feedbackType:  OverlayOpacity,
@@ -82,11 +107,14 @@ d     */
         julia.drawFeedback($mainInterface, julia.feedback);
 
         julia.dispatchCompleted = function(new_alternatives, uiUpdated) {
-            if(!uiUpdated) {
-                return;
-            }
+
             $mainInterface.empty();
+//            var s = Snap($mainInterface[0]);
+//            s.circle(julia.mouseX, julia /.mouseY, 2 * mouse_variance).attr({stroke: "#eeeeee", "stroke-width": 2, "fill-opacity": 0, opacity: 0.2});
             julia.drawFeedback($mainInterface, julia.feedback);
+
+
+
             julia.dumpAlternativesAsSnap($alternatives, $mainInterface.width(), $mainInterface.height(), 0.25);
         };
     });

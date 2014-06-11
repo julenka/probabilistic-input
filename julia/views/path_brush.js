@@ -34,6 +34,34 @@ var PathBrush = FSMView.subClass({
                     true
                 ),
             ],
+//            down_horiz: [
+//                new MouseMoveTransition("down_line",
+//                    function() { return true; },
+//                    this.gesture_progress,
+//                    undefined,
+//                    true
+//                ),
+//                new MouseUpTransition("start",
+//                    function() { return true; },
+//                    undefined,
+//                    this.horiz_completed,
+//                    true
+//                )
+//            ],
+//            down_vert: [
+//                new MouseMoveTransition("down_line",
+//                    function() { return true; },
+//                    this.gesture_progress,
+//                    undefined,
+//                    true
+//                ),
+//                new MouseUpTransition("start",
+//                    function() { return true; },
+//                    undefined,
+//                    this.vert_completed,
+//                    true
+//                )
+//            ],
             down_line: [
                 new MouseMoveTransition("down_line",
                     function() { return true; },
