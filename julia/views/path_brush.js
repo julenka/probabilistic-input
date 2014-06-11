@@ -34,20 +34,6 @@ var PathBrush = FSMView.subClass({
                     true
                 ),
             ],
-            down_path: [
-                new MouseMoveTransition("down_path",
-                    function() { return true; },
-                    this.gesture_progress,
-                    undefined,
-                    true
-                ),
-                new MouseUpTransition("start",
-                    function() { return true; },
-                    this.path_completed,
-                    undefined,
-                    true
-                )
-            ],
             down_line: [
                 new MouseMoveTransition("down_line",
                     function() { return true; },
@@ -57,8 +43,22 @@ var PathBrush = FSMView.subClass({
                 ),
                 new MouseUpTransition("start",
                     function() { return true; },
-                    this.line_completed,
                     undefined,
+                    this.line_completed,
+                    true
+                )
+            ],
+            down_path: [
+                new MouseMoveTransition("down_path",
+                    function() { return true; },
+                    this.gesture_progress,
+                    undefined,
+                    true
+                ),
+                new MouseUpTransition("start",
+                    function() { return true; },
+                    undefined,
+                    this.path_completed,
                     true
                 )
             ]

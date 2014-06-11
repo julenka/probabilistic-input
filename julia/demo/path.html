@@ -77,7 +77,7 @@ d     */
 //        julia.feedback = new OverlayFeedback(julia,
 //                {feedbackType:  OverlayOpacity,
 //                    renderThreshold: 0.01});
-        julia.feedback = new NBestFeedback(julia, {n: 4});
+        julia.feedback = new NBestFeedback(julia, {n: 4, feedback_type: NBestGate});
 
         julia.drawFeedback($mainInterface, julia.feedback);
 

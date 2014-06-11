@@ -919,14 +919,16 @@ var Julia = Object.subClass({
             this.mouseX = pEvent.element_x;
             this.mouseY = pEvent.element_y;
         }
+        if(pEvent.type === 'mousedown') {
+            this.downX = pEvent.element_x;
+            this.downY = pEvent.element_y;
+        }
 
         // HACKS
         if(this.__julia_dont_dispatch) {
             return;
         }
-        if(pEvent.type === 'mousedown') {
-            console.log("down");
-        }
+
         this.initDispatchQueue(pEvent);
 
         var actionRequests = [];
@@ -2429,6 +2431,7 @@ var NBestFeedback = Object.subClass({
      * Properties:
      * n: number of alternatives to consider
      * dp: maximum difference in probability from the most likely interface to consider.
+     * feedback_type: Container type (NBestGate or NBestContainer) default: NBestContainer
      * @param julia
      * @param props
      */
@@ -2436,6 +2439,7 @@ var NBestFeedback = Object.subClass({
         this.julia = julia;
         this.n_alternatives = valueOrDefault(props.n, 3);
         this.dp = valueOrDefault(props.dp, 0.5);
+        this.feedback_type = valueOrDefault(props.feedback_type, NBestContainer);
     },
     draw: function ($el) {
         $el.off("mousedown touchstart");
@@ -2454,7 +2458,7 @@ var NBestFeedback = Object.subClass({
 
         var mergedRoot = most_likely.view.clone();
         var root = this.julia.rootView;
-        var nbestcontainer = new NBestContainer(this.julia, {x: this.julia.mouseX + 10, y: this.julia.mouseY + 10});
+        var nbestcontainer = new this.feedback_type(this.julia, {x: this.julia.mouseX + 10, y: this.julia.mouseY + 10});
         for(var i = 1; i < Math.min(this.n_alternatives, this.julia.alternatives.length); i++) {
             var p = this.julia.alternatives[i].probability;
             var v = this.julia.alternatives[i].view;
@@ -2467,9 +2471,10 @@ var NBestFeedback = Object.subClass({
                 var child = v.children[j];
                 if(typeof(root.findViewById(child.__julia_id)) === 'undefined') {
                     dirty_children.push(child);
-                } else if(child._dirty) {
-                    // If the child is dirty, in other words its state is different from the root view, add it
-//                    dirty_children.push(child);
+                }
+                // For now, we only add dirty children if we are doing a gate
+                else if(child._dirty && this.feedback_type === NBestGate) {
+                    dirty_children.push(child);
                 }
             }
 
@@ -2486,12 +2491,12 @@ var NBestFeedback = Object.subClass({
             // HACKS
             this.julia.__julia_dont_dispatch = true;
             var julia = this.julia;
-            $el.on("mousedown touchstart",function(e){
+            $el.on("mousedown touchstart", function(e){
                 console.log("mousedown1");
                 julia.setRootView(most_likely.view);
                 delete julia.__julia_dont_dispatch;
                 julia.dispatchPEvent(new PMouseEvent(1, e, 10, 10, 'mousedown', e.currentTarget));
-//                julia.dispatchCompleted(julia.alternatives, true);
+                julia.dispatchCompleted(julia.alternatives, true);
             });
         }
 
@@ -2501,8 +2506,9 @@ var NBestFeedback = Object.subClass({
     }
 });
 
+
 var NBestContainer = View.subClass({
-    className: "NBestFrame",
+    className: "NBestContainer",
     /**
      * Represents an alternative in an n best list
      * when clicked, set this to be the alternative view of the interface
@@ -2520,6 +2526,33 @@ var NBestContainer = View.subClass({
         // [ {root: xxx, view: xxx, probability}]
         this.alternatives = [];
     },
+    /**
+     * Draws one alternative in a smaller region
+     * return the group that was drawn to
+     * x: x position
+     * y: y position
+     * s: snap
+     */
+    drawSmallAlternative: function(x, y, s, viewCopy) {
+        var w = this.properties.alternative_size;
+        var boundingRect = s.rect(x - 2, y- 2, w + 4, w + 4).attr({"stroke": "gray", "stroke-width": "1px", "fill-opacity": 0.5, fill: "#CCC"});
+        var m = new Snap.Matrix();
+        viewCopy.x = 0;
+        viewCopy.y = 0;
+        var g = s.group();
+        viewCopy.draw($(g.node));
+        var bbox = g.getBBox();
+        var bbox2 = boundingRect.getBBox();
+        var dx = bbox2.cx - bbox.cx;
+        var dy = bbox2.cy - bbox.cy;
+        g.rect(bbox.x, bbox.y, bbox.w, bbox.h).attr({"fill": "blue", "fill-opacity": 0.0});
+        var scale = this.properties.alternative_size / Math.max(bbox.w, bbox.h);
+        m.translate(dx, dy);
+        m.scale(scale, scale, bbox.cx, bbox.cy);
+
+        g.attr({transform: m.toString()});
+        return g;
+    },
     draw: function($el) {
         var s = Snap($el[0]);
         var w = this.properties.padding + this.alternatives.length * (this.properties.alternative_size + this.properties.padding);
@@ -2534,24 +2567,7 @@ var NBestContainer = View.subClass({
         for(var i = 0; i < this.alternatives.length; i++) {
             var x = this.properties.x + this.properties.padding + i * (this.properties.alternative_size + this.properties.padding);
             var y = this.properties.y + this.properties.padding;
-            w = this.properties.alternative_size;
-            var boundingRect = s.rect(x - 2, y- 2, w + 4, w + 4).attr({"stroke": "gray", "stroke-width": "1px", "fill-opacity": 0.5, fill: "#CCC"});
-            var m = new Snap.Matrix();
-            var viewCopy = this.alternatives[i].view.clone();
-            viewCopy.x = 0;
-            viewCopy.y = 0;
-            var g = s.group();
-            viewCopy.draw($(g.node));
-            var bbox = g.getBBox();
-            var bbox2 = boundingRect.getBBox();
-            var dx = bbox2.cx - bbox.cx;
-            var dy = bbox2.cy - bbox.cy;
-            g.rect(bbox.x, bbox.y, bbox.w, bbox.h).attr({"fill": "blue", "fill-opacity": 0.0});
-            var scale = this.properties.alternative_size / Math.max(bbox.w, bbox.h);
-            m.translate(dx, dy);
-            m.scale(scale, scale, bbox.cx, bbox.cy);
-
-            g.attr({transform: m.toString()});
+            var g = this.drawSmallAlternative(x, y, s, this.alternatives[i].view.clone());
             var altRoot = this.alternatives[i].root;
             // returns a function taht sets the root view for julia to be the input value
             // JavaScript closures are function level, not scope level.
@@ -2574,6 +2590,7 @@ var NBestContainer = View.subClass({
             $(g.node).on("mousedown touchstart", onDownHandlerForAlternative(altRoot));
 
         }
+
     },
     /**
      * Adds an alternative to the list of items we are going to present.
@@ -2587,6 +2604,57 @@ var NBestContainer = View.subClass({
         var result = this._super();
         result.alternatives = deepClone(this.alternatives);
     }
+});
+
+
+var NBestGate = NBestContainer.subClass({
+    className: "NBestGate",
+    init: function(julia, props) {
+        this._super(julia, props);
+        this.properties.x = julia.mouseX;
+        this.properties.y = julia.downY;
+    },
+    draw: function($el) {
+        $el.off("mousemove touchmove");
+        var s = Snap($el[0]);
+        var w = this.properties.padding + this.alternatives.length * (this.properties.alternative_size + this.properties.padding);
+        var h = 2 * this.properties.padding + this.properties.alternative_size;
+
+        var julia = this.julia;
+        for(var i = 0; i < this.alternatives.length; i++) {
+            var x = this.properties.x + this.properties.padding + i * (this.properties.alternative_size + this.properties.padding);
+            x -= w / 2;
+            var y = this.properties.y + this.properties.padding;
+            var g = this.drawSmallAlternative(x, y, s, this.alternatives[i].view.clone());
+
+            var altRoot = this.alternatives[i].root;
+            // returns a function taht sets the root view for julia to be the input value
+            // JavaScript closures are function level, not scope level.
+            // this means that the enclosign scope is assigned when the function is invoked.
+            // We need to therrefore create a custom event handler that sets the root view to altRoot
+            // by explicitly calling the function here.
+            // Otherwise altrot will always be the last element.
+            // Explanation at http://stackoverflow.com/questions/1451009/javascript-infamous-loop-issue
+            var onMoveHandlerForAlternative = function(alternative) {
+                return function(e){
+                    julia.setRootView(alternative);
+                    delete julia.__julia_dont_dispatch;
+
+                    julia.dispatchCompleted(julia.alternatives, true);
+                    e.stopPropagation();
+                    return true;
+                };
+            };
+            $(g.node).on("mousemove touchmove", onMoveHandlerForAlternative(altRoot));
+        }
+
+        $el.on("mousemove touchmove mouseup touchup", function(e) {
+            delete julia.__julia_dont_dispatch;
+            julia.dispatchPEvent(new PMouseEvent(1, e, 0, 0, e.type, e.currentTarget));
+        });
+
+
+    },
 });
 
 var OverlayFeedback = Object.subClass({
