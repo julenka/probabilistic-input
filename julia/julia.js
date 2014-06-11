@@ -2477,13 +2477,14 @@ var NBestFeedback = Object.subClass({
             for(var j = 0; j < v.children.length; j++) {
                 // Let's just get the case working where we have different children, then worry about 'dirty' children
                 var child = v.children[j];
+                if(child._dirty && this.feedback_type === NBestGate) {
+                    dirty_children.push(child);
+                } else
                 if(typeof(root.findViewById(child.__julia_id)) === 'undefined') {
                     dirty_children.push(child);
                 }
                 // For now, we only add dirty children if we are doing a gate
-                else if(child._dirty && this.feedback_type === NBestGate) {
-                    dirty_children.push(child);
-                }
+//                else
             }
 
             if(dirty_children.length > 0) {
@@ -2623,7 +2624,7 @@ var NBestGate = NBestContainer.subClass({
         this.properties.y = julia.mouseYSmooth;
     },
     draw: function($el) {
-        $el.off("mousemove touchmove");
+        $el.off("mousemove touchmove mouseup touchup");
         var s = Snap($el[0]);
         var w = this.properties.padding + this.alternatives.length * (this.properties.alternative_size + this.properties.padding);
         var h = 2 * this.properties.padding + this.properties.alternative_size;
@@ -2634,8 +2635,8 @@ var NBestGate = NBestContainer.subClass({
             x -= w / 2;
 
             var y = this.properties.y + this.properties.padding;
-            y -= h * 1.5;
-            var g = this.drawSmallAlternative(x, y, s, this.alternatives[i].view.clone());
+            y -= h * 1.25;
+            var g = this.drawSmallAlternative(x, y, s, this.alternatives[i].view);
 
             var altRoot = this.alternatives[i].root;
             // returns a function taht sets the root view for julia to be the input value
