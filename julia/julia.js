@@ -919,9 +919,13 @@ var Julia = Object.subClass({
             this.mouseX = pEvent.element_x;
             this.mouseY = pEvent.element_y;
         }
+
         // HACKS
         if(this.__julia_dont_dispatch) {
             return;
+        }
+        if(pEvent.type === 'mousedown') {
+            console.log("down");
         }
         this.initDispatchQueue(pEvent);
 
@@ -1957,6 +1961,10 @@ var MouseTransition = Transition.subClass({
     }
 });
 
+/**
+ * init: function(to, predicate, feedback_action, final_action, handles_event)
+ * @type {MouseTransition}
+ */
 var MouseDownTransition = MouseTransition.subClass({
     className: "MouseDownTransition",
     init: function(to, predicate, feedback_action, final_action, handles_event) {
@@ -2461,14 +2469,17 @@ var NBestFeedback = Object.subClass({
                     dirty_children.push(child);
                 } else if(child._dirty) {
                     // If the child is dirty, in other words its state is different from the root view, add it
-                    dirty_children.push(child);
+//                    dirty_children.push(child);
                 }
             }
-            var dirty_children_container = new ContainerView(this.julia);
-            dirty_children.forEach(function(dirty_child){
-                dirty_children_container.addChildView(dirty_child);
-            });
-            nbestcontainer.addAlternative(v, dirty_children_container, p);
+
+            if(dirty_children.length > 0) {
+                var dirty_children_container = new ContainerView(this.julia);
+                dirty_children.forEach(function(dirty_child){
+                    dirty_children_container.addChildView(dirty_child);
+                });
+                nbestcontainer.addAlternative(v, dirty_children_container, p);
+            }
         }
         if(nbestcontainer.alternatives.length > 0) {
             mergedRoot.addChildView(nbestcontainer);
@@ -2476,7 +2487,7 @@ var NBestFeedback = Object.subClass({
             this.julia.__julia_dont_dispatch = true;
             var julia = this.julia;
             $el.on("mousedown touchstart",function(e){
-                console.log("click1");
+                console.log("mousedown1");
                 julia.setRootView(most_likely.view);
                 delete julia.__julia_dont_dispatch;
                 julia.dispatchPEvent(new PMouseEvent(1, e, 10, 10, 'mousedown', e.currentTarget));
@@ -2516,14 +2527,15 @@ var NBestContainer = View.subClass({
         s.rect(this.properties.x, this.properties.y, w, h).attr({
             "stroke": "black",
             "stroke-width": "1px",
-            fill: "#313131"
+            fill: "#313131",
+            opacity: 0.5,
         });
         var julia = this.julia;
         for(var i = 0; i < this.alternatives.length; i++) {
             var x = this.properties.x + this.properties.padding + i * (this.properties.alternative_size + this.properties.padding);
             var y = this.properties.y + this.properties.padding;
             w = this.properties.alternative_size;
-            var boundingRect = s.rect(x - 2, y- 2, w + 4, w + 4).attr({"stroke": "gray", "stroke-width": "1px", "fill-opacity": 1, fill: "#CCC"});
+            var boundingRect = s.rect(x - 2, y- 2, w + 4, w + 4).attr({"stroke": "gray", "stroke-width": "1px", "fill-opacity": 0.5, fill: "#CCC"});
             var m = new Snap.Matrix();
             var viewCopy = this.alternatives[i].view.clone();
             viewCopy.x = 0;
@@ -2549,19 +2561,19 @@ var NBestContainer = View.subClass({
             // Otherwise altrot will always be the last element.
             // Explanation at http://stackoverflow.com/questions/1451009/javascript-infamous-loop-issue
             var onDownHandlerForAlternative = function(alternative) {
-                return function(){
-                    console.log("click2");
+                return function(e){
+                    console.log("mousedown2");
                     julia.setRootView(alternative);
                     delete julia.__julia_dont_dispatch;
 
                     julia.dispatchCompleted(julia.alternatives, true);
+                    e.stopPropagation();
+                    return true;
                 };
             };
             $(g.node).on("mousedown touchstart", onDownHandlerForAlternative(altRoot));
 
         }
-
-
     },
     /**
      * Adds an alternative to the list of items we are going to present.
