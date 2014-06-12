@@ -143,7 +143,8 @@
         julia.addEventSource(touchHook);
 
         // Initialize feedback
-        julia.feedback = new NBestFeedback(julia, {n: 4});
+//        julia.feedback = new NBestFeedback(julia, {n: 4});
+        julia.feedback = new NBestUIFeedback(julia, {n: 4});
 
         julia.drawFeedback($mainInterface, julia.feedback);
 
@@ -168,14 +169,16 @@
             }
         };
         addOption({name: "feedback_options", id:"n_best_1", checked: true},
-                "n best feedback, max 4",
-                onOptionClicked(function() { return new NBestFeedback(julia, {n: 4})}) );
+                "n best list",
+                onOptionClicked(function() { return new NBestUIFeedback(julia, {n: 4,
+                n_best_size: 100
+                })}) );
         addOption({name: "feedback_options", id:"n_best_2", checked: false},
-                "n best feedback  max 2",
-                onOptionClicked(function() { return new NBestFeedback(julia, {n: 2})}) );
+                "n best list, highlight changes",
+                onOptionClicked(function() { return new NBestHighlightFeedback (julia, {n: 4, n_best_size: 100})}) );
         addOption({name: "feedback_options", id:"n_best_3", checked: false},
-                "n best feedback max 1",
-                onOptionClicked(function() { return new NBestFeedback(julia, {n: 1})}) );
+                "n best list, show only changed views",
+                onOptionClicked(function() { return new NBestFeedback(julia, {n: 4})}) );
     });
 </script>
 </body>

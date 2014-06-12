@@ -424,7 +424,7 @@ var LOG_LEVEL_VERBOSE = 4, LOG_LEVEL_DEBUG = 3, LOG_LEVEL_INFO = 2, LOG_LEVEL_ER
 // The current logging level. Modify this to change log level
 //noinspection UnnecessaryLocalVariableJS
 var gLogLevel = LOG_LEVEL_DEBUG;
-var gTraceLog = false;
+var gTraceLog = true;
 function log(level, objs) {
     var args = Array.prototype.slice.call(arguments, 1, arguments.length);
     if(gLogLevel >= level) {
@@ -2427,18 +2427,17 @@ var AnimateJitterScale = AnimateBase.subClass({
     }
 });
 
-var NBestFeedback = Object.subClass({
-    className: "NBestFeedback",
+NBestListBase = Object.subClass({
+    className: "NBestListBase",
     /**
-     * Given a set of alternate interfaces.
-     * For the N most likely alternatives:
-     *   pick the most likely alternative and render this
+     * Given a set of alternate interfaces, renders an N-best list.
+     * All n best list feedbacks extend this
      *
-     *   then, if any alternative contains a child that is not in the root view, adds the child to an 'n-best list'
-     *   that the user can later click on to chose the appropriate alternative
      * Properties:
      * n: number of alternatives to consider
      * dp: maximum difference in probability from the most likely interface to consider.
+     * n_best_location: function that returns x,y of location to put n-best list
+     * n_best_size: function that returns the size of each item in the n_best_list
      * feedback_type: Container type (NBestGate or NBestContainer) default: NBestContainer
      * @param julia
      * @param props
@@ -2448,8 +2447,16 @@ var NBestFeedback = Object.subClass({
         this.n_alternatives = valueOrDefault(props.n, 3);
         this.dp = valueOrDefault(props.dp, 0.5);
         this.feedback_type = valueOrDefault(props.feedback_type, NBestContainer);
+        this.n_best_location = valueOrDefault(props.n_best_location, function(){
+            return {x: this.julia.mouseX + 10, y: this.julia.mouseY + 10};
+        });
+        this.n_best_size = valueOrDefault(props.n_best_size, 80);
+    },
+    addItemToNBestContainer: function(nbestcontainer, originalRoot, alternativeRoot, probability) {
+        throw "addItemToNBestContainer is not implemented in NBestListBase. Needs to be filled in by extending class.";
     },
     draw: function ($el) {
+        // TODO: I think we can refactor this
         $el.off("mousedown touchstart");
         delete this.julia.__julia_dont_dispatch;
         if(this.julia.alternatives.length === 0) {
@@ -2466,34 +2473,16 @@ var NBestFeedback = Object.subClass({
 
         var mergedRoot = most_likely.view.clone();
         var root = this.julia.rootView;
-        var nbestcontainer = new this.feedback_type(this.julia, {x: this.julia.mouseX + 10, y: this.julia.mouseY + 10});
+        var nbestcontainer = new this.feedback_type(this.julia,
+            $.extend(this.n_best_location(), {alternative_size: this.n_best_size})
+            );
         for(var i = 1; i < Math.min(this.n_alternatives + 1, this.julia.alternatives.length); i++) {
             var p = this.julia.alternatives[i].probability;
             var v = this.julia.alternatives[i].view;
             if(max_p - p > this.dp) {
                 break;
             }
-            var dirty_children = [];
-            for(var j = 0; j < v.children.length; j++) {
-                // Let's just get the case working where we have different children, then worry about 'dirty' children
-                var child = v.children[j];
-                if(child._dirty && this.feedback_type === NBestGate) {
-                    dirty_children.push(child);
-                } else
-                if(typeof(root.findViewById(child.__julia_id)) === 'undefined') {
-                    dirty_children.push(child);
-                }
-                // For now, we only add dirty children if we are doing a gate
-//                else
-            }
-
-            if(dirty_children.length > 0) {
-                var dirty_children_container = new ContainerView(this.julia);
-                dirty_children.forEach(function(dirty_child){
-                    dirty_children_container.addChildView(dirty_child);
-                });
-                nbestcontainer.addAlternative(v, dirty_children_container, p);
-            }
+            this.addItemToNBestContainer(nbestcontainer, root, v, p);
         }
         if(nbestcontainer.alternatives.length > 0) {
             mergedRoot.addChildView(nbestcontainer);
@@ -2512,6 +2501,136 @@ var NBestFeedback = Object.subClass({
         mergedRoot.draw($el);
 
         return mergedRoot;
+    }
+});
+
+var NBestHighlightFeedback = NBestListBase.subClass({
+    className: "NBestHighlightFeedback",
+    /**
+     * Given a set of alternate interfaces.
+     * For the N most likely alternatives:
+     *   pick the most likely alternative and render this
+     *
+     * then renders all alternatives up to n and dp
+     * highlighting different children
+     *
+     * Properties:
+     * n: number of alternatives to consider
+     * dp: maximum difference in probability from the most likely interface to consider.
+     * highlight_color: color to use for highlight. default is yellow
+     * feedback_type: Container type (NBestGate or NBestContainer) default: NBestContainer
+     * @param julia
+     * @param props
+     */
+    init: function(julia, props) {
+        this._super(julia, props);
+        this.highlight_color = valueOrDefault(props.highlight_color, "#ffff00");
+    },
+    addItemToNBestContainer: function(nbestcontainer, originalRoot, alternativeRoot, probability) {
+        var new_container = new ContainerView(this.julia);
+        for(var j = 0; j < alternativeRoot.children.length; j++) {
+            // Let's just get the case working where we have different children, then worry about 'dirty' children
+            var child = alternativeRoot.children[j];
+            if( child._dirty || typeof(originalRoot.findViewById(child.__julia_id)) === 'undefined') {
+                var highlight_container = new HighlightView(this.julia, child, this.highlight_color);
+                new_container.addChildView(highlight_container);
+            } else {
+                new_container.addChildView(child);
+            }
+        }
+        nbestcontainer.addAlternative(alternativeRoot, new_container, probability);
+    }
+});
+
+var HighlightView = View.subClass({
+    className: "HighlightView",
+    init: function(julia, child, color) {
+        this._super(julia);
+        this.highlight_color = color;
+        this.padding = 10;
+        this.child = child;
+        log(LOG_LEVEL_DEBUG, this.child);
+    },
+    draw: function($el) {
+        var s = Snap($el[0]);
+        var g = s.group();
+        log(LOG_LEVEL_DEBUG, this.child);
+        this.child.draw($(g.node));
+        var bbox = g.getBBox();
+        g.rect(bbox.x - this.padding, bbox.y - this.padding, bbox.w + 2 * this.padding, bbox.h + 2 * this.padding)
+            .attr({fill: this.highlight_color, "fill-opacity": 0.25});
+    },
+    clone: function() {
+        return new HighlightView(this.julia, this.child, this.highlight_color);
+    }
+});
+
+/**
+ * N best list for the entire UI
+ */
+var NBestUIFeedback = NBestListBase.subClass({
+    className: "NBestUIFeedback",
+    /**
+     * Given a set of alternate interfaces.
+     * For the N most likely alternatives:
+     *   pick the most likely alternative and render this
+     *
+     *   then render all other alternatives (within the specified dp and n constraints) near the mouse
+     * Properties:
+     * n: number of alternatives to consider
+     * dp: maximum difference in probability from the most likely interface to consider.
+     * n_best_location: function that returns x,y of location to put n-best list
+     * n_best_size: function that returns the size of each item in the n_best_list
+     * feedback_type: Container type (NBestGate or NBestContainer) default: NBestContainer
+     * @param julia
+     * @param props
+     */
+    init: function(julia, props) {
+        this._super(julia, props);
+    },
+    addItemToNBestContainer: function(nbestcontainer, originalRoot, alternativeRoot, probability) {
+        nbestcontainer.addAlternative(alternativeRoot, alternativeRoot, probability);
+    }
+});
+
+var NBestFeedback = NBestListBase.subClass({
+    className: "NBestFeedback",
+    /**
+     * Given a set of alternate interfaces.
+     * For the N most likely alternatives:
+     *   pick the most likely alternative and render this
+     *
+     *   then, if any alternative contains a child that is not in the root view, adds the child to an 'n-best list'
+     *   that the user can later click on to chose the appropriate alternative
+     * Properties:
+     * n: number of alternatives to consider
+     * dp: maximum difference in probability from the most likely interface to consider.
+     * feedback_type: Container type (NBestGate or NBestContainer) default: NBestContainer
+     * @param julia
+     * @param props
+     */
+    init: function(julia, props) {
+        this._super(julia, props);
+    },
+    addItemToNBestContainer: function(nbestcontainer, originalRoot, alternativeRoot, probability) {
+        var dirty_children = [];
+        for(var j = 0; j < alternativeRoot.children.length; j++) {
+            // Let's just get the case working where we have different children, then worry about 'dirty' children
+            var child = alternativeRoot.children[j];
+            if(child._dirty && this.feedback_type === NBestGate) {
+                dirty_children.push(child);
+            } else if(typeof(originalRoot.findViewById(child.__julia_id)) === 'undefined') {
+                dirty_children.push(child);
+            }
+        }
+
+        if(dirty_children.length > 0) {
+            var dirty_children_container = new ContainerView(this.julia);
+            dirty_children.forEach(function(dirty_child){
+                dirty_children_container.addChildView(dirty_child);
+            });
+            nbestcontainer.addAlternative(alternativeRoot, dirty_children_container, probability);
+        }
     }
 });
 
@@ -2544,7 +2663,8 @@ var NBestContainer = View.subClass({
      */
     drawSmallAlternative: function(x, y, s, viewCopy) {
         var w = this.properties.alternative_size;
-        var boundingRect = s.rect(x - 2, y- 2, w + 4, w + 4).attr({"stroke": "gray", "stroke-width": "1px", "fill-opacity": 0.5, fill: "#CCC"});
+        var boundingRect = s.rect(x - 2, y- 2, w + 4, w + 4).attr({"stroke": "gray", "stroke-width": "1px",
+            "fill-opacity": 0.9, fill: "#FFF"});
         var m = new Snap.Matrix();
         viewCopy.x = 0;
         viewCopy.y = 0;
