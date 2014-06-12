@@ -2467,7 +2467,7 @@ var NBestFeedback = Object.subClass({
         var mergedRoot = most_likely.view.clone();
         var root = this.julia.rootView;
         var nbestcontainer = new this.feedback_type(this.julia, {x: this.julia.mouseX + 10, y: this.julia.mouseY + 10});
-        for(var i = 1; i < Math.min(this.n_alternatives, this.julia.alternatives.length); i++) {
+        for(var i = 1; i < Math.min(this.n_alternatives + 1, this.julia.alternatives.length); i++) {
             var p = this.julia.alternatives[i].probability;
             var v = this.julia.alternatives[i].view;
             if(max_p - p > this.dp) {
