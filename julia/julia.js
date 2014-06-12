@@ -2549,12 +2549,10 @@ var HighlightView = View.subClass({
         this.highlight_color = color;
         this.padding = 10;
         this.child = child;
-        log(LOG_LEVEL_DEBUG, this.child);
     },
     draw: function($el) {
         var s = Snap($el[0]);
         var g = s.group();
-        log(LOG_LEVEL_DEBUG, this.child);
         this.child.draw($(g.node));
         var bbox = g.getBBox();
         g.rect(bbox.x - this.padding, bbox.y - this.padding, bbox.w + 2 * this.padding, bbox.h + 2 * this.padding)
@@ -2617,11 +2615,10 @@ var NBestFeedback = NBestListBase.subClass({
         for(var j = 0; j < alternativeRoot.children.length; j++) {
             // Let's just get the case working where we have different children, then worry about 'dirty' children
             var child = alternativeRoot.children[j];
-            if(child._dirty && this.feedback_type === NBestGate) {
-                dirty_children.push(child);
-            } else if(typeof(originalRoot.findViewById(child.__julia_id)) === 'undefined') {
+            if( child._dirty || typeof(originalRoot.findViewById(child.__julia_id)) === 'undefined') {
                 dirty_children.push(child);
             }
+
         }
 
         if(dirty_children.length > 0) {
@@ -2876,7 +2873,6 @@ var OverlayFeedbackBase = View.subClass({
         this.view = view;
         this.probability = probability;
         if(typeof(window.__julia_snap) === 'undefined') {
-            log(LOG_LEVEL_DEBUG, "makesnap");
             window.__julia_snap = Snap();
         }
     },

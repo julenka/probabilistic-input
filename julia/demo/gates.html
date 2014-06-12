@@ -22,6 +22,7 @@
     <script type="text/javascript" src="../views/draggable_resizeable_box.js"></script>
 </head>
 <body>
+<div id="demo_settings"></div>
 <table>
     <tr>
         <td><svg id="demo_interface" width="640" height="480"></svg></td>
@@ -40,20 +41,22 @@
         function path2str(el) {
             return el.x + ", " + el.y;
         };
-        var lineColor = "#ddd";
+        var lineColor = "#333";
         var onLineCompleted = function(p1, p2, root) {
-            var new_line = new Path(julia, {radius: 1, color: lineColor,
+            var new_line = new Path(julia, {radius: 3, color: lineColor,
                 path: [p1, p2].map(path2str)
             });
             root.addChildView(new_line);
         };
 
         var onPathCompleted = function(path, root) {
-            root.addChildView(new Path(julia, {radius: 1, color: lineColor,
+            root.addChildView(new Path(julia, {radius: 3, color: lineColor,
                 path: path.map(path2str)
             }));
         };
-        var path_brush = new PathBrush(julia, {color: lineColor, onPathCompleted: onPathCompleted, onLineCompleted: onLineCompleted});
+        var path_brush = new PathBrush(julia, {color: lineColor,
+            width: 3,
+            onPathCompleted: onPathCompleted, onLineCompleted: onLineCompleted});
         rootView.addChildView(path_brush);
 
         var itemSize = 50;
@@ -69,11 +72,11 @@
         };
         var btn = new Button(julia, {x: 20, y: 20, w: 150, h: 50, text:"add draggable"});
         btn.addClickHandler(function(e, rootView) {
-            rootView.addChildView(new DraggableBox(julia, propsForColor("#bb9999")));
+            rootView.addChildView(new DraggableBox(julia, propsForColor("#933")));
         });
         var btn2 = new Button(julia, {x: 200, y: 20, w: 150, h: 50, text:"add dragresizeable"});
         btn2.addClickHandler(function(e, rootView) {
-            rootView.addChildView(new DraggableResizeableBox(julia, propsForColor("#99bb99")));
+            rootView.addChildView(new DraggableResizeableBox(julia, propsForColor("#393")));
         });
 //        rootView.addChildView(new DraggableResizeableBox(julia, propsForColor("#99bb99")));
 //        rootView.addChildView(new DraggableBox(julia, propsForColor("#bb9999")));
@@ -81,14 +84,29 @@
         rootView.addChildView(btn2);
     }
 
-
+    /**
+     *
+     * attributes: name, id, checked
+     * description: description of the option (user sees this)
+     * onClick: execute when clicked
+     */
+    function addOption(attributes, description, onClick) {
+        var option = $("<input/>")
+                .attr("type", "radio")
+                .attr(attributes)
+                .click(onClick);
+        var label = $("<label/>")
+                .attr("for", attributes.id)
+                .html(description);
+        $("#demo_settings").append(option, label);
+    }
     /**
      * Executed when the document loads. Intended to be boilerplate, shouldn't have to replace much here (for now).
      */
     $(document).ready(function(){
         var mouse_variance = 10;
         var julia = new Julia();
-        var rootView = new ContainerView(julia, {background_color: "#333333"});
+        var rootView = new ContainerView(julia, {background_color: "#eee"});
         julia.setRootView(rootView);
         julia.nSamplesPerEvent = 10;
         setup(rootView);
@@ -117,6 +135,37 @@
 
             julia.dumpAlternativesAsSnap($alternatives, $mainInterface.width(), $mainInterface.height(), 0.25);
         };
+
+        var onOptionClicked = function(feedbackFn) {
+            return function(e) {
+                var $this = $(this);
+                julia.feedback = feedbackFn();
+            }
+        };
+
+        addOption({name: "feedback_options", id:"n_best_1", checked: false},
+                "opacity overlay",
+                onOptionClicked(function() {
+                    return new OverlayFeedback(julia,
+                            {feedbackType:  OverlayOpacitySaturationAmbiguous,
+                                renderThreshold: 0.01});
+                }) );
+        addOption({name: "feedback_options", id:"n_best_2", checked: true},
+                "n best gate, show only changed views",
+                onOptionClicked(function() {
+                    return new NBestFeedback(julia, {n: 4, feedback_type: NBestGate});
+                }) );
+        addOption({name: "feedback_options", id:"n_best_3", checked: false},
+                "n best gate, show entire UI",
+                onOptionClicked(function() {
+                    return new NBestUIFeedback(julia, {n: 4, n_best_size: 100, feedback_type: NBestGate});
+                }) );
+        addOption({name: "feedback_options", id:"n_best_4", checked: false},
+                "n best gate, highlight changes",
+                onOptionClicked(function() { return new NBestHighlightFeedback (julia, {n: 4, n_best_size: 100, feedback_type: NBestGate})}) );
+        addOption({name: "feedback_options", id:"n_best_5", checked: false},
+                "n best list, show only changed views",
+                onOptionClicked(function() { return new NBestFeedback(julia, {n: 4})}) );
     });
 </script>
 </body>

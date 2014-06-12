@@ -20,12 +20,17 @@
     <script type="text/javascript" src="../views/draggable_resizeable_box.js"></script>
 
     <style>
-
+        svg {
+            cursor: default;
+        }
         body{
             overflow:hidden
         }
         td {
             vertical-align: top;
+        }
+        label {
+            margin-right: 10px;
         }
     </style>
 </head>
@@ -44,15 +49,6 @@
     </tr>
 </table>
 
-
-<table id="interactor_tree_table">
-    <tr>
-        <td>Interactor tree of main interface:</td>
-    </tr>
-    <tr>
-        <td><div id="interactor_tree_div"/></td>
-    </tr>
-</table>
 
 <script>
     // Your custom views here
@@ -101,7 +97,7 @@
                 s.circle(x0 + i * dx, y0, pd2).attr({fill: c});
             });
 
-        },
+        }
     }
     );
 
@@ -121,8 +117,7 @@
             s.text(this.properties.x + 20, this.properties.y + 50, this.properties.text).attr({"font-family": "helvetica"});
         }
     });
-</script>
-<script>
+
 
     /**
      * Set up the interface here
@@ -136,6 +131,23 @@
         rootView.addChildView(new Window(julia, {x: 25, y: 20, w: 268, h: 228, resize_padding: 10}));
         rootView.addChildView(new Window(julia, {x: 333, y: 19, w: 268, h:228, resize_padding: 10}));
         rootView.addChildView(new Window(julia, {x: 31, y: 333, w: 268, h: 228, resize_paddding: 10}));
+    }
+
+    /**
+     *
+     * attributes: name, id, checked
+     * description: description of the option (user sees this)
+     * onClick: execute when clicked
+     */
+    function addOption(attributes, description, onClick) {
+        var option = $("<input/>")
+                .attr("type", "radio")
+                .attr(attributes)
+                .click(onClick);
+        var label = $("<label/>")
+                .attr("for", attributes.id)
+                .html(description);
+        $("#demo_settings").append(option, label);
     }
 
 
@@ -184,11 +196,39 @@
             $mainInterface.empty();
             julia.drawFeedback($mainInterface, julia.feedback);
 
-            s.circle(mouseX, mouseY, 2 * variance).attr({fill: "#D636FB"});
             julia.dumpAlternativesAsSnap($alternatives, $mainInterface.width(), $mainInterface.height(), 0.5);
         };
 
-        $("#interactor_tree_table").hide();
+        var onOptionClicked = function(feedbackFn) {
+            return function(e) {
+                var $this = $(this);
+                julia.feedback = feedbackFn();
+            }
+        };
+
+        addOption({name: "feedback_options", id:"n_best_1", checked: true},
+                "opacity overlay",
+                onOptionClicked(function() {
+                    return new OverlayFeedback(julia,
+                            {feedbackType:  OverlayOpacitySaturationAmbiguous,
+                                renderThreshold: 0.01});
+                }) );
+        addOption({name: "feedback_options", id:"n_best_2", checked: false},
+                "n best gate, show only changed views",
+                onOptionClicked(function() {
+                    return new NBestFeedback(julia, {n: 4, feedback_type: NBestGate});
+                }) );
+        addOption({name: "feedback_options", id:"n_best_3", checked: false},
+                "n best gate, show entire UI",
+                onOptionClicked(function() {
+                    return new NBestUIFeedback(julia, {n: 4, n_best_size: 100, feedback_type: NBestGate});
+                }) );
+        addOption({name: "feedback_options", id:"n_best_4", checked: false},
+                "n best gate, highlight changes",
+                onOptionClicked(function() { return new NBestHighlightFeedback (julia, {n: 4, n_best_size: 100, feedback_type: NBestGate})}) );
+        addOption({name: "feedback_options", id:"n_best_5", checked: false},
+                "n best list, show only changed views",
+                onOptionClicked(function() { return new NBestFeedback(julia, {n: 4})}) );
     });
 </script>
 </body>
