@@ -62,7 +62,9 @@ var FormEntry = FSMView.subClass({
                 new VoiceTransition(
                     "voiceEntered",
                     "interim",
-                    function(e) { return inputValidFunction.call(this,e.transcript); },
+                    function(e) {
+                        log(LOG_LEVEL_DEBUG, e.transcript);
+                        return inputValidFunction.call(this,e.transcript); },
                     function(e) {
                         this.properties.entry_opacity = 0.6;
                         this.properties.entry_text = e.transcript;
@@ -117,8 +119,8 @@ var FormEntry = FSMView.subClass({
                     function(e) {
                         return this.predicate_mouse_in_region(e) && !entryTextValidFunction(this.properties.entry_text);
                     },
-                    function() {
-                        this.properties.message = "not valid!"
+                    function(e, rootView) {
+                        this.updateMessage("not valid!", rootView);
                     },
                     undefined,
                     false
@@ -164,7 +166,7 @@ var FormEntry = FSMView.subClass({
                 /** Pressing the enter key but entry is invalid **/
                 new KeypressTransition(
                     "textEntered",
-                    function(e) { this.isTabOrEnter(e.keyCode) &&
+                    function(e) { return this.isTabOrEnter(e.keyCode) &&
                         !entryTextValidFunction(this.properties.entry_text); },
                     function(e, rootView) {
                         this.updateMessage("not valid!", rootView);
@@ -225,7 +227,7 @@ var FormEntry = FSMView.subClass({
         return result;
     },
     entry_completed: function(e, rootView) {
-        this.properties.message = "complete";
+        this.updateMessage("complete", rootView);
         this.properties.entry_opacity = 1.0;
         this.container.clearFocus();
         if(typeof this.properties.entryCompleted !== 'undefined') {

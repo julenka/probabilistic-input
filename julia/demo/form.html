@@ -303,6 +303,8 @@ var p_key_hook = new PKeyEventHook(document);
 var p_cap_key_hook = new PCapKeyEventHook(document);
 julia.addEventSource(p_key_hook);
 var mHook = new PMouseEventHook($sketch[0]);
+var voiceEventSource = makeVoiceEventSource();
+julia.addEventSource(voiceEventSource);
 
 mHook.variance_x_px = 1;
 mHook.variance_y_px = 1;
@@ -310,10 +312,10 @@ julia.addEventSource(mHook);
 julia.addEventSource(makeVoiceEventSource());
 reset();
 $("#start_speech").click(function(){
-    source.start();
+    voiceEventSource.start();
 });
 $("#stop_speech").click(function(){
-    source.stop();
+    voiceEventSource.stop();
 });
 
 </script>
