@@ -169,7 +169,7 @@ function reset() {
                 message: new TextView(julia, {x: messagex, y: starty, id:"message-" + starty}),
                 entry: new FormEntry(julia,
                         { x: entryx, y: starty, label_id: "label-" + starty, message_id: "message-" + starty},
-                function(input) { return /[0-9\/x ]+/.test(input);},
+                function(input) { return /[0-9\/ ]+/.test(input);},
                 function(current_text) { return /^[ ]*\d{2}[ ]*\/[ ]*\d{2}[ ]*\/[ ]*\d{4}[ ]*$/.test(current_text)})
             }
     );
@@ -192,7 +192,7 @@ function reset() {
                 message: new TextView(julia, {x: messagex, y: starty, id:"message-" + starty}),
                 entry: new FormEntry(julia,
                         { x: entryx, y: starty, label_id: "label-" + starty, message_id: "message-" + starty},
-                        function(input) { return /[x\d]+/.test(input) && /^\d{0,8}$/.test(this.entry_text); },
+                        function(input) { return /[\d]+/.test(input) && /^\d{0,8}$/.test(this.properties.entry_text); },
                         function(current_text) { return /^\d{9}$/.test(current_text)})
             }
     );
@@ -203,7 +203,8 @@ function reset() {
                 message: new TextView(julia, {x: messagex, y: starty, id:"message-" + starty}),
                 entry: new FormEntry(julia,
                         { x: entryx, y: starty, label_id: "label-" + starty, message_id: "message-" + starty},
-                        function(input) { return /[x\d]+/.test(input) && /^\d{0,9}$/.test(this.entry_text); },
+                        function(input) {
+                            return /[\d]+/.test(input) && /^\d{0,9}$/.test(this.properties.entry_text); },
                         function(current_text) { return /^(\d{10}|\d{7})$/.test(current_text)})
             }
     );

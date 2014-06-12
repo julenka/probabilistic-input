@@ -45,8 +45,10 @@ var FormEntry = FSMView.subClass({
                 new KeypressTransition(
                     "textEntered",
                     function(e) {
-                        return !(this.isTabOrEnter(e.keyCode) ||  this.isDeleteKey(e.keyCode)) &&
-                            inputValidFunction(String.fromCharCode(e.keyCode));
+                        if(this.isTabOrEnter(e.keyCode) ||  this.isDeleteKey(e.keyCode)) {
+                            return false;
+                        }
+                        return inputValidFunction.call(this, String.fromCharCode(e.keyCode));
                     },
                     function(e, rootView) {
                         this.properties.entry_opacity = 0.6;
@@ -60,7 +62,7 @@ var FormEntry = FSMView.subClass({
                 new VoiceTransition(
                     "voiceEntered",
                     "interim",
-                    function(e) { return inputValidFunction(e.transcript); },
+                    function(e) { return inputValidFunction.call(this,e.transcript); },
                     function(e) {
                         this.properties.entry_opacity = 0.6;
                         this.properties.entry_text = e.transcript;
@@ -84,7 +86,7 @@ var FormEntry = FSMView.subClass({
                 new VoiceTransition(
                     "voiceEntered",
                     "interim",
-                    function(e) { return inputValidFunction(e.transcript); },
+                    function(e) { return inputValidFunction.call(this, e.transcript); },
                     function(e, rootView) {
                         this.properties.entry_opacity = 0.6;
                         this.updateMessage("keep going...", rootView);
@@ -123,9 +125,9 @@ var FormEntry = FSMView.subClass({
                 ),
             ],
             textEntered : [
-                // voice and interim (assume entry is valid?)
-
-            /** Pressing the enter key and entry is valid **/
+                /**
+                 * User presses on the text region and the entry text is valid
+                 */
                 new MouseDownTransition(
                     "done",
                     function(e) {
@@ -135,6 +137,9 @@ var FormEntry = FSMView.subClass({
                     this.entry_completed,
                     true
                 ),
+                /**
+                 * User presses on the text region and the entry is not valid
+                 */
                 new MouseDownTransition(
                     "textEntered",
                     function(e) {
@@ -146,60 +151,62 @@ var FormEntry = FSMView.subClass({
                     undefined,
                     false
                 ),
+                /** Pressing the enter key and entry is valid **/
                 new KeypressTransition(
                     "done",
                     function(e, rootView) {
-                        return e.keyCode === 13 &&
-                            entryTextValidFunction(this.properties.entry_text); }, // 9 is tab, 13 is enter
+                        return this.isTabOrEnter(e.keyCode) &&
+                            entryTextValidFunction(this.properties.entry_text); },
                     undefined,
                     this.entry_completed, // final
                     true
                 ),
-            /** Pressing the enter key but entry is invalid **/
+                /** Pressing the enter key but entry is invalid **/
                 new KeypressTransition(
                     "textEntered",
-                    function(e) { return e.keyCode === 13 &&
-                        !entryTextValidFunction(this.properties.entry_text); }, // 9 is tab, 13 is enter
+                    function(e) { this.isTabOrEnter(e.keyCode) &&
+                        !entryTextValidFunction(this.properties.entry_text); },
                     function(e, rootView) {
                         this.updateMessage("not valid!", rootView);
                     },
                     undefined, // final
                     true
                 ),
-            /** Pressing 'x' deletes text...if no text then we shoudl clear our focus **/
+                /** Pressing 'x' deletes text...if no text then we should clear our focus **/
                 new KeypressTransition(
-                    "start",
+                    "textEntered",
                     function(e) {
-                        return this.isDeleteKey(e.keyCode) && this.properties.entry_text.length <= 1;
+                        return this.isDeleteKey(e.keyCode);
                     },
                     function(e, rootView) {
-                        this.properties.entry_text = "";
-                        this.container.clearFocus();
-                        this.updateMessage("", rootView);
+                        if(this.properties.entry_text.length <= 1) {
+                            this.properties.entry_text = "";
+                            this.container.clearFocus();
+                            this.updateMessage("", rootView);
+                            this.current_state = "start";
+                        } else {
+                            this.properties.entry_text = this.properties.entry_text.substring(0, this.properties.entry_text.length - 1);
+                        }
+
                     },
                     undefined,
                     true
                 ),
-            /** Pressing some other key. Check if the text is valid if not, we should kill the alternative. If it is valid, then keep doing **/
+                /** Pressing some other key. Check if the text is valid if not, we should kill the alternative. If it is valid, then keep doing **/
                 new KeypressTransition(
                     "textEntered",
                     function(e) {
                         return !this.isTabOrEnter(e.keyCode) &&
-                            !(this.isDeleteKey(e.keyCode) && this.properties.entry_text.length <= 1);
+                                !(this.isDeleteKey(e.keyCode));
                     },
                     function(e, rootView) {
-                        if(!(inputValidFunction(String.fromCharCode(e.keyCode)))) {
+                        if(!(inputValidFunction.call(this, String.fromCharCode(e.keyCode)))) {
                             rootView.kill = true;
                             return;
-                        }
-                        if(this.isDeleteKey(e.keyCode)) {
-                            this.properties.entry_text = this.properties.entry_text.substring(0, this.properties.entry_text.length - 2);
                         } else {
                             this.properties.entry_text += String.fromCharCode(e.keyCode);
                             this.updateMessage("keep going...", rootView);
                         }
-
-
                     }, // feedback
                     undefined,
                     true
