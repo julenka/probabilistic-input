@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Octopocus</title>
+
+    <!-- JQuery -->
+    <script type="text/javascript" src="../lib/jquery.js"></script>
+
+    <!-- Snap SVG library -->
+    <script type="text/javascript" src="../lib/snap.svg.js"></script>
+    <script type="text/javascript" src="../lib/dollar.js"></script>
+
+    <!-- Julia library -->
+    <script type="text/javascript" src="../julia.js"></script>
+    <link rel="stylesheet" href="../julia.css"/>
+    <style>
+        #input {
+            background-color: rgb(150,150,150);
+
+        }
+
+    </style>
+
+    <script>
+        var mouse_path = [];
+        var is_mouse_down = false;
+
+        // Put your initialization code here
+        $(document).ready(function(){
+            var $input = $("#input");
+            var $g0 = $("#g0");
+            var $g1 = $("#g1");
+            var $g2 = $("#g2");
+            var $probabilities = $("#probabilities");
+
+            var recognizer = new DollarRecognizer();
+
+            /**
+             * Make an svg, return the svg node
+             */
+            var makeSvg = function() {
+                var w = $input.width();
+                var h = $input.height();
+                var svg = Snap(100, 100)
+                        .attr("viewBox", [-w,-h,2 * w, 2 * h].join(","))
+                        .attr({width: 100, height: 100, class: "border1px", version: "1.1", xmlns: "http://www.w3.org/2000/svg"});
+                return svg.node;
+            };
+            var dumpPoints = function($div, points) {
+                var svg_node = makeSvg();
+                var snap = Snap(svg_node);
+                // convert to points string
+                var points_str = points.map(
+                        function(p) {
+                            if(typeof(p.X) !== 'undefined') {
+                                return p.X + ", " + p.Y;
+                            } else if (typeof(p.x) !== 'undefined') {
+                                return p.x + ", " + p.y;
+                            } else {
+                                log(LOG_LEVEL_DEBUG, JSON.stringify(p));
+                                throw "dumpPoints invalid point format ";
+                            }
+                        }
+                );
+                snap.path("M" + points_str.join("L")).attr({"fill": "none", "stroke-width" : "2px", "stroke": "black"});
+                $div.append(svg_node);
+            };
+
+
+            var resample = function(points, every_n) {
+                var result = [];
+                for(var i = 0; i < points.length; i+= every_n) {
+                    result.push(points[i]);
+                }
+                return result;
+            };
+
+            var colors = ["#4F8595", "#FFA733", "#9AA533", "#FBD733"];
+            var redraw = function () {
+                $input.empty();
+                $g0.empty();
+                $g1.empty();
+                $g2.empty();
+                $probabilities.empty();
+
+                recognizer.Unistrokes.forEach(function(stroke) {
+                    dumpPoints($g0, stroke.Points);
+                });
+
+                if(mouse_path.length == 0) {
+                    return;
+                }
+
+                var mouse_path_resampled = resample(mouse_path, 1);
+
+                var input_snap = Snap("#input");
+
+                recognizer.Unistrokes.forEach(function(stroke, idx) {
+                    var g1 = deepCopy(stroke.Points);
+                    var n = mouse_path_resampled.length;
+                    g1.splice(0, n);
+                    dumpPoints($g1, g1);
+                    if(g1.length == 0) {
+                        return;
+                    }
+                    var last_mouse_point = mouse_path_resampled[mouse_path_resampled.length - 1];
+                    var dp = {x: g1[0].X - last_mouse_point.x, y: g1[0].Y - last_mouse_point.y};
+                    var mouse_path2 = mouse_path_resampled.map(
+                        function(p) {
+                            return {X: p.x + dp.x, Y: p.y + dp.y};
+                        }
+                    );
+                    var concatenated_gesture = mouse_path2.concat(g1);
+                    dumpPoints($g2, concatenated_gesture);
+
+                    var results = recognizer.Recognize(concatenated_gesture, false);
+                    var new_div = $("<div></div>")
+                            .attr({class: "border1px"})
+                            .css({padding: 10});
+                    var gesture_probability = results[idx].Score;
+                    results.forEach(function(r){
+                        new_div.append($("<span></span>")
+                                .css("margin-right", 10)
+                                .html(r.Name + ": " + r.Score));
+                    });
+                    $probabilities.append(new_div);
+
+                    var p0 = mouse_path_resampled[mouse_path_resampled.length - 1];
+                    dp = {x: p0.x - g1[0].X, y: p0.y - g1[0].Y};
+                    var concatenated_gesture_final = concatenated_gesture.map(
+                            function(p) {
+                                return {X: p.X + dp.x, Y: p.Y + dp.y};
+                            }
+                    );
+
+                    var point_strs = concatenated_gesture_final.map(function(p){ return p.X + "," + p.Y;});
+                    var stroke_width = (10 * Math.pow(gesture_probability,5)  + 1);
+                    var opacity = Math.pow(gesture_probability, 5);
+                    log(LOG_LEVEL_DEBUG, results[idx].Name, gesture_probability, stroke_width, opacity);
+                    input_snap.path("M" + point_strs.join("L")).attr({"fill": "none",
+                        "stroke-width":  stroke_width + "px", "stroke": colors[idx], opacity: opacity, "stroke-linecap":"round"});
+                });
+
+
+
+                var point_strs = mouse_path.map(function(p){ return p.x + "," + p.y;});
+                input_snap.path("M" + point_strs.join("L")).attr({"fill": "none", "stroke-width": "2px", "stroke": "white"});
+            };
+
+
+            $input.mousedown(function(e){
+                mouse_path = [];
+                is_mouse_down = true;
+                mouse_path.push({x: e.pageX, y: e.pageY});
+                redraw();
+            });
+            $input.mousemove(function(e){
+                if(!is_mouse_down) {
+                    return;
+                }
+
+                mouse_path.push({x: e.pageX, y: e.pageY});
+                redraw();
+            });
+            $input.mouseup(function(){
+                is_mouse_down = false;
+                if(mouse_path.length == 0) {
+                    return;
+                }
+                var path_dollar = mouse_path.map(function(p){ return {X: p.x, Y: p.y}});
+                var results = recognizer.Recognize(path_dollar, false);
+                console.log("+++Recognition Results+++");
+                var max_score = 0;
+                var gesture = "";
+                results.forEach(function(r){
+                    console.log(r.Name, ":", r.Score);
+                    if(r.Score > max_score) {
+                        max_score = r.Score;
+                        gesture = r.Name;
+                    }
+                });
+
+                var input_snap = Snap("#input");
+                input_snap.text(20,20, gesture).attr({"font-family": "Helvetica"});
+            });
+            redraw();
+        });
+
+    </script>
+
+</head>
+<body>
+<svg id="input" width="500" height="500" class="border1px" style="cursor: default; ">
+</svg>
+<h4>G</h4>
+<div id="g0">
+    content
+</div>
+<h4>G'</h4>
+<div id="g1"></div>
+<h4>G''</h4>
+<div id="g2"></div>
+<h4>probabilities</h4>
+<div id="probabilities"></div>
+<h4>final</h4>
+<div id="final"></div>
+
+</body>
+</html>
