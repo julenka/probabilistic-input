@@ -2892,7 +2892,7 @@ var OverlayOpacity = OverlayFeedbackBase.subClass({
         var s = Snap($el[0]);
         var group = s.group();
         group.attr({opacity: Math.roundWithSignificance(this.probability, 2)});
-        this.view.draw($(group.node));
+        this.view.draw($(group.node), this.probability);
     }
 });
 
@@ -2917,7 +2917,7 @@ var OverlayOpacitySaturation = OverlayFeedbackBase.subClass({
             opacity: Math.roundWithSignificance(this.probability, 2),
             filter: window.__julia_snap_filter_grayscale
         });
-        this.view.draw($(group.node));
+        this.view.draw($(group.node), this.probability);
     }
 });
 
@@ -2941,7 +2941,7 @@ var OverlayOpacitySaturationAmbiguous = OverlayOpacitySaturation.subClass({
         if(typeof(this.view.drawAmbiguous) !== 'undefined') {
             this.view.drawAmbiguous($(group.node));
         } else {
-            this.view.draw($(group.node));
+            this.view.draw($(group.node), this.probability);
         }
     }
 });

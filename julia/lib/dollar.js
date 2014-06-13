@@ -107,7 +107,7 @@ function Result(name, score) // constructor
 // DollarRecognizer class constants
 //
 var NumUnistrokes = 16;
-var NumPoints = 100;//128;
+var NumPoints = 64;//128;
 var SquareSize = 150.0;
 var Origin = new Point(0,0);
 var Diagonal = Math.sqrt(SquareSize * SquareSize + SquareSize * SquareSize);
