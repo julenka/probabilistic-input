@@ -21,7 +21,7 @@
     </style>
 </head>
 <body>
-<svg id="test_svg" class="border1px" width="500" height="500"></svg>
+<svg id="test_svg" class="border1px" width="1000" height="500"></svg>
 <script>
     var mouse_path = [];
     var is_mouse_down = false;
@@ -30,13 +30,41 @@
 
         var $svg = $("#test_svg");
         var snap = Snap("#test_svg");
-        var path = snap.path();
         var recognizer = new DollarRecognizer();
+
+        var drawStrokes = function() {
+            var colors = ["red", "green", "blue", "#f0f"];
+            var gesture_padding = 200;
+            var bottom_y = gesture_padding;
+            var left_x = 200;
+            for(var i = 0; i < recognizer.Unistrokes.length; i++) {
+                var new_bottom_y = bottom_y;
+                var stroke = recognizer.Unistrokes[i].Points;
+                var point_strs = stroke.map(
+                        function(p){
+                            if(p.Y > new_bottom_y) {
+                                new_bottom_y = p.Y;
+                            }
+                            return (left_x + p.X) + ", " + (bottom_y + p.Y);
+                        });
+                snap.path("M" + point_strs.join("L")).attr({"fill": "none", "stroke-width" : "2px", "stroke": colors[i]});
+//                bottom_y = new_bottom_y + gesture_padding;
+            }
+        }
+
+
         var redraw = function () {
+
             $svg.empty();
+            drawStrokes();
+            if(mouse_path.length == 0) {
+                return;
+            }
             var point_strs = mouse_path.map(function(p){ return p.x + "," + p.y;});
             snap.path("M" + point_strs.join("L")).attr({"fill": "none", "stroke-width": "2px", "stroke": "black"});
         };
+
+
         $svg.mousedown(function(e){
             mouse_path = [];
             is_mouse_down = true;
@@ -62,7 +90,7 @@
                 console.log(r.Name, ":", r.Score);
             })
         });
-
+        redraw();
     });
 
 </script>
