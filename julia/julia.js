@@ -2524,7 +2524,7 @@ var NBestHighlightFeedback = NBestListBase.subClass({
      */
     init: function(julia, props) {
         this._super(julia, props);
-        this.highlight_color = valueOrDefault(props.highlight_color, "#ffff00");
+        this.highlight_color = valueOrDefault(props.highlight_color, "#ea4c88");
     },
     addItemToNBestContainer: function(nbestcontainer, originalRoot, alternativeRoot, probability) {
         var new_container = new ContainerView(this.julia);
