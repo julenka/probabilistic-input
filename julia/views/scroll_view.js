@@ -13,24 +13,36 @@ var ScrollView = ContainerView.subClass({
         this.properties.scroll_y = 0;
         this.properties.scroll_down_y = 0;
         this.properties.down_y = 0;
+        this.properties.down_x = 0;
         this.properties.is_scrolling = false;
+        this.properties.scroll_frames = 0;
+
     },
     startScroll: function(e) {
         this.properties.down_y = e.element_y;
-        console.log(this.properties.scroll_down_y, e.element_y);
+        this.properties.down_x = e.element_x;
+        this.properties.last_y = e.element_y;
+        this.properties.last_x = e.element_x;
+        this.properties.distance_x = 0;
+        this.properties.distance_y = 0;
+        this.properties.scroll_frames = 0;
         this.properties.is_scrolling = true;
     },
     updateScroll: function(e) {
         var dy = e.element_y - this.properties.down_y;
-        console.log(this.properties.scroll_down_y, e.element_y, dy, this.properties.scroll_y);
         this.properties.scroll_y = this.properties.scroll_down_y + dy;
+        this.properties.scroll_frames++;
+        this.properties.distance_x += Math.abs(e.element_x - this.properties.last_x);
+        this.properties.distance_y += Math.abs(e.element_y - this.properties.last_y);
+        this.properties.last_x = e.element_x;
+        this.properties.last_y = e.element_y;
     },
     endScroll: function(e) {
         this.properties.is_scrolling = false;
         this.properties.scroll_down_y = this.properties.scroll_y;
-        console.log(this.properties.scroll_down_y);
     },
     dispatchEvent: function(e) {
+
         if(e.type === "mousedown") {
             if(Math.dieRoll(0.8)) {
                 return this.makeRequest(this.startScroll, e, true);
@@ -40,6 +52,15 @@ var ScrollView = ContainerView.subClass({
                 return this._super(e_copy);
             }
         } else if (this.properties.is_scrolling && e.type === "mousemove") {
+
+            if(this.properties.scroll_frames > 3 && Math.abs(this.properties.distance_x) > Math.abs(this.properties.distance_y)
+                && Math.dieRoll(0.5)) {
+                // If it looks like we're selecting text, then
+                // TODO: remove this duplicate code
+                var e_copy = shallowCopy(e);
+                e_copy.element_y -= this.properties.scroll_y;
+                return this._super(e_copy);
+            }
             return this.makeRequest(this.updateScroll, e, true);
         } else if (this.properties.is_scrolling && e.type === "mouseup") {
             return this.makeRequest(this.endScroll, e, false);
@@ -56,7 +77,7 @@ var ScrollView = ContainerView.subClass({
         var s = Snap($el[0]);
         var g = s.group();
         var m = new Snap.Matrix();
-        s.text(0,20, "" + this.properties.scroll_y);
+        s.text(0,20, "" + this.properties.distance_x + ", " + this.properties.distance_y + ", " + this.properties.scroll_frames);
         m.translate(0, this.properties.scroll_y);
         g.attr({transform: m.toString()});
         var i = 0;
