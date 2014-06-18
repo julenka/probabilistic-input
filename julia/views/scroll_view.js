@@ -41,6 +41,9 @@ var ScrollView = ContainerView.subClass({
         this.properties.is_scrolling = false;
         this.properties.scroll_down_y = this.properties.scroll_y;
     },
+    killAlternative: function(e, rootView) {
+        rootView.kill = true;
+    },
     dispatchEvent: function(e) {
 
         if(e.type === "mousedown") {
@@ -53,7 +56,7 @@ var ScrollView = ContainerView.subClass({
             }
         } else if (this.properties.is_scrolling && e.type === "mousemove") {
 
-            if(this.properties.scroll_frames > 3 && Math.abs(this.properties.distance_x) > Math.abs(this.properties.distance_y)
+            if(this.properties.scroll_frames > 1 && Math.abs(this.properties.distance_x) > Math.abs(this.properties.distance_y)
                 && Math.dieRoll(0.5)) {
                 // If it looks like we're selecting text, then
                 // TODO: remove this duplicate code
@@ -62,7 +65,9 @@ var ScrollView = ContainerView.subClass({
                 return this._super(e_copy);
             }
             return this.makeRequest(this.updateScroll, e, true);
-        } else if (this.properties.is_scrolling && e.type === "mouseup") {
+        }
+
+        else if (this.properties.is_scrolling && e.type === "mouseup") {
             return this.makeRequest(this.endScroll, e, false);
         } else {
             var e_copy = shallowCopy(e);
@@ -77,7 +82,7 @@ var ScrollView = ContainerView.subClass({
         var s = Snap($el[0]);
         var g = s.group();
         var m = new Snap.Matrix();
-        s.text(0,20, "" + this.properties.distance_x + ", " + this.properties.distance_y + ", " + this.properties.scroll_frames);
+//        s.text(0,20, "" + this.properties.distance_x + ", " + this.properties.distance_y + ", " + this.properties.scroll_frames);
         m.translate(0, this.properties.scroll_y);
         g.attr({transform: m.toString()});
         var i = 0;

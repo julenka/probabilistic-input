@@ -87,8 +87,13 @@
 
 
         // Do stuff when an event has been dispatched
-        julia.feedback = new MostLikelyFeedback(julia);
-//        julia.feedback = new NBestUIFeedback(julia, {n: 4, dp: 1, feedback_type: NBestGate});
+//        julia.feedback = new MostLikelyFeedback(julia);
+        julia.feedback = new OverlayFeedback(julia);
+//        julia.feedback = new NBestUIFeedback(julia, {n: 4, dp: 1,
+//            feedback_type: NBestContainer,
+//            n_best_location: function() { return { x: 20, y: 20};
+//            }
+//        });
 
         julia.drawFeedback($sketch, julia.feedback);
 
@@ -98,11 +103,11 @@
             }
             $sketch.empty();
             julia.drawFeedback($sketch, julia.feedback);
-            julia.dumpAlternativesAsSnap($alternatives, $sketch.width(), $sketch.height(), 0.25,
+            julia.dumpAlternativesAsSnap($alternatives, $sketch.width(), $sketch.height(), 1,
                     function() {
                         $sketch.empty();
                         julia.rootView.draw($sketch);
-                        julia.dumpAlternativesAsSnap($alternatives, $sketch.width(), $sketch.height(), 0.25);
+                        julia.dumpAlternativesAsSnap($alternatives, $sketch.width(), $sketch.height(), 1);
                     }
             );
 
