@@ -11,6 +11,7 @@
 
     <!-- Julia library -->
     <script type="text/javascript" src="../julia.js"></script>
+    <script type="text/javascript" src="../views/text_view.js"></script>
 
     <link rel="stylesheet" href="../julia.css" />
     <style>
@@ -31,6 +32,9 @@
     </style>
 </head>
 <body>
+<h4>Does a basic HighlightTextView work?</h4>
+<div>Dragging mouse should select text. Selection should work both ways.</div>
+<svg id="fsm" class="border1px" width="500" height="500"></svg>
 <h4>Can we select text?</h4>
 <div>Dragging mouse should select text. Selection should work both ways.</div>
 <svg id="select" class="border1px" width="500" height="500"></svg>
@@ -189,17 +193,49 @@
         });
     }
 
+    function testTextView() {
+        var mouse_variance = 1;
+        var julia = new Julia();
+        var rootView = new ContainerView(julia);
+        julia.setRootView(rootView);
+
+        rootView.addChildView(new HighlightTextView(julia, {x: pad_x, y: pad_y, w: test_div_width - 2 * pad_x, text: loren_ipsum}));
+
+        var $mainInterface = $("#fsm");
+        // Add an event source
+        var mouseHook = new PMouseEventHook($mainInterface[0], mouse_variance, mouse_variance);
+        var touchHook = new PTouchEventHook($mainInterface[0], 0, 0);
+        julia.addEventSource(mouseHook);
+        julia.addEventSource(touchHook);
+
+        // Initialize feedback
+        julia.feedback = new MostLikelyFeedback(julia);
+
+        julia.drawFeedback($mainInterface, julia.feedback);
+
+        julia.dispatchCompleted = function(new_alternatives, uiUpdated) {
+            if(!uiUpdated) {
+                return;
+            }
+            $mainInterface.empty();
+            julia.drawFeedback($mainInterface, julia.feedback);
+        };
+    }
+
+    var test_div_width = 500 ;
+    var pad_x = 20;
+    var pad_y = 20;
     // Put your initialization code here
     $(document).ready(function(){
-        var test_div_width = 500 ;
-        var pad_x = 20;
-        var pad_y = 20;
+
         var textView = new TextView(pad_x, pad_y, test_div_width - 2 * pad_x, loren_ipsum);
         testWrap(textView);
 
         testHit(textView);
 
         testSelect(textView);
+
+        testTextView();
     });
 
 </script>
