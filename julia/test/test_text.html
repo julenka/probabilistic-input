@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Testing Text</title>
+
+    <!-- JQuery -->
+    <script type="text/javascript" src="../lib/jquery.js"></script>
+
+    <!-- Snap SVG library -->
+    <script type="text/javascript" src="../lib/snap.svg.js"></script>
+
+    <!-- Julia library -->
+    <script type="text/javascript" src="../julia.js"></script>
+
+    <link rel="stylesheet" href="../julia.css" />
+    <style>
+        svg {
+            -moz-user-select: none;
+            -khtml-user-select: none;
+            -webkit-user-select: none;
+
+            /*
+              Introduced in IE 10.
+              See http://ie.microsoft.com/testdrive/HTML5/msUserSelect/
+            */
+            -ms-user-select: none;
+            user-select: none;
+            cursor:default;
+        }
+
+    </style>
+</head>
+<body>
+<h4>Can we select text?</h4>
+<div>Dragging mouse should select text. Selection should work both ways.</div>
+<svg id="select" class="border1px" width="500" height="500"></svg>
+<h4>Can we hittest individual text bits?</h4>
+<div>expect that when my mouse moves over text, that the character I'm over highlights.</div>
+<div id="debug">
+    debug
+</div>
+<svg id="hittest" class="border1px" width="500" height="500"></svg>
+<h4>Does text wrap?</h4>
+<svg id="wrap" class="border1px" width="500" height="500"></svg>
+
+<script>
+    var char_width = 8;
+    var char_height = 20;
+    var loren_ipsum = "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nulla ac nisi id felis rutrum aliquam. Sed et risus vitae leo suscipit tincidunt dictum at sapien. Integer sit amet augue leo. Quisque aliquet fermentum nisl id tincidunt. Phasellus pretium dolor vitae libero facilisis, iaculis dictum sem molestie. Suspendisse ac semper augue, ut ullamcorper lorem. Interdum et malesuada fames ac ante ipsum primis in faucibus.";
+    for(var i = 0; i < 3; i++){
+        loren_ipsum += loren_ipsum;
+    }
+
+    function TextView(x, y, w, text) {
+        this.x = x;
+        this.y = y;
+        this.text = text;
+        this.w = w;
+        this.chars_per_line = Math.floor(this.w / char_width);
+        this.num_lines = this.text.length / this.chars_per_line;
+        this.h = char_height * this.num_lines;
+        this.lines = [];
+        for(var i = 0; i < this.num_lines - 1; i++) {
+            this.lines.push(loren_ipsum.substring(i * this.chars_per_line, (i+1) * this.chars_per_line));
+        }
+    }
+    TextView.prototype.draw = function(el_id) {
+        var s = Snap(el_id);
+        if(typeof(this.highlight_start) !== 'undefined') {
+            var highlight_attrs = {fill: 'yellow'};
+            var start_y = Math.floor(this.highlight_start / this.chars_per_line);
+            var end_y = Math.floor(this.highlight_end / this.chars_per_line);
+            var start_x = this.highlight_start % this.chars_per_line;
+            var end_x = this.highlight_end % this.chars_per_line;
+            var rect_width;
+            $("#debug").text("(start_x, start_y, end_x, end_y): (" + [start_x, start_y, end_x, end_y].join(",") +")");
+            if(start_y === end_y) {
+                rect_width = (end_x - start_x) * char_width;
+                s.rect(this.x + start_x * char_width, this.y + start_y * char_height - char_height, rect_width, char_height).attr(highlight_attrs);
+            } else {
+                // first line
+                rect_width = this.w - start_x * char_width;
+                s.rect(this.x + start_x * char_width, this.y + start_y * char_height - char_height, rect_width, char_height).attr(highlight_attrs);
+                // middle
+                if(end_y - start_y > 1) {
+                    var rect_height = (end_y - start_y - 1) * char_height;
+                    s.rect(this.x, this.y + (start_y + 1) * char_height - char_height, this.w, rect_height).attr(highlight_attrs);
+                }
+                // last line
+                rect_width = end_x * char_width;
+                s.rect(this.x, this.y + end_y * char_height - char_height, rect_width, char_height).attr(highlight_attrs);
+            }
+        }
+        var text = s.text(this.x,this.y,this.lines).attr({'font-family': 'monospace'});
+        text.selectAll("tspan:nth-child(n+2)").attr({
+            dy: "" + char_height + "px",
+            x: this.x
+        });
+    }
+
+    /**
+     * highlight from start to end
+     */
+    TextView.prototype.highlight = function(start, end) {
+        if(start > end) {
+            var tmp = start;
+            start = end;
+            end = tmp;
+        }
+        this.highlight_start = start;
+        this.highlight_end = end;
+    }
+
+    TextView.prototype.unhighlight = function(){
+        this.highlight_start = this.highlight_end = undefined;
+    }
+
+    /**
+     * returns -1 if not hit, otherwise index of the hit item
+     * @param rx x relative to the text view
+     * @param ry y relative to the text view
+     */
+    TextView.prototype.hitTest = function(rx, ry) {
+        rx = rx - this.x;
+        ry = ry - this.y + char_height;
+
+        if(rx > this.w || ry > this.h || rx < 0 || ry < 0) {
+            return -1;
+        }
+        var char_x = Math.floor(rx / char_width);
+        var char_y = Math.floor(ry / char_height);
+        var i = char_y * this.chars_per_line + char_x;
+        $("#debug").text("(char_x, char_y, i): (" + [char_x, char_y, i].join(",") +")");
+        return char_y * this.chars_per_line + char_x;
+    }
+
+    function testWrap(textView){
+        textView.draw("#wrap");
+    }
+
+    function testHit(textView){
+        textView.draw("#hittest");
+
+        var $el = $("#hittest");
+        var offset = $el.offset();
+        $el.mousemove(function(event){
+            var rx = event.pageX - offset.left;
+            var ry = event.pageY - offset.top;
+
+            var highlight_idx = textView.hitTest(rx, ry);
+            if(highlight_idx >= 0) {
+                $el.empty();
+                textView.highlight(highlight_idx, highlight_idx + 1);
+                textView.draw("#hittest");
+            }
+        });
+    }
+
+    var highlightStart = -1;
+    function testSelect(textView) {
+        textView.draw("#select");
+
+        var $el = $("#select");
+        var offset = $el.offset();
+        $el.mousedown(function(event) {
+            var rx = event.pageX - offset.left;
+            var ry = event.pageY - offset.top;
+
+            var highlight_idx = textView.hitTest(rx, ry);
+            if(highlight_idx >= 0) {
+                highlightStart = highlight_idx;
+            }
+        });
+        $el.mouseup(function(){
+            textView.unhighlight();
+            highlightStart = -1;
+        })
+        $el.mousemove(function(event){
+            var rx = event.pageX - offset.left;
+            var ry = event.pageY - offset.top;
+
+            var highlight_idx = textView.hitTest(rx, ry);
+            if(highlight_idx >= 0 && highlightStart >= 0) {
+                $el.empty();
+                textView.highlight(highlightStart, highlight_idx + 1);
+
+                textView.draw("#select");
+            }
+        });
+    }
+
+    // Put your initialization code here
+    $(document).ready(function(){
+        var test_div_width = 500 ;
+        var pad_x = 20;
+        var pad_y = 20;
+        var textView = new TextView(pad_x, pad_y, test_div_width - 2 * pad_x, loren_ipsum);
+        testWrap(textView);
+
+        testHit(textView);
+
+        testSelect(textView);
+    });
+
+</script>
+</body>
+</html>
