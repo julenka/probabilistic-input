@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Scrollview Test</title>
+
+    <!-- JQuery -->
+    <script type="text/javascript" src="../lib/jquery.js"></script>
+
+    <!-- Snap SVG library -->
+    <script type="text/javascript" src="../lib/snap.svg.js"></script>
+
+    <!-- Julia library -->
+    <script type="text/javascript" src="../julia.js"></script>
+    <script type="text/javascript" src="../views/text_view.js"></script>
+    <script type="text/javascript" src="../views/scroll_view.js"></script>
+
+    <link rel="stylesheet" href="../julia.css"/>
+    <style>
+        body {
+            -moz-user-select: none;
+            -khtml-user-select: none;
+            -webkit-user-select: none;
+
+            /*
+              Introduced in IE 10.
+              See http://ie.microsoft.com/testdrive/HTML5/msUserSelect/
+            */
+            -ms-user-select: none;
+            user-select: none;
+        }
+        #test_svg {
+            -moz-user-select: none;
+            -khtml-user-select: none;
+            -webkit-user-select: none;
+
+            /*
+              Introduced in IE 10.
+              See http://ie.microsoft.com/testdrive/HTML5/msUserSelect/
+            */
+            -ms-user-select: none;
+            user-select: none;
+
+            cursor: default;
+
+            float: left;
+        }
+    </style>
+</head>
+<body>
+<div>testing a scrollview</div>
+<svg id="test_svg" class="border1px" width="500" height="500"></svg>
+<div id="alternatives"></div>
+<script>
+// Add any controls here
+
+</script>
+
+<script>
+    // Global variables
+    var julia = new Julia();
+    var loren_ipsum = "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nulla ac nisi id felis rutrum aliquam. Sed et risus vitae leo suscipit tincidunt dictum at sapien. Integer sit amet augue leo. Quisque aliquet fermentum nisl id tincidunt. Phasellus pretium dolor vitae libero facilisis, iaculis dictum sem molestie. Suspendisse ac semper augue, ut ullamcorper lorem. Interdum et malesuada fames ac ante ipsum primis in faucibus.";
+    for(var i = 0; i < 3; i++){
+        loren_ipsum += loren_ipsum;
+    }
+    // Put your initialization code here
+    $(document).ready(function(){
+        var $sketch = $("#test_svg");
+        var $alternatives = $("#alternatives");
+        var pad_x = 20;
+        var pad_y = 20;
+        var test_div_width = $sketch.width();
+
+        // set up Julia
+        julia.nSamplesPerEvent = 10;
+        var mouseHook = new PMouseEventHook($sketch[0], 10, 10);
+        julia.addEventSource(mouseHook);
+
+        // Set up views
+        var rootView = new ScrollView(julia);
+        var textView = new HighlightTextView(julia, {x: pad_x, y: pad_y, w: test_div_width - 2 * pad_x, text: loren_ipsum});
+
+        rootView.addChildView(textView);
+        julia.setRootView(rootView);
+
+
+        // Do stuff when an event has been dispatched
+        julia.feedback = new MostLikelyFeedback(julia);
+
+        julia.drawFeedback($sketch, julia.feedback);
+
+        julia.dispatchCompleted = function(new_alternatives, uiUpdated) {
+            if(!uiUpdated) {
+                return;
+            }
+            $sketch.empty();
+            julia.drawFeedback($sketch, julia.feedback);
+            julia.dumpAlternativesAsSnap($alternatives, $sketch.width(), $sketch.height(), 0.25,
+                    function() {
+                        $sketch.empty();
+                        julia.rootView.draw($sketch);
+                        julia.dumpAlternativesAsSnap($alternatives, $sketch.width(), $sketch.height(), 0.25);
+                    }
+            );
+
+        };
+    });
+
+</script>
+</body>
+</html>

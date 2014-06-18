@@ -2,7 +2,7 @@
  * Created by julenka on 6/18/14.
  */
 
-var FSMTextView  = FSMView.subClass({
+var HighlightTextView  = FSMView.subClass({
     className: "FSMTextView",
     char_width: 8,
     char_height: 20,
@@ -42,8 +42,8 @@ var FSMTextView  = FSMView.subClass({
                 new MouseUpTransition(
                     "start",
                     function() { return true; },
-                    this.select_end,
                     undefined,
+                    this.select_end,
                     true
                 )
             ]
