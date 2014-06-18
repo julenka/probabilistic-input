@@ -2613,7 +2613,6 @@ var NBestFeedback = NBestListBase.subClass({
     addItemToNBestContainer: function(nbestcontainer, originalRoot, alternativeRoot, probability) {
         var dirty_children = [];
         for(var j = 0; j < alternativeRoot.children.length; j++) {
-            // Let's just get the case working where we have different children, then worry about 'dirty' children
             var child = alternativeRoot.children[j];
             if( child._dirty || typeof(originalRoot.findViewById(child.__julia_id)) === 'undefined') {
                 dirty_children.push(child);

@@ -17,33 +17,36 @@ var ScrollView = ContainerView.subClass({
     },
     startScroll: function(e) {
         this.properties.down_y = e.element_y;
+        console.log(this.properties.scroll_down_y, e.element_y);
         this.properties.is_scrolling = true;
     },
     updateScroll: function(e) {
         var dy = e.element_y - this.properties.down_y;
+        console.log(this.properties.scroll_down_y, e.element_y, dy, this.properties.scroll_y);
         this.properties.scroll_y = this.properties.scroll_down_y + dy;
     },
     endScroll: function(e) {
         this.properties.is_scrolling = false;
         this.properties.scroll_down_y = this.properties.scroll_y;
+        console.log(this.properties.scroll_down_y);
     },
     dispatchEvent: function(e) {
         if(e.type === "mousedown") {
             if(Math.dieRoll(0.8)) {
-                console.log("scroll");
                 return this.makeRequest(this.startScroll, e, true);
             } else {
-                console.log("pass");
-                e.element_y -= this.properties.scroll_y;
-                return this._super(e);
+                var e_copy = shallowCopy(e);
+                e_copy.element_y -= this.properties.scroll_y;
+                return this._super(e_copy);
             }
         } else if (this.properties.is_scrolling && e.type === "mousemove") {
             return this.makeRequest(this.updateScroll, e, true);
         } else if (this.properties.is_scrolling && e.type === "mouseup") {
             return this.makeRequest(this.endScroll, e, false);
         } else {
-            e.element_y -= this.properties.scroll_y;
-            return this._super(e);
+            var e_copy = shallowCopy(e);
+            e_copy.element_y -= this.properties.scroll_y;
+            return this._super(e_copy);
         }
     },
     makeRequest: function(fn, e, is_reversible) {
@@ -53,6 +56,7 @@ var ScrollView = ContainerView.subClass({
         var s = Snap($el[0]);
         var g = s.group();
         var m = new Snap.Matrix();
+        s.text(0,20, "" + this.properties.scroll_y);
         m.translate(0, this.properties.scroll_y);
         g.attr({transform: m.toString()});
         var i = 0;

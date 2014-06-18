@@ -76,15 +76,19 @@
         julia.addEventSource(mouseHook);
 
         // Set up views
-        var rootView = new ScrollView(julia);
+        var rootView = new ContainerView(julia);
+        var scrollView = new ScrollView(julia);
         var textView = new HighlightTextView(julia, {x: pad_x, y: pad_y, w: test_div_width - 2 * pad_x, text: loren_ipsum});
 
-        rootView.addChildView(textView);
-        julia.setRootView(rootView);
+        scrollView.addChildView(textView);
+        rootView.addChildView(scrollView);
+
+        julia.setRootView(scrollView);
 
 
         // Do stuff when an event has been dispatched
         julia.feedback = new MostLikelyFeedback(julia);
+//        julia.feedback = new NBestUIFeedback(julia, {n: 4, dp: 1, feedback_type: NBestGate});
 
         julia.drawFeedback($sketch, julia.feedback);
 
