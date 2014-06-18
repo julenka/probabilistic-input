@@ -2,7 +2,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Name Your Demo Here</title>
+    <title>Octopocus</title>
 
     <!-- JQuery -->
     <script type="text/javascript" src="../lib/jquery.js"></script>
@@ -19,6 +19,17 @@
 
     <!-- Included Views-->
     <script type="text/javascript" src="../views/octopocus.js"></script>
+    <style>
+        #gesture {
+            margin-top: -280px;
+            font-family: Helvetica Neue, Helvetica, Arial;
+            font-size: xx-large;
+            width: 640px;
+            height: 480px;
+            text-align: center;
+            /*background-color: red;*/
+        }
+    </style>
 </head>
 <body>
 <h3>Octopocus</h3>
@@ -26,11 +37,16 @@
 
 <table>
     <tr>
-        <td><svg id="demo_interface" width="640" height="480"></svg></td>
-        <td><div id="demo_alternatives"></div></td>
+        <td>
+            <svg id="demo_interface" width="640" height="480"></svg>
+
+        </td>
+        <td>
+            <div id="demo_alternatives"></div>
+        </td>
     </tr>
 </table>
-
+<div id="gesture"></div>
 <script>
     // Your custom views here
 </script>
@@ -41,7 +57,13 @@
      * @param rootView
      */
     function setup(rootView) {
-        rootView.addChildView(new Octopocus(rootView.julia));
+        rootView.addChildView(new Octopocus(rootView.julia, {}, function(gestureName) {
+            var $gestureDiv = $("#gesture");
+            $gestureDiv.html(gestureName);
+            $gestureDiv.fadeIn(function(){
+                $gestureDiv.fadeOut();
+            });
+        }));
     }
 
     /**
@@ -93,13 +115,13 @@
             }
             $mainInterface.empty();
             julia.drawFeedback($mainInterface, julia.feedback);
-            julia.dumpAlternativesAsSnap($alternatives, $mainInterface.width(), $mainInterface.height(), 0.25,
-                    function() {
-                        $mainInterface.empty();
-                        julia.rootView.draw($mainInterface);
-                        julia.dumpAlternativesAsSnap($alternatives, $mainInterface.width(), $mainInterface.height(), 0.25);
-                    }
-            );
+//            julia.dumpAlternativesAsSnap($alternatives, $mainInterface.width(), $mainInterface.height(), 0.25,
+//                    function() {
+//                        $mainInterface.empty();
+//                        julia.rootView.draw($mainInterface);
+//                        julia.dumpAlternativesAsSnap($alternatives, $mainInterface.width(), $mainInterface.height(), 0.25);
+//                    }
+//            );
         };
     });
 </script>

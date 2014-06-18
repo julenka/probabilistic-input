@@ -13,7 +13,7 @@ var Octopocus = FSMView.subClass({
      * @param julia
      * @param properties
      */
-    init: function(julia, properties) {
+    init: function(julia, properties, onGestureCompleted) {
         this._super(julia, properties);
         this.path = [];
         this.fsm_description = {
@@ -25,6 +25,7 @@ var Octopocus = FSMView.subClass({
         };
         var gestures = ["rectangle", "triangle", "arrow"];
         var me = this;
+        this.onGestureCompleted = onGestureCompleted;
         var colors = ["#4F8595", "#FFA733", "#9AA533", "#FBD733"];
         gestures.forEach(function(gesture, idx) {
             var state = "down_" + gesture;
@@ -49,8 +50,14 @@ var Octopocus = FSMView.subClass({
                 ),
                 new MouseUpTransition("start",
                     function() { return true;},
-                    function() { this.path = []; this.gesture_to_show = undefined; },
                     undefined,
+                    function() {
+                        this.path = [];
+                        this.gesture_to_show = undefined;
+                        if(this.onGestureCompleted) {
+                            this.onGestureCompleted(gesture);
+                        }
+                    },
                     true
                 )
             ];
@@ -99,6 +106,7 @@ var Octopocus = FSMView.subClass({
         var result = this._super();
         result.path = deepCopy(this.path);
         result.gesture_to_show = deepCopy(this.gesture_to_show);
+        result.onGestureCompleted = this.onGestureCompleted;
         return result;
     },
     add_to_path: function(e) {
