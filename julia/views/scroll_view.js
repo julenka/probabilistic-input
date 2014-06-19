@@ -58,7 +58,7 @@ var ScrollView = ContainerView.subClass({
         } else if (this.properties.is_scrolling && e.type === "mousemove") {
 
             if(this.properties.scroll_frames > 1 && Math.abs(this.properties.distance_x) > Math.abs(this.properties.distance_y)
-                && Math.dieRoll(0.5)) {
+                && Math.dieRoll(0.3)) {
                 // If it looks like we're selecting text, then
                 // TODO: remove this duplicate code
                 var e_copy = shallowCopy(e);

@@ -2886,8 +2886,8 @@ var NBestGateZoomedInFuture = NBestGate.subClass({
 
         bbox.cx = julia.mouseX;
         bbox.cy = julia.mouseY;
-        bbox.w = 200;
-        bbox.h = 200;
+        bbox.w = 400;
+        bbox.h = 400;
         bbox.x = bbox.cx - bbox.w/2;
         bbox.y = bbox.cy - bbox.h/2;
 

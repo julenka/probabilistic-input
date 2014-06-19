@@ -77,12 +77,14 @@
         rootView.addChildView(scrollView);
         julia.setRootView(rootView);
 
+        var n_best_size = 200;
+
         var nBestListFollowY = function() {
-            return { x: julia.mouseXSmooth - 100, y: julia.mouseY - 50};
+            return { x: julia.mouseXSmooth - n_best_size * 1.25, y: julia.mouseY - n_best_size * 0.5};
         }
 
         var nBestListFollowYToTheRight = function() {
-            return { x: julia.mouseXSmooth + 50, y: julia.mouseY};
+            return { x: julia.mouseXSmooth + n_best_size * 0.25, y: julia.mouseY - n_best_size * 0.5};
         }
 
         // Do stuff when an event has been dispatched
@@ -97,6 +99,7 @@
         };
 
 
+
         addOption({name: "feedback_options", id:"n_best_1", checked: true},
                 "most likely",
                 onOptionClicked(function() { return new MostLikelyFeedback(julia)}) );
@@ -105,6 +108,7 @@
                 onOptionClicked(function() {
                             return new NBestUIFeedback(julia, {feedback_type: NBestGateZoomedIn,
                                         dp: 0.6,
+                                        n_best_size: n_best_size,
                                         n_best_location: nBestListFollowY}
                             );
                         }
@@ -115,6 +119,7 @@
                 onOptionClicked(function() {
                             return new NBestUIFeedback(julia, {feedback_type: NBestGateZoomedInFuture,
                                         dp: 0.9,
+                                        n_best_size: n_best_size,
                                         n_best_location: nBestListFollowYToTheRight}
                             );
                         }
