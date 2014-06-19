@@ -65,7 +65,7 @@
         var test_div_width = $sketch.width();
 
         // set up Julia
-        var mouseHook = new PMouseEventHook($sketch[0], 10, 10);
+        var mouseHook = new PMouseEventHook($sketch[0], 0, 0);
         julia.addEventSource(mouseHook);
 
         // Set up views
@@ -75,7 +75,7 @@
 
         scrollView.addChildView(textView);
         rootView.addChildView(scrollView);
-        julia.setRootView(scrollView);
+        julia.setRootView(rootView);
 
 
         // Do stuff when an event has been dispatched
@@ -89,13 +89,22 @@
             }
         };
 
+        var nBestListFollowY = function() {
+            return { x: julia.mouseXSmooth + 80, y: julia.mouseY - 50};
+        }
         addOption({name: "feedback_options", id:"n_best_1", checked: true},
                 "most likely",
                 onOptionClicked(function() { return new MostLikelyFeedback(julia)}) );
         addOption({name: "feedback_options", id:"n_best_2", checked: false},
                 "gate with icon",
-                onOptionClicked(function() { return new MostLikelyFeedback(julia)}) );
-        addOption({name: "feedback_options", id:"n_best_3", checked: true},
+                onOptionClicked(function() {
+                            return new NBestUIFeedback(julia, {feedback_type: NBestGate,
+                            dp: 0.6,
+                            n_best_location: nBestListFollowY}
+                )}
+                ));
+
+        addOption({name: "feedback_options", id:"n_best_3", checked: false},
                 "gate with current state",
                 onOptionClicked(function() { return new MostLikelyFeedback(julia)}) );
 

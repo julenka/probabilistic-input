@@ -2468,10 +2468,11 @@ NBestListBase = Object.subClass({
         this.n_alternatives = valueOrDefault(props.n, 3);
         this.dp = valueOrDefault(props.dp, 0.5);
         this.feedback_type = valueOrDefault(props.feedback_type, NBestContainer);
-        this.n_best_location = valueOrDefault(props.n_best_location, function(){
-            return {x: this.julia.mouseX + 10, y: this.julia.mouseY + 10};
-        });
+
         this.n_best_size = valueOrDefault(props.n_best_size, 80);
+        this.n_best_location = valueOrDefault(props.n_best_location, function(){
+            return {x: this.julia.mouseXSmooth - this.n_best_size, y: this.julia.mouseYSmooth - this.n_best_size * 1.25};
+        });
     },
     addItemToNBestContainer: function(nbestcontainer, originalRoot, alternativeRoot, probability) {
         throw "addItemToNBestContainer is not implemented in NBestListBase. Needs to be filled in by extending class.";
@@ -2757,8 +2758,6 @@ var NBestGate = NBestContainer.subClass({
     className: "NBestGate",
     init: function(julia, props) {
         this._super(julia, props);
-        this.properties.x = julia.mouseXSmooth;
-        this.properties.y = julia.mouseYSmooth;
     },
     draw: function($el) {
         $el.off("mousemove touchmove mouseup touchup");
@@ -2769,10 +2768,10 @@ var NBestGate = NBestContainer.subClass({
         var julia = this.julia;
         for(var i = 0; i < this.alternatives.length; i++) {
             var x = this.properties.x + this.properties.padding + i * (this.properties.alternative_size + this.properties.padding);
-            x -= w / 2;
+
 
             var y = this.properties.y + this.properties.padding;
-            y -= h * 1.25;
+
             var g = this.drawSmallAlternative(x, y, s, this.alternatives[i].view);
 
             var altRoot = this.alternatives[i].root;
@@ -2798,6 +2797,7 @@ var NBestGate = NBestContainer.subClass({
 
         $el.on("mousemove touchmove mouseup touchup", function(e) {
             delete julia.__julia_dont_dispatch;
+            console.log(e.currentTarget);
             julia.dispatchPEvent(new PMouseEvent(1, e, 0, 0, e.type, e.currentTarget));
         });
 

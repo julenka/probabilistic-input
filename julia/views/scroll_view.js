@@ -37,6 +37,8 @@ var ScrollView = ContainerView.subClass({
         this.properties.last_x = e.element_x;
         this.properties.last_y = e.element_y;
         this._dirty = true;
+        var target = e.base_event.base_event.currentTarget;
+        console.log(target, $(target).offset(), e.element_y, e);
     },
     endScroll: function(e) {
         this.properties.is_scrolling = false;
@@ -48,7 +50,7 @@ var ScrollView = ContainerView.subClass({
     dispatchEvent: function(e) {
 
         if(e.type === "mousedown") {
-            if(Math.dieRoll(0.8)) {
+            if(Math.dieRoll(0.7)) {
                 return this.makeRequest(this.startScroll, e, true);
             } else {
                 var e_copy = shallowCopy(e);
