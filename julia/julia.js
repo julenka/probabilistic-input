@@ -2468,6 +2468,7 @@ NBestListBase = Object.subClass({
         this.n_alternatives = valueOrDefault(props.n, 3);
         this.dp = valueOrDefault(props.dp, 0.5);
         this.feedback_type = valueOrDefault(props.feedback_type, NBestContainer);
+        this.probability_mode = valueOrDefault(props.probability_mode, "none");
 
         this.n_best_size = valueOrDefault(props.n_best_size, 80);
         this.n_best_location = valueOrDefault(props.n_best_location, function(){
@@ -2496,7 +2497,7 @@ NBestListBase = Object.subClass({
         var mergedRoot = most_likely.view.clone();
         var root = this.julia.rootView;
         var nbestcontainer = new this.feedback_type(this.julia,
-            $.extend(this.n_best_location(), {alternative_size: this.n_best_size})
+            $.extend(this.n_best_location(), {alternative_size: this.n_best_size, probability_mode: this.probability_mode})
             );
         for(var i = 1; i < Math.min(this.n_alternatives + 1, this.julia.alternatives.length); i++) {
             var p = this.julia.alternatives[i].probability;
@@ -2512,7 +2513,6 @@ NBestListBase = Object.subClass({
             this.julia.__julia_dont_dispatch = true;
             var julia = this.julia;
             $el.on("mousedown touchstart", function(e){
-                console.log("mousedown1");
                 julia.setRootView(most_likely.view);
                 delete julia.__julia_dont_dispatch;
                 julia.dispatchPEvent(new PMouseEvent(1, e, 10, 10, 'mousedown', e.currentTarget));
@@ -2667,10 +2667,12 @@ var NBestContainer = View.subClass({
      * @param props
      */
     init: function(julia, props ) {
-        var defaults = {x: 0, y:0, w: 0, h: 0, alternative_size: 50, padding: 8};
+        var defaults = {x: 0, y:0, w: 0, h: 0, alternative_size: 50, padding: 8, probability_mode: "none"};
         this._super(julia, props, defaults);
         // [ {root: xxx, view: xxx, probability}]
         this.alternatives = [];
+
+
     },
     /**
      * Draws one alternative in a smaller region
@@ -2679,7 +2681,7 @@ var NBestContainer = View.subClass({
      * y: y position
      * s: snap
      */
-    drawSmallAlternative: function(x, y, s, viewCopy) {
+    drawSmallAlternative: function(x, y, s, viewCopy, p) {
         var w = this.properties.alternative_size;
         var boundingRect = s.rect(x - 2, y- 2, w + 4, w + 4).attr({"stroke": "gray", "stroke-width": "1px",
             "fill-opacity": 0.9, fill: "#FFF"});
@@ -2697,7 +2699,8 @@ var NBestContainer = View.subClass({
         m.translate(dx, dy);
         m.scale(scale, scale, bbox.cx, bbox.cy);
 
-        g.attr({transform: m.toString()});
+        var alternative_opacity = this.properties.probability_mode === "opacity" ? p : 1;
+        g.attr({transform: m.toString(), opacity: alternative_opacity});
         return g;
     },
     draw: function($el) {
@@ -2714,7 +2717,7 @@ var NBestContainer = View.subClass({
         for(var i = 0; i < this.alternatives.length; i++) {
             var x = this.properties.x + this.properties.padding + i * (this.properties.alternative_size + this.properties.padding);
             var y = this.properties.y + this.properties.padding;
-            var g = this.drawSmallAlternative(x, y, s, this.alternatives[i].view.clone());
+            var g = this.drawSmallAlternative(x, y, s, this.alternatives[i].view.clone(), this.alternatives[i].probability);
             var altRoot = this.alternatives[i].root;
             // returns a function taht sets the root view for julia to be the input value
             // JavaScript closures are function level, not scope level.
@@ -2772,7 +2775,7 @@ var NBestGate = NBestContainer.subClass({
 
             var y = this.properties.y + this.properties.padding;
 
-            var g = this.drawSmallAlternative(x, y, s, this.alternatives[i].view);
+            var g = this.drawSmallAlternative(x, y, s, this.alternatives[i].view, this.alternatives[i].probability);
 
             var altRoot = this.alternatives[i].root;
             // returns a function taht sets the root view for julia to be the input value
@@ -2816,7 +2819,7 @@ var NBestGateZoomedIn = NBestGate.subClass({
      * y: y position
      * s: snap
      */
-    drawSmallAlternative: function(x, y, s, viewCopy) {
+    drawSmallAlternative: function(x, y, s, viewCopy, p) {
         var w = this.properties.alternative_size;
         var boundingRect = s.rect(x - 2, y- 2, w + 4, w + 4).attr({"stroke": "gray", "stroke-width": "1px",
             "fill-opacity": 0.9, fill: "#FFF"});
@@ -2841,6 +2844,9 @@ var NBestGateZoomedIn = NBestGate.subClass({
         var scale = this.properties.alternative_size / Math.max(bbox.w, bbox.h);
         m.translate(dx, dy);
         m.scale(scale, scale, bbox.cx, bbox.cy);
+
+        var alternative_opacity = this.properties.probability_mode === "opacity" ? p : 1;
+        g.attr({transform: m.toString(), opacity: alternative_opacity});
 
         g.attr({"clip-path": r, transform: m.toString()});
 
@@ -2898,6 +2904,9 @@ var NBestGateZoomedInFuture = NBestGate.subClass({
         var scale = this.properties.alternative_size / Math.max(bbox.w, bbox.h);
         m.translate(dx, dy);
         m.scale(scale, scale, bbox.cx, bbox.cy);
+
+        var alternative_opacity = this.properties.probability_mode === "opacity" ? p : 1;
+        g.attr({transform: m.toString(), opacity: alternative_opacity});
 
         g.attr({"clip-path": r, transform: m.toString()});
 
