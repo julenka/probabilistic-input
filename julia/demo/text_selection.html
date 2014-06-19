@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Scrollview Test</title>
+    <title>Text Selection Demo</title>
 
     <!-- JQuery -->
     <script type="text/javascript" src="../lib/jquery.js"></script>
@@ -16,46 +16,44 @@
 
     <link rel="stylesheet" href="../julia.css"/>
     <style>
-        body {
-            -moz-user-select: none;
-            -khtml-user-select: none;
-            -webkit-user-select: none;
-
-            /*
-              Introduced in IE 10.
-              See http://ie.microsoft.com/testdrive/HTML5/msUserSelect/
-            */
-            -ms-user-select: none;
-            user-select: none;
-        }
         #test_svg {
-            -moz-user-select: none;
-            -khtml-user-select: none;
-            -webkit-user-select: none;
-
-            /*
-              Introduced in IE 10.
-              See http://ie.microsoft.com/testdrive/HTML5/msUserSelect/
-            */
-            -ms-user-select: none;
-            user-select: none;
-
-            cursor: default;
-
             float: left;
         }
     </style>
 </head>
 <body>
-<svg id="test_svg" class="border1px" width="500" height="500"></svg>
+<h4>Text Selection</h4>
+<div id="demo_settings"></div>
+<svg id="test_svg" class="border1px unselectable" width="500" height="500"></svg>
 <div id="alternatives"></div>
+<script>
+// Add any controls here
+
+</script>
 
 <script>
     // Global variables
-    var julia = new Julia();
+    var julia = new Julia({nSamplesPerEvent: 100});
     var loren_ipsum = "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nulla ac nisi id felis rutrum aliquam. Sed et risus vitae leo suscipit tincidunt dictum at sapien. Integer sit amet augue leo. Quisque aliquet fermentum nisl id tincidunt. Phasellus pretium dolor vitae libero facilisis, iaculis dictum sem molestie. Suspendisse ac semper augue, ut ullamcorper lorem. Interdum et malesuada fames ac ante ipsum primis in faucibus.";
     for(var i = 0; i < 3; i++){
         loren_ipsum += loren_ipsum;
+    }
+
+    /**
+     *
+     * attributes: name, id, checked
+     * description: description of the option (user sees this)
+     * onClick: execute when clicked
+     */
+    function addOption(attributes, description, onClick) {
+        var option = $("<input/>")
+                .attr("type", "radio")
+                .attr(attributes)
+                .click(onClick);
+        var label = $("<label/>")
+                .attr("for", attributes.id)
+                .html(description);
+        $("#demo_settings").append(option, label);
     }
 
     // Put your initialization code here
@@ -67,7 +65,6 @@
         var test_div_width = $sketch.width();
 
         // set up Julia
-        julia.nSamplesPerEvent = 10;
         var mouseHook = new PMouseEventHook($sketch[0], 10, 10);
         julia.addEventSource(mouseHook);
 
@@ -78,12 +75,29 @@
 
         scrollView.addChildView(textView);
         rootView.addChildView(scrollView);
-
         julia.setRootView(scrollView);
 
 
         // Do stuff when an event has been dispatched
         julia.feedback = new MostLikelyFeedback(julia);
+
+
+        var onOptionClicked = function(feedbackFn) {
+            return function(e) {
+                var $this = $(this);
+                julia.feedback = feedbackFn();
+            }
+        };
+
+        addOption({name: "feedback_options", id:"n_best_1", checked: true},
+                "most likely",
+                onOptionClicked(function() { return new MostLikelyFeedback(julia)}) );
+        addOption({name: "feedback_options", id:"n_best_2", checked: false},
+                "gate with icon",
+                onOptionClicked(function() { return new MostLikelyFeedback(julia)}) );
+        addOption({name: "feedback_options", id:"n_best_3", checked: true},
+                "gate with current state",
+                onOptionClicked(function() { return new MostLikelyFeedback(julia)}) );
 
         julia.drawFeedback($sketch, julia.feedback);
 
@@ -93,7 +107,13 @@
             }
             $sketch.empty();
             julia.drawFeedback($sketch, julia.feedback);
-            julia.dumpAlternativesAsSnap($alternatives, $sketch.width(), $sketch.height(), 0.5);
+            julia.dumpAlternativesAsSnap($alternatives, $sketch.width(), $sketch.height(), 1,
+                    function() {
+                        $sketch.empty();
+                        julia.rootView.draw($sketch);
+                        julia.dumpAlternativesAsSnap($alternatives, $sketch.width(), $sketch.height(), 1);
+                    }
+            );
 
         };
     });

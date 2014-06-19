@@ -433,7 +433,6 @@ function log(level, objs) {
         if(gTraceLog) {
             console.trace();
         }
-
     }
 }
 
@@ -843,19 +842,41 @@ var PCapKeyEvent = PKeyEvent.subClass({
 //noinspection JSUnusedGlobalSymbols
 var Julia = Object.subClass({
     className: "Julia",
-    init: function() {
+    /**
+     * Constructor for Julia UI manager
+     * properties:
+     * nSamplesPerEvent (default 20)
+     * nAlternativesToKeep (default 10)
+     * mediator default Mediator
+     * combiner defautl ActionRequestCombiner
+     * @param properties govern properties of probabilistic distach
+     *
+     */
+    init: function(properties) {
+        var defaults = {
+            nSamplesPerEvent: 20,
+            nAlternativesToKeep: 10,
+            mediator: new Mediator(),
+            combiner: new ActionRequestCombiner()
+        };
+        var key;
+        for(key in properties) {
+            this[key] = properties[key];
+        }
+        for(key in defaults) {
+            if(!(key in this)) {
+                this[key] = defaults[key];
+            }
+        }
         // [{viewRoot, event}, {viewRoot, event}]
         this.dispatchQueue = [];
-        this.nSamplesPerEvent = 20;
-        this.nAlternativesToKeep = 10;
         // [{view:...,probability:...},...]
         this.alternatives = [];
-        this.mediator = new Mediator();
-        this.combiner = new ActionRequestCombiner();
         this.eventSources = [];
         this.mouseX = this.mouseXSmooth = 0;
         this.mouseY = this.mouseYSmooth = 0;
 
+        log(LOG_LEVEL_VERBOSE, "Julia initialized", this);
     },
     //TODO test addEventSource
     addEventSource: function(eventSource) {

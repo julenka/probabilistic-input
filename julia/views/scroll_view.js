@@ -36,6 +36,7 @@ var ScrollView = ContainerView.subClass({
         this.properties.distance_y += Math.abs(e.element_y - this.properties.last_y);
         this.properties.last_x = e.element_x;
         this.properties.last_y = e.element_y;
+        this._dirty = true;
     },
     endScroll: function(e) {
         this.properties.is_scrolling = false;
