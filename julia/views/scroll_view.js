@@ -37,8 +37,6 @@ var ScrollView = ContainerView.subClass({
         this.properties.last_x = e.element_x;
         this.properties.last_y = e.element_y;
         this._dirty = true;
-        var target = e.base_event.base_event.currentTarget;
-        console.log(target, $(target).offset(), e.element_y, e);
     },
     endScroll: function(e) {
         this.properties.is_scrolling = false;

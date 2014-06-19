@@ -2797,11 +2797,111 @@ var NBestGate = NBestContainer.subClass({
 
         $el.on("mousemove touchmove mouseup touchup", function(e) {
             delete julia.__julia_dont_dispatch;
-            console.log(e.currentTarget);
             julia.dispatchPEvent(new PMouseEvent(1, e, 0, 0, e.type, e.currentTarget));
         });
 
 
+    },
+});
+
+var NBestGateZoomedIn = NBestGate.subClass({
+    className: "NBestGateZoomedIn",
+    init: function(julia, props) {
+        this._super(julia, props);
+    },
+    /**
+     * Draws one alternative in a smaller region
+     * return the group that was drawn to
+     * x: x position
+     * y: y position
+     * s: snap
+     */
+    drawSmallAlternative: function(x, y, s, viewCopy) {
+        var w = this.properties.alternative_size;
+        var boundingRect = s.rect(x - 2, y- 2, w + 4, w + 4).attr({"stroke": "gray", "stroke-width": "1px",
+            "fill-opacity": 0.9, fill: "#FFF"});
+        var m = new Snap.Matrix();
+        viewCopy.x = 0;
+        viewCopy.y = 0;
+        var g = s.group();
+        viewCopy.draw($(g.node));
+        var bbox = g.getBBox();
+
+        bbox.cx = julia.mouseX;
+        bbox.cy = julia.mouseY;
+        bbox.w = 500;
+        bbox.h = 500;
+        bbox.x = bbox.cx - bbox.w/2;
+        bbox.y = bbox.cy - bbox.h/2;
+
+        var bbox2 = boundingRect.getBBox();
+        var dx = bbox2.cx - bbox.cx;
+        var dy = bbox2.cy - bbox.cy;
+        var r = g.rect(bbox.x, bbox.y, bbox.w, bbox.h).attr({"fill": "blue", "fill-opacity": 0.2});
+        var scale = this.properties.alternative_size / Math.max(bbox.w, bbox.h);
+        m.translate(dx, dy);
+        m.scale(scale, scale, bbox.cx, bbox.cy);
+
+        g.attr({"clip-path": r, transform: m.toString()});
+
+        return g;
+    },
+});
+
+var NBestGateZoomedInFuture = NBestGate.subClass({
+    className: "NBestGateZoomedInFuture",
+    init: function(julia, props) {
+        this._super(julia, props);
+    },
+    /**
+     * Draws one alternative in a smaller region
+     * return the group that was drawn to
+     * x: x position
+     * y: y position
+     * s: snap
+     */
+    drawSmallAlternative: function(x, y, s, viewCopy) {
+        var w = this.properties.alternative_size;
+        var boundingRect = s.rect(x - 2, y- 2, w + 4, w + 4).attr({"stroke": "gray", "stroke-width": "1px",
+            "fill-opacity": 0.9, fill: "#FFF"});
+
+        var bbox2 = boundingRect.getBBox();
+
+        var m = new Snap.Matrix();
+        viewCopy.x = 0;
+        viewCopy.y = 0;
+        var g = s.group();
+        // dispatch a fake mouse move event at the location of the bounding box
+        var mouseMove = {type: "mousemove", element_x: bbox2.cx, element_y: bbox2.cy, source: "mouse"};
+        var actionRequests = viewCopy.dispatchEvent(mouseMove);
+        actionRequests.forEach(function(actionRequestSequence) {
+            actionRequestSequence.requests.forEach(function(request) {
+                var vc = request.viewContext;
+                request.fn.call(vc, request.event, viewCopy);
+            });
+        });
+
+        viewCopy.draw($(g.node));
+        var bbox = g.getBBox();
+
+        bbox.cx = julia.mouseX;
+        bbox.cy = julia.mouseY;
+        bbox.w = 200;
+        bbox.h = 200;
+        bbox.x = bbox.cx - bbox.w/2;
+        bbox.y = bbox.cy - bbox.h/2;
+
+
+        var dx = bbox2.cx - bbox.cx;
+        var dy = bbox2.cy - bbox.cy;
+        var r = g.rect(bbox.x, bbox.y, bbox.w, bbox.h).attr({"fill": "blue", "fill-opacity": 0.2});
+        var scale = this.properties.alternative_size / Math.max(bbox.w, bbox.h);
+        m.translate(dx, dy);
+        m.scale(scale, scale, bbox.cx, bbox.cy);
+
+        g.attr({"clip-path": r, transform: m.toString()});
+
+        return g;
     },
 });
 

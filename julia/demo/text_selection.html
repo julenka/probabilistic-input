@@ -24,7 +24,7 @@
 <body>
 <h4>Text Selection</h4>
 <div id="demo_settings"></div>
-<svg id="test_svg" class="border1px unselectable" width="500" height="500"></svg>
+<svg id="test_svg" class="border1px unselectable" width="640" height="480"></svg>
 <div id="alternatives"></div>
 <script>
 // Add any controls here
@@ -77,6 +77,13 @@
         rootView.addChildView(scrollView);
         julia.setRootView(rootView);
 
+        var nBestListFollowY = function() {
+            return { x: julia.mouseXSmooth - 100, y: julia.mouseY - 50};
+        }
+
+        var nBestListFollowYToTheRight = function() {
+            return { x: julia.mouseXSmooth + 50, y: julia.mouseY};
+        }
 
         // Do stuff when an event has been dispatched
         julia.feedback = new MostLikelyFeedback(julia);
@@ -89,24 +96,29 @@
             }
         };
 
-        var nBestListFollowY = function() {
-            return { x: julia.mouseXSmooth + 80, y: julia.mouseY - 50};
-        }
+
         addOption({name: "feedback_options", id:"n_best_1", checked: true},
                 "most likely",
                 onOptionClicked(function() { return new MostLikelyFeedback(julia)}) );
         addOption({name: "feedback_options", id:"n_best_2", checked: false},
-                "gate with icon",
+                "gate with current state",
                 onOptionClicked(function() {
-                            return new NBestUIFeedback(julia, {feedback_type: NBestGate,
-                            dp: 0.6,
-                            n_best_location: nBestListFollowY}
-                )}
+                            return new NBestUIFeedback(julia, {feedback_type: NBestGateZoomedIn,
+                                        dp: 0.6,
+                                        n_best_location: nBestListFollowY}
+                            );
+                        }
                 ));
 
         addOption({name: "feedback_options", id:"n_best_3", checked: false},
-                "gate with current state",
-                onOptionClicked(function() { return new MostLikelyFeedback(julia)}) );
+                "gate with future state",
+                onOptionClicked(function() {
+                            return new NBestUIFeedback(julia, {feedback_type: NBestGateZoomedInFuture,
+                                        dp: 0.9,
+                                        n_best_location: nBestListFollowYToTheRight}
+                            );
+                        }
+                ));
 
         julia.drawFeedback($sketch, julia.feedback);
 
@@ -116,14 +128,6 @@
             }
             $sketch.empty();
             julia.drawFeedback($sketch, julia.feedback);
-            julia.dumpAlternativesAsSnap($alternatives, $sketch.width(), $sketch.height(), 1,
-                    function() {
-                        $sketch.empty();
-                        julia.rootView.draw($sketch);
-                        julia.dumpAlternativesAsSnap($alternatives, $sketch.width(), $sketch.height(), 1);
-                    }
-            );
-
         };
     });
 
