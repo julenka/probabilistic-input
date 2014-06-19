@@ -122,10 +122,6 @@
         // Add an event source
         var mouseHook = new PMouseEventHook($mainInterface[0], mouse_variance, mouse_variance);
         julia.addEventSource(mouseHook);
-        // Initialize feedback
-//        julia.feedback = new OverlayFeedback(julia,
-//                {feedbackType:  OverlayOpacity,
-//                    renderThreshold: 0.01});
         julia.feedback = new NBestFeedback(julia, {n: 4, feedback_type: NBestGate});
 
         julia.drawFeedback($mainInterface, julia.feedback);

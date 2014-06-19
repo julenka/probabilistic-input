@@ -2682,27 +2682,60 @@ var NBestContainer = View.subClass({
      * s: snap
      */
     drawSmallAlternative: function(x, y, s, viewCopy, p) {
+
         var w = this.properties.alternative_size;
         var boundingRect = s.rect(x - 2, y- 2, w + 4, w + 4).attr({"stroke": "gray", "stroke-width": "1px",
             "fill-opacity": 0.9, fill: "#FFF"});
-        var m = new Snap.Matrix();
-        viewCopy.x = 0;
-        viewCopy.y = 0;
         var g = s.group();
-        viewCopy.draw($(g.node));
-        var bbox = g.getBBox();
         var bbox2 = boundingRect.getBBox();
+
+        var m = new Snap.Matrix();
+
+        this.updateViewCopy(viewCopy, bbox2);
+        viewCopy.properties.x = 0;
+        viewCopy.properties.y = 0;
+        if(this.properties.probability_mode === "opacity") {
+            var overlayContainer = new OverlayOpacity(this.julia, viewCopy,p);
+//            var overlayContainer = new OverlayProgressBar(this.julia, viewCopy,p);
+            overlayContainer.draw($(g.node));
+        } else {
+            viewCopy.draw($(g.node));
+        }
+
+
+
+        var bbox = g.getBBox();
+        this.updateBBoxForAlternativeView(bbox);
+
         var dx = bbox2.cx - bbox.cx;
         var dy = bbox2.cy - bbox.cy;
-        g.rect(bbox.x, bbox.y, bbox.w, bbox.h).attr({"fill": "blue", "fill-opacity": 0.0});
+        var r = g.rect(bbox.x, bbox.y, bbox.w, bbox.h).attr({"fill": "blue", "fill-opacity": 0.5});
         var scale = this.properties.alternative_size / Math.max(bbox.w, bbox.h);
         m.translate(dx, dy);
         m.scale(scale, scale, bbox.cx, bbox.cy);
 
-        var alternative_opacity = this.properties.probability_mode === "opacity" ? p : 1;
-        g.attr({transform: m.toString(), opacity: alternative_opacity});
+//        var alternative_opacity = this.properties.probability_mode === "opacity" ? p : 1;
+        g.attr({transform: m.toString(), "clip-path": r});
         return g;
     },
+    /**
+     * In some cases, we may want to update an alternative (e.g. with a future event) before displaying it.
+     * This method allows extending classes to do so.
+     * @param viewCopy
+     * @param bbox
+     */
+    updateViewCopy: function(viewCopy, bbox) {
+        return;
+    },
+    /**
+     * We may want to adjust the size of the bounding box given an alterantive.
+     * This function allows extending classes to do so.
+     * @param bbox
+     */
+    updateBBoxForAlternativeView: function(bbox) {
+        return;
+    },
+
     draw: function($el) {
         var s = Snap($el[0]);
         var w = this.properties.padding + this.alternatives.length * (this.properties.alternative_size + this.properties.padding);
@@ -2812,46 +2845,14 @@ var NBestGateZoomedIn = NBestGate.subClass({
     init: function(julia, props) {
         this._super(julia, props);
     },
-    /**
-     * Draws one alternative in a smaller region
-     * return the group that was drawn to
-     * x: x position
-     * y: y position
-     * s: snap
-     */
-    drawSmallAlternative: function(x, y, s, viewCopy, p) {
-        var w = this.properties.alternative_size;
-        var boundingRect = s.rect(x - 2, y- 2, w + 4, w + 4).attr({"stroke": "gray", "stroke-width": "1px",
-            "fill-opacity": 0.9, fill: "#FFF"});
-        var m = new Snap.Matrix();
-        viewCopy.x = 0;
-        viewCopy.y = 0;
-        var g = s.group();
-        viewCopy.draw($(g.node));
-        var bbox = g.getBBox();
-
+    updateBBoxForAlternativeView: function(bbox) {
         bbox.cx = julia.mouseX;
         bbox.cy = julia.mouseY;
         bbox.w = 500;
         bbox.h = 500;
         bbox.x = bbox.cx - bbox.w/2;
         bbox.y = bbox.cy - bbox.h/2;
-
-        var bbox2 = boundingRect.getBBox();
-        var dx = bbox2.cx - bbox.cx;
-        var dy = bbox2.cy - bbox.cy;
-        var r = g.rect(bbox.x, bbox.y, bbox.w, bbox.h).attr({"fill": "blue", "fill-opacity": 0.2});
-        var scale = this.properties.alternative_size / Math.max(bbox.w, bbox.h);
-        m.translate(dx, dy);
-        m.scale(scale, scale, bbox.cx, bbox.cy);
-
-        var alternative_opacity = this.properties.probability_mode === "opacity" ? p : 1;
-        g.attr({transform: m.toString(), opacity: alternative_opacity});
-
-        g.attr({"clip-path": r, transform: m.toString()});
-
-        return g;
-    },
+    }
 });
 
 var NBestGateZoomedInFuture = NBestGate.subClass({
@@ -2859,25 +2860,15 @@ var NBestGateZoomedInFuture = NBestGate.subClass({
     init: function(julia, props) {
         this._super(julia, props);
     },
-    /**
-     * Draws one alternative in a smaller region
-     * return the group that was drawn to
-     * x: x position
-     * y: y position
-     * s: snap
-     */
-    drawSmallAlternative: function(x, y, s, viewCopy) {
-        var w = this.properties.alternative_size;
-        var boundingRect = s.rect(x - 2, y- 2, w + 4, w + 4).attr({"stroke": "gray", "stroke-width": "1px",
-            "fill-opacity": 0.9, fill: "#FFF"});
-
-        var bbox2 = boundingRect.getBBox();
-
-        var m = new Snap.Matrix();
-        viewCopy.x = 0;
-        viewCopy.y = 0;
-        var g = s.group();
-        // dispatch a fake mouse move event at the location of the bounding box
+    updateBBoxForAlternativeView: function(bbox) {
+        bbox.cx = julia.mouseX;
+        bbox.cy = julia.mouseY;
+        bbox.w = 400;
+        bbox.h = 400;
+        bbox.x = bbox.cx - bbox.w/2;
+        bbox.y = bbox.cy - bbox.h/2;
+    },
+    updateViewCopy: function(viewCopy, bbox2) {
         var mouseMove = {type: "mousemove", element_x: bbox2.cx, element_y: bbox2.cy, source: "mouse"};
         var actionRequests = viewCopy.dispatchEvent(mouseMove);
         actionRequests.forEach(function(actionRequestSequence) {
@@ -2886,32 +2877,7 @@ var NBestGateZoomedInFuture = NBestGate.subClass({
                 request.fn.call(vc, request.event, viewCopy);
             });
         });
-
-        viewCopy.draw($(g.node));
-        var bbox = g.getBBox();
-
-        bbox.cx = julia.mouseX;
-        bbox.cy = julia.mouseY;
-        bbox.w = 400;
-        bbox.h = 400;
-        bbox.x = bbox.cx - bbox.w/2;
-        bbox.y = bbox.cy - bbox.h/2;
-
-
-        var dx = bbox2.cx - bbox.cx;
-        var dy = bbox2.cy - bbox.cy;
-        var r = g.rect(bbox.x, bbox.y, bbox.w, bbox.h).attr({"fill": "blue", "fill-opacity": 0.2});
-        var scale = this.properties.alternative_size / Math.max(bbox.w, bbox.h);
-        m.translate(dx, dy);
-        m.scale(scale, scale, bbox.cx, bbox.cy);
-
-        var alternative_opacity = this.properties.probability_mode === "opacity" ? p : 1;
-        g.attr({transform: m.toString(), opacity: alternative_opacity});
-
-        g.attr({"clip-path": r, transform: m.toString()});
-
-        return g;
-    },
+    }
 });
 
 var OverlayFeedback = Object.subClass({
@@ -3148,6 +3114,20 @@ var OverlayProgressBar = OverlayFeedbackBase.subClass({
         this.view.draw($(group.node));
         var height = 50;
         var width = 20;
+        s.rect(this.view.properties.x - width, this.view.properties.y, width, height).attr({fill: "gray"});
+        s.rect(this.view.properties.x - width,
+            this.view.properties.y + height * (1 - this.probability), width, height * this.probability).attr({fill: "green"});
+    }
+});
+
+var OverlayProgressBarLarge = OverlayFeedbackBase.subClass({
+    className: "OverlayProgressBar",
+    draw: function($el) {
+        var s = Snap($el[0]);
+        var group = s.group();
+        this.view.draw($(group.node));
+        var height = 200;
+        var width = 50;
         s.rect(this.view.properties.x - width, this.view.properties.y, width, height).attr({fill: "gray"});
         s.rect(this.view.properties.x - width,
             this.view.properties.y + height * (1 - this.probability), width, height * this.probability).attr({fill: "green"});

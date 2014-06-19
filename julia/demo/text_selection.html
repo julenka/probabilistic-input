@@ -18,6 +18,7 @@
     <style>
         #test_svg {
             float: left;
+            cursor: none;
         }
     </style>
 </head>
@@ -66,7 +67,9 @@
 
         // set up Julia
         var mouseHook = new PMouseEventHook($sketch[0], 0, 0);
+        var touchHook = new PTouchEventHook($sketch[0], 20, 20);
         julia.addEventSource(mouseHook);
+        julia.addEventSource(touchHook);
 
         // Set up views
         var rootView = new ContainerView(julia);
@@ -125,26 +128,16 @@
                         }
                 ));
 
-        addOption({name: "feedback_options", id:"n_best_4", checked: false},
-                "gate with current state, show probability using opacity",
-                onOptionClicked(function() {
-                            return new NBestUIFeedback(julia, {feedback_type: NBestGateZoomedIn,
-                                        dp: 0.6,
-                                        probability_mode: "opacity",
-                                        n_best_size: n_best_size,
-                                        n_best_location: nBestListFollowY}
-                            );
-                        }
-                ));
         julia.drawFeedback($sketch, julia.feedback);
 
         julia.dispatchCompleted = function(new_alternatives, uiUpdated) {
-            if(!uiUpdated) {
-                return;
-            }
             $sketch.empty();
+            var s = Snap($sketch[0]);
+
             julia.drawFeedback($sketch, julia.feedback);
+            s.circle(julia.mouseX, julia.mouseY, 30).attr({fill: "silver", opacity: 0.5});
         };
+
     });
 
 </script>
