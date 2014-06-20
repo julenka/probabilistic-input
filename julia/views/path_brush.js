@@ -85,7 +85,7 @@ var PathBrush = FSMView.subClass({
                 new MouseUpTransition("start",
                     function() { return true; },
                     undefined,
-                    this.path_completed,
+                    this.line_completed,
                     true
                 )
             ],
@@ -128,23 +128,17 @@ var PathBrush = FSMView.subClass({
     },
     horizontal_predicate: function(e) {
         var gesture = this.gesture_detector.detect();
-        if(gesture === SimpleGestureDetector.prototype.GESTURE_VERTICAL) {
+        if(gesture === SimpleGestureDetector.prototype.GESTURE_HORIZONTAL) {
             return true;
         }
-        if(gesture !== SimpleGestureDetector.prototype.GESTURE_HORIZONTAL) {
-            return Math.dieRoll(0.5);
-        }
-        return true;
+        return Math.dieRoll(0.5);
     },
     vertical_predicate: function(e) {
         var gesture = this.gesture_detector.detect();
         if(gesture === SimpleGestureDetector.prototype.GESTURE_VERTICAL) {
             return true;
         }
-        if(gesture !== SimpleGestureDetector.prototype.GESTURE_VERTICAL) {
-            return Math.dieRoll(0.5);
-        }
-        return true;
+        return Math.dieRoll(0.5);
     },
     gesture_progress_horiz: function(e, rootView) {
         this.update_motion(e);

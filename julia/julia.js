@@ -2412,7 +2412,7 @@ var AnimateBase = View.subClass({
 var AnimateFade = AnimateBase.subClass({
     className: "AnimateFade",
     setup: function($el){
-        this.nCrossFadeFrames = 30;
+        this.nCrossFadeFrames = 20;
         this.crossFadeIndex = 0;
         this.currentFrame = 0;
         this.nextFrame = this.sortedAlternatives.length > 1 ? 1 : 0;
@@ -2773,7 +2773,6 @@ var NBestContainer = View.subClass({
         viewCopy.properties.y = 0;
         if(this.properties.probability_mode === "opacity") {
             var overlayContainer = new OverlayOpacity(this.julia, viewCopy,p);
-//            var overlayContainer = new OverlayProgressBar(this.julia, viewCopy,p);
             overlayContainer.draw($(g.node));
         } else {
             viewCopy.draw($(g.node));
@@ -2786,7 +2785,10 @@ var NBestContainer = View.subClass({
 
         var dx = bbox2.cx - bbox.cx;
         var dy = bbox2.cy - bbox.cy;
-        var r = g.rect(bbox.x, bbox.y, bbox.w, bbox.h).attr({"fill": "blue", "fill-opacity": 0.5});
+
+        var r = g.rect(bbox.x, bbox.y, bbox.w, bbox.h)
+            .attr({"fill": "blue", "fill-opacity": 0.0});
+
         var scale = this.properties.alternative_size / Math.max(bbox.w, bbox.h);
         m.translate(dx, dy);
         m.scale(scale, scale, bbox.cx, bbox.cy);
@@ -2810,7 +2812,11 @@ var NBestContainer = View.subClass({
      * @param bbox
      */
     updateBBoxForAlternativeView: function(bbox) {
-        return;
+        var bbox_pad = 5;
+        bbox.x -= bbox_pad;
+        bbox.y -= bbox_pad;
+        bbox.w += bbox_pad * 2;
+        bbox.h += bbox_pad *2;
     },
 
     draw: function($el) {
