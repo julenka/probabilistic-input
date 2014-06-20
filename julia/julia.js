@@ -2763,6 +2763,7 @@ var NBestContainer = View.subClass({
         var w = this.properties.alternative_size;
         var boundingRect = s.rect(x - 2, y- 2, w + 4, w + 4).attr({"stroke": "gray", "stroke-width": "1px",
             "fill-opacity": 0.9, fill: "#FFF"});
+        var clippingRect = boundingRect.clone();
         var clippingGroup = s.group();
         var g = clippingGroup.group();
         var bbox2 = boundingRect.getBBox();
@@ -2797,7 +2798,7 @@ var NBestContainer = View.subClass({
 
 //        var alternative_opacity = this.properties.probability_mode === "opacity" ? p : 1;
         g.attr({transform: m.toString()});
-        clippingGroup.attr({"clip-rect": boundingRect});
+        clippingGroup.attr({"clip-path": clippingRect});
         return clippingGroup;
     },
     /**
