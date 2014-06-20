@@ -2219,7 +2219,7 @@ var Button = FSMView.subClass({
                 new MouseUpTransition(
                     "start",
                     function() { return true;},
-                    this.on_up,
+                    undefined,
                     // on_click is the 'final action' version of this event, and it does final actions
                     // final actions should be appended with the 'final' keywords
                     this.on_click_final,
@@ -2249,7 +2249,7 @@ var Button = FSMView.subClass({
         var handled = false;
         var i = 0;
         while(i < this.click_handlers.length && !handled) {
-            handled = this.click_handlers[i](e, rootView);
+            handled = this.click_handlers[i](rootView);
             i++;
         }
     },
@@ -2763,7 +2763,8 @@ var NBestContainer = View.subClass({
         var w = this.properties.alternative_size;
         var boundingRect = s.rect(x - 2, y- 2, w + 4, w + 4).attr({"stroke": "gray", "stroke-width": "1px",
             "fill-opacity": 0.9, fill: "#FFF"});
-        var g = s.group();
+        var clippingGroup = s.group();
+        var g = clippingGroup.group();
         var bbox2 = boundingRect.getBBox();
 
         var m = new Snap.Matrix();
@@ -2786,7 +2787,8 @@ var NBestContainer = View.subClass({
         var dx = bbox2.cx - bbox.cx;
         var dy = bbox2.cy - bbox.cy;
 
-        var r = g.rect(bbox.x, bbox.y, bbox.w, bbox.h)
+
+        g.rect(bbox.x, bbox.y, bbox.w, bbox.h)
             .attr({"fill": "blue", "fill-opacity": 0.0});
 
         var scale = this.properties.alternative_size / Math.max(bbox.w, bbox.h);
@@ -2794,8 +2796,9 @@ var NBestContainer = View.subClass({
         m.scale(scale, scale, bbox.cx, bbox.cy);
 
 //        var alternative_opacity = this.properties.probability_mode === "opacity" ? p : 1;
-        g.attr({transform: m.toString(), "clip-path": r});
-        return g;
+        g.attr({transform: m.toString()});
+        clippingGroup.attr({"clip-rect": boundingRect});
+        return clippingGroup;
     },
     /**
      * In some cases, we may want to update an alternative (e.g. with a future event) before displaying it.
