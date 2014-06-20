@@ -2890,7 +2890,7 @@ var NBestGate = NBestContainer.subClass({
 
         var julia = this.julia;
         for(var i = 0; i < this.alternatives.length; i++) {
-            var x = this.properties.x + this.properties.padding + i * (this.properties.alternative_size + this.properties.padding);
+            var x = this.properties.x + this.properties.padding + i * (this.properties.alternative_size + this.properties.padding) - w / 2;
 
 
             var y = this.properties.y + this.properties.padding;

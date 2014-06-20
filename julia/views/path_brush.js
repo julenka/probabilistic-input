@@ -57,7 +57,7 @@ var PathBrush = FSMView.subClass({
                 new MouseUpTransition("start",
                     function() { return true; },
                     undefined,
-                    this.path_completed,
+                    this.line_completed,
                     true
                 )
             ],
@@ -71,7 +71,7 @@ var PathBrush = FSMView.subClass({
                 new MouseUpTransition("start",
                     function() { return true; },
                     undefined,
-                    this.path_completed,
+                    this.line_completed,
                     true
                 )
             ],
