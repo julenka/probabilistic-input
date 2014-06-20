@@ -47,6 +47,10 @@
             <input id="feedback_pulse" name="feedback" type="radio" />
             <label for="feedback_pulse">pulse</label>
         </div>
+        <div>
+            <input id="feedback_fade" name="feedback" type="radio" />
+            <label for="feedback_fade">fade</label>
+        </div>
     </div>
 
 
@@ -265,6 +269,11 @@ $("#feedback_jitter2").click(function(){
 });
 $("#feedback_pulse").click(function(){
     feedback = new AnimateFeedback(julia, {feedbackType: AnimateJitterScale});
+    $sketch.empty();
+    julia.drawFeedback($sketch, feedback);
+});
+$("#feedback_fade").click(function(){
+    feedback = new AnimateFeedback(julia, {feedbackType: AnimateFade});
     $sketch.empty();
     julia.drawFeedback($sketch, feedback);
 });

@@ -2384,14 +2384,14 @@ var AnimateBase = View.subClass({
     className: "AnimateBase",
     init: function(julia, dirty_vps, root) {
         this._super(julia, {});
-    this.dirty_vps = dirty_vps;
+    this.dirtyVps = dirty_vps;
     this.root = root;
     },
     draw: function($el) {
-        if(this.dirty_vps.length == 0) {
+        if(this.dirtyVps.length == 0) {
             this.root.draw($el);
         } else {
-            var sortedAlternatives = this.dirty_vps.sort(function(a,b) {
+            var sortedAlternatives = this.dirtyVps.sort(function(a,b) {
                 return b.probability - a.probability;
             });
             var snap = Snap($el[0]);
@@ -2399,12 +2399,51 @@ var AnimateBase = View.subClass({
             this.view = sortedAlternatives[0].view;
             this.view.draw($(this.group.node));
 
-            this.n_alternatives = sortedAlternatives.length;
-            this.setup();
+            this.nAlternatives = sortedAlternatives.length;
+            this.sortedAlternatives = sortedAlternatives;
+            this.setup($el);
         }
     },
     setup: function() {
         throw "AnimateBase.setup() not implemented!";
+    }
+});
+
+var AnimateFade = AnimateBase.subClass({
+    className: "AnimateFade",
+    setup: function($el){
+        this.nCrossFadeFrames = 30;
+        this.crossFadeIndex = 0;
+        this.currentFrame = 0;
+        this.nextFrame = this.sortedAlternatives.length > 1 ? 1 : 0;
+        this.nextFrameGroup = Snap($el[0]).group();
+    },
+    update: function() {
+        // we can use boolean to check for defined here because gropu shoudl never be false or 0
+        if(!this.group) {
+            return;
+        }
+        this.view = this.sortedAlternatives[this.currentFrame].view;
+        var $group = $(this.group.node);
+        $group.empty();
+        this.view.draw($group);
+        if(this.currentFrame === this.nextFrame) {
+            return;
+        }
+        var nextFrameOpacity = this.crossFadeIndex / this.nCrossFadeFrames;
+        this.nextView = this.sortedAlternatives[this.nextFrame].view;
+        var $nextGroup = $(this.nextFrameGroup.node);
+        $nextGroup.empty();
+        this.nextView.draw($nextGroup);
+        this.group.attr({opacity: 1 - nextFrameOpacity});
+        this.nextFrameGroup.attr({opacity: nextFrameOpacity});
+        this.crossFadeIndex++;
+        if(this.crossFadeIndex > this.nCrossFadeFrames) {
+            this.crossFadeIndex = 0;
+            this.currentFrame = this.nextFrame;
+            this.nextFrame++;
+            this.nextFrame %= this.sortedAlternatives.length;
+        }
     }
 });
 var AnimateJitterRotate = AnimateBase.subClass({
@@ -2413,7 +2452,7 @@ var AnimateJitterRotate = AnimateBase.subClass({
         var amp = 0.5;
         this.minValue = -amp;
         this.maxValue = amp;
-        this.increment = this.n_alternatives;
+        this.increment = this.nAlternatives;
         this.value = 0;
     },
     update: function() {
@@ -2436,7 +2475,7 @@ var AnimateJitterRotate = AnimateBase.subClass({
 var AnimateJitterTranslate = AnimateBase.subClass({
     className: "AnimateJitterTranslate",
     setup: function() {
-        var amp = Math.pow(this.n_alternatives, 2) * 0.5;
+        var amp = Math.pow(this.nAlternatives, 2) * 0.5;
         this.minValue = -amp;
         this.maxValue = amp;
         this.increment = amp * 5;
@@ -2461,7 +2500,7 @@ var AnimateJitterTranslate = AnimateBase.subClass({
 var AnimateJitterScale = AnimateBase.subClass({
     className: "AnimateJitterTranslate",
     setup: function() {
-        var amp = this.n_alternatives / 20;
+        var amp = this.nAlternatives / 20;
         this.minValue = 1;
         this.maxValue = 1 + amp;
         this.increment = amp / 10;
@@ -2503,7 +2542,7 @@ NBestListBase = Object.subClass({
      */
     init: function(julia, props) {
         this.julia = julia;
-        this.n_alternatives = valueOrDefault(props.n, 3);
+        this.nAlternatives = valueOrDefault(props.n, 3);
         this.dp = valueOrDefault(props.dp, 0.5);
         this.feedback_type = valueOrDefault(props.feedback_type, NBestContainer);
         this.probability_mode = valueOrDefault(props.probability_mode, "none");
@@ -2537,7 +2576,7 @@ NBestListBase = Object.subClass({
         var nbestcontainer = new this.feedback_type(this.julia,
             $.extend(this.n_best_location(), {alternative_size: this.n_best_size, probability_mode: this.probability_mode})
             );
-        for(var i = 1; i < Math.min(this.n_alternatives + 1, this.julia.alternatives.length); i++) {
+        for(var i = 1; i < Math.min(this.nAlternatives + 1, this.julia.alternatives.length); i++) {
             var p = this.julia.alternatives[i].probability;
             var v = this.julia.alternatives[i].view;
             if(max_p - p > this.dp) {
