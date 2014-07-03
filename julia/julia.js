@@ -914,7 +914,11 @@ var Julia = Object.subClass({
         this.mouseX = this.mouseXSmooth = 0;
         this.mouseY = this.mouseYSmooth = 0;
 
+        window.setInterval(bind(this,"intervalUpdate"), 30);
+
+        this.mostLikelyFeedback = new MostLikelyFeedback(this);
         log(LOG_LEVEL_VERBOSE, "Julia initialized", this);
+
     },
     //TODO test addEventSource
     addEventSource: function(eventSource) {
@@ -973,8 +977,27 @@ var Julia = Object.subClass({
             }
         }
     },
-    dispatchPEvent: function(pEvent) {
+    intervalUpdate: function() {
+        var curTime = new Date().getTime();
+        var dtMs = curTime - this.lastUpdate;
+        if(dtMs) {
+            if(typeof(this.lastMouseX) !== 'undefined') {
+                this.dx = this.mouseX - this.lastMouseX;
+                this.dy = this.mouseY - this.lastMouseY;
+                var newSpeed = Math.sqrt(this.dx * this.dx + this.dy * this.dy);
+                this.speed = this.speed * 0.8 + (newSpeed - this.speed) * 0.2;
+            }
+        } else {
+            this.speed = 10;
+        }
+        this.lastMouseX = this.mouseX;
+        this.lastMouseY = this.mouseY;
+        this.lastUpdate =  curTime;
+    },
+    updateMouse: function(pEvent) {
         if(pEvent.type === 'mousemove') {
+
+
             this.mouseX = pEvent.element_x;
             this.mouseY = pEvent.element_y;
 
@@ -988,7 +1011,12 @@ var Julia = Object.subClass({
             this.downY = pEvent.element_y;
             this.mouseXSmooth = pEvent.element_x;
             this.mouseYSmooth = pEvent.element_y;
+            this.speed = 10;
         }
+
+    },
+    dispatchPEvent: function(pEvent) {
+        this.updateMouse(pEvent);
 
         // HACKS
         if(this.__julia_dont_dispatch) {
@@ -1036,6 +1064,9 @@ var Julia = Object.subClass({
      * @param $el
      */
     drawFeedback: function($el, feedback) {
+        if(this.dwellForFeedback && this.speed > 1) {
+            return this.mostLikelyFeedback.draw($el);
+        }
         return feedback.draw($el);
     },
     /**

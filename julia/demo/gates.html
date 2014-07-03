@@ -27,7 +27,10 @@
         <input type="checkbox" id="check_show_opacity" >
         <label for="check_show_opacity">show probability using opacity</label>
     </div>
-
+    <div>
+        <input type="checkbox" id="check_dwell" >
+        <label for="check_dwell">require dwell before showing feedback</label>
+    </div>
 </div>
 <table>
     <tr>
@@ -35,6 +38,7 @@
         <td><div id="demo_alternatives"></div></td>
     </tr>
 </table>
+<div id="debug"></div>
 
 <script>
 
@@ -126,17 +130,15 @@
 
         julia.drawFeedback($mainInterface, julia.feedback);
 
-        julia.dispatchCompleted = function(new_alternatives, uiUpdated) {
-
+        var update = function() {
             $mainInterface.empty();
-//            var s = Snap($mainInterface[0]);
-//            s.circle(julia.mouseX, julia /.mouseY, 2 * mouse_variance).attr({stroke: "#eeeeee", "stroke-width": 2, "fill-opacity": 0, opacity: 0.2});
+
             julia.drawFeedback($mainInterface, julia.feedback);
-
-
-
             julia.dumpAlternativesAsSnap($alternatives, $mainInterface.width(), $mainInterface.height(), 0.25);
-        };
+
+
+        }
+        window.setInterval(update, 30);
 
         var updateFeedbackMode = function() {
             if($("#check_show_opacity").prop("checked")) {
@@ -152,6 +154,11 @@
                 updateFeedbackMode();
             }
         };
+
+        $("#check_dwell").click(function(){
+            julia.dwellForFeedback = $("#check_dwell").prop("checked");
+
+        });
 
         addOption({name: "feedback_options", id:"n_best_1", checked: false},
                 "opacity overlay",
