@@ -2915,11 +2915,14 @@ var NBestGate = NBestContainer.subClass({
     },
     draw: function($el) {
         $el.off("mousemove touchmove mouseup touchup");
+        // HACK: this will remove all handlers attached with on and needs to be improved
+        $(window).off("keypress");
         var s = Snap($el[0]);
         var w = this.properties.padding + this.alternatives.length * (this.properties.alternative_size + this.properties.padding);
         var h = 2 * this.properties.padding + this.properties.alternative_size;
 
         var julia = this.julia;
+        var keypressHandlers = [];
         for(var i = 0; i < this.alternatives.length; i++) {
             var x = this.properties.x + this.properties.padding + i * (this.properties.alternative_size + this.properties.padding) - w / 2;
 
@@ -2940,15 +2943,28 @@ var NBestGate = NBestContainer.subClass({
                 return function(e){
                     julia.setRootView(alternative);
                     delete julia.__julia_dont_dispatch;
+                    if(julia.dispatchCompleted) {
+                        julia.dispatchCompleted(julia.alternatives, true);
+                    }
 
-                    julia.dispatchCompleted(julia.alternatives, true);
                     e.stopPropagation();
                     return true;
                 };
             };
             $(g.node).on("mousemove touchmove", onMoveHandlerForAlternative(altRoot));
+
+            keypressHandlers.push(onMoveHandlerForAlternative(altRoot));
         }
 
+        $(window).on("keypress", function(e) {
+
+            // http://stackoverflow.com/questions/10868006/trying-to-get-numbers-from-keypress-document-javascript
+            var key = e.keyCode || e.charCode;
+            console.log("pressed", key - 48);
+            if(key >= 48 && key <=57) {
+                keypressHandlers[key - 48 - 1](e);
+            }
+        });
         $el.on("mousemove touchmove mouseup touchup", function(e) {
             delete julia.__julia_dont_dispatch;
             julia.dispatchPEvent(new PMouseEvent(1, e, 0, 0, e.type, e.currentTarget));
