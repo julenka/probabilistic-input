@@ -2864,7 +2864,10 @@ var NBestContainer = View.subClass({
             fill: "#313131",
             opacity: 0.5,
         });
+        // HACK: this will remove all handlers attached with on and needs to be improved
+        $(window).off("keypress");
         var julia = this.julia;
+        var keypressHandlers = [];
         for(var i = 0; i < this.alternatives.length; i++) {
             var x = this.properties.x + this.properties.padding + i * (this.properties.alternative_size + this.properties.padding);
             var y = this.properties.y + this.properties.padding;
@@ -2889,9 +2892,17 @@ var NBestContainer = View.subClass({
                 };
             };
             $(g.node).on("mousedown touchstart", onDownHandlerForAlternative(altRoot));
-
+            keypressHandlers.push(onDownHandlerForAlternative(altRoot));
         }
+        $(window).on("keypress", function(e) {
 
+            // http://stackoverflow.com/questions/10868006/trying-to-get-numbers-from-keypress-document-javascript
+            var key = e.keyCode || e.charCode;
+            console.log("pressed", key - 48);
+            if(key >= 48 && key <=57) {
+                keypressHandlers[key - 48 - 1](e);
+            }
+        });
     },
     /**
      * Adds an alternative to the list of items we are going to present.
