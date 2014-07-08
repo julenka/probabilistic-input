@@ -1012,6 +1012,7 @@ var Julia = Object.subClass({
             this.mouseXSmooth = pEvent.element_x;
             this.mouseYSmooth = pEvent.element_y;
             this.speed = 10;
+            this.dwellTriggered = false;
         }
 
     },
@@ -1064,9 +1065,10 @@ var Julia = Object.subClass({
      * @param $el
      */
     drawFeedback: function($el, feedback) {
-        if(this.dwellForFeedback && this.speed > 1) {
+        if(this.dwellForFeedback && this.speed > 0.5 && !this.dwellTriggered) {
             return this.mostLikelyFeedback.draw($el);
         }
+        this.dwellTriggered = true;
         return feedback.draw($el);
     },
     /**
