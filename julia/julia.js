@@ -2813,8 +2813,6 @@ var NBestContainer = View.subClass({
             viewCopy.draw($(g.node));
         }
 
-
-
         var bbox = g.getBBox();
         this.updateBBoxForAlternativeView(bbox);
 
