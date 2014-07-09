@@ -251,55 +251,73 @@ function reset() {
         rootView.addChildView(f.entry);
         rootView.addChildView(f.message);
     });
-    var cursor = new Cursor(julia);
     rootView.addChildView(cursor);
     $sketch.empty();
     $("#debug").empty();
     $("#alternative_interfaces").empty();
     rootView.draw($sketch);
+
+    updateFeedback();
+}
+
+var cursor = new Cursor(julia);
+
+function updateFeedback() {
+    delete metaFeedback.feedbackMap;
+    metaFeedback.feedbackMap = {};
+    metaFeedback.feedbackMap[cursor.__julia_id] = cursorFeedback.feedbackType;
+    metaFeedback.feedbackType = textFeedback.feedbackType;
 }
 
 var julia = new Julia();
-var feedback = new OverlayFeedback(julia, {feedbackType: OverlayUnmodified, showOriginal: false});
+var textFeedback = new OverlayFeedback(julia, {feedbackType: OverlayUnmodified, showOriginal: false});
 var cursorFeedback = new OverlayFeedback(julia, {showOriginal: false});
+var metaFeedback = new OverlayFeedback(julia, {showOriginal: false});
 julia.nSamplesPerEvent = 10;
 
 $("#feedback_cursor_opacity").click(function(){
-    cursorFeedback = new OverlayFeedback(julia, {feedbackType: OverlayUnmodified});
+    cursorFeedback = new OverlayFeedback(julia);
+    updateFeedback();
     $sketch.empty();
-    julia.drawFeedback($sketch, feedback);
+    julia.drawFeedback($sketch, textFeedback);
 });
 
 $("#feedback_cursor_mean").click(function(){
     cursorFeedback = new MeanFeedback(julia);
+    updateFeedback();
     $sketch.empty();
-    julia.drawFeedback($sketch, feedback);
+    julia.drawFeedback($sketch, textFeedback);
 });
 
 $("#feedback_regular").click(function(){
-     feedback = new OverlayFeedback(julia, {feedbackType: OverlayUnmodified});
+     textFeedback = new OverlayFeedback(julia, {feedbackType: OverlayUnmodified});
+     updateFeedback();
      $sketch.empty();
-     julia.drawFeedback($sketch, feedback);
+     julia.drawFeedback($sketch, textFeedback);
 });
 $("#feedback_jitter1").click(function(){
-    feedback = new AnimateFeedback(julia, {feedbackType: AnimateJitterRotate});
+    textFeedback = new AnimateFeedback(julia, {feedbackType: AnimateJitterRotate});
+    updateFeedback();
     $sketch.empty();
-    julia.drawFeedback($sketch, feedback);
+    julia.drawFeedback($sketch, textFeedback);
 });
 $("#feedback_jitter2").click(function(){
-    feedback = new AnimateFeedback(julia, {feedbackType: AnimateJitterTranslate});
+    textFeedback = new AnimateFeedback(julia, {feedbackType: AnimateJitterTranslate});
+    updateFeedback();
     $sketch.empty();
-    julia.drawFeedback($sketch, feedback);
+    julia.drawFeedback($sketch, textFeedback);
 });
 $("#feedback_pulse").click(function(){
-    feedback = new AnimateFeedback(julia, {feedbackType: AnimateJitterScale});
+    textFeedback = new AnimateFeedback(julia, {feedbackType: AnimateJitterScale});
+    updateFeedback();
     $sketch.empty();
-    julia.drawFeedback($sketch, feedback);
+    julia.drawFeedback($sketch, textFeedback);
 });
 $("#feedback_fade").click(function(){
-    feedback = new AnimateFeedback(julia, {feedbackType: AnimateFade});
+    textFeedback = new AnimateFeedback(julia, {feedbackType: AnimateFade});
+    updateFeedback();
     $sketch.empty();
-    julia.drawFeedback($sketch, feedback);
+    julia.drawFeedback($sketch, textFeedback);
 });
 $("#key_regular").click(function(){
     julia.removeEventSource(p_cap_key_hook);
@@ -316,8 +334,8 @@ julia.dispatchCompleted = function(new_alternatives, uiUpdated, pEvent) {
     }
 
     $sketch.empty();
-    var feedbackToUse = pEvent instanceof PMouseEvent ? cursorFeedback : feedback;
-    var merged = julia.drawFeedback($sketch, feedbackToUse);
+//    var feedbackToUse = pEvent instanceof PMouseEvent ? cursorFeedback : textFeedback;
+    var merged = julia.drawFeedback($sketch, metaFeedback);
 
 
     if($("#dbg_dumptext").is(':checked')) {
@@ -344,6 +362,7 @@ mHook.variance_x_px = 10;
 mHook.variance_y_px = 10;
 julia.addEventSource(mHook);
 julia.addEventSource(makeVoiceEventSource());
+julia.nAlternativesToKeep = 10;
 reset();
 $("#start_speech").click(function(){
     voiceEventSource.start();

@@ -3140,6 +3140,7 @@ var OverlayFeedback = Object.subClass({
         this.feedbackType = OverlayOpacity;
         this.renderThreshold = 0.01;
         this.showOriginal = true;
+        this.feedbackMap = {};
         for (var option in props) {
             this[option] = props[option];
         }
@@ -3168,7 +3169,12 @@ var OverlayFeedback = Object.subClass({
                         result.addChildView(root);
                     }
                     dirty_vps.forEach(function(vp){
-                        result.addChildView(new me.feedbackType(me.julia, vp.view, vp.probability));
+                        if(vp.view.__julia_id in me.feedbackMap) {
+                            result.addChildView(new me.feedbackMap[vp.view.__julia_id](me.julia, vp.view, vp.probability));
+                        } else {
+                            result.addChildView(new me.feedbackType(me.julia, vp.view, vp.probability));
+                        }
+
                     });
                     return result;
                 }
@@ -3212,6 +3218,7 @@ var OverlayFeedbackBase = View.subClass({
     }
 
 });
+
 /**
  * Renders a child view with opacity according to its probability
  * uses Snap library
