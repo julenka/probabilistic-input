@@ -289,19 +289,19 @@ $("#feedback_cursor_mean").click(function(){
 });
 
 $("#feedback_regular").click(function(){
-     textFeedback = new OverlayFeedback(julia, {feedbackType: OverlayUnmodified});
+     textFeedback = new OverlayFeedback(julia, {feedbackType: OverlayUnmodified, showOriginal: false});
      updateFeedback();
 });
 $("#feedback_jitter1").click(function(){
-    textFeedback = new AnimateFeedback(julia, {feedbackType: AnimateJitterRotate});
+    textFeedback = new AnimateFeedback(julia, {feedbackType: AnimateJitterRotate, showOriginal: false});
     updateFeedback();
 });
 $("#feedback_jitter2").click(function(){
-    textFeedback = new AnimateFeedback(julia, {feedbackType: AnimateJitterTranslate});
+    textFeedback = new AnimateFeedback(julia, {feedbackType: AnimateJitterTranslate, showOriginal: false});
     updateFeedback();
 });
 $("#feedback_pulse").click(function(){
-    textFeedback = new AnimateFeedback(julia, {feedbackType: AnimateJitterScale});
+    textFeedback = new AnimateFeedback(julia, {feedbackType: AnimateJitterScale, showOriginal: false});
     updateFeedback();
 });
 $("#feedback_fade").click(function(){
