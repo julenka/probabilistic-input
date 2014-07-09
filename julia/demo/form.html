@@ -265,59 +265,48 @@ var cursor = new Cursor(julia);
 function updateFeedback() {
     delete metaFeedback.feedbackMap;
     metaFeedback.feedbackMap = {};
-    metaFeedback.feedbackMap[cursor.__julia_id] = cursorFeedback.feedbackType;
-    metaFeedback.feedbackType = textFeedback.feedbackType;
+    metaFeedback.feedbackMap[cursor.__julia_id] = cursorFeedback;
+    metaFeedback.feedbackMap['default']  = textFeedback;
+
+    $sketch.empty();
+    julia.drawFeedback($sketch, textFeedback);
 }
 
 var julia = new Julia();
 var textFeedback = new OverlayFeedback(julia, {feedbackType: OverlayUnmodified, showOriginal: false});
 var cursorFeedback = new OverlayFeedback(julia, {showOriginal: false});
-var metaFeedback = new OverlayFeedback(julia, {showOriginal: false});
-julia.nSamplesPerEvent = 10;
+var metaFeedback = new MetaFeedback(julia, {showOriginal: false});
+julia.nSamplesPerEvent = 5;
 
 $("#feedback_cursor_opacity").click(function(){
     cursorFeedback = new OverlayFeedback(julia);
     updateFeedback();
-    $sketch.empty();
-    julia.drawFeedback($sketch, textFeedback);
 });
 
 $("#feedback_cursor_mean").click(function(){
     cursorFeedback = new MeanFeedback(julia);
     updateFeedback();
-    $sketch.empty();
-    julia.drawFeedback($sketch, textFeedback);
 });
 
 $("#feedback_regular").click(function(){
      textFeedback = new OverlayFeedback(julia, {feedbackType: OverlayUnmodified});
      updateFeedback();
-     $sketch.empty();
-     julia.drawFeedback($sketch, textFeedback);
 });
 $("#feedback_jitter1").click(function(){
     textFeedback = new AnimateFeedback(julia, {feedbackType: AnimateJitterRotate});
     updateFeedback();
-    $sketch.empty();
-    julia.drawFeedback($sketch, textFeedback);
 });
 $("#feedback_jitter2").click(function(){
     textFeedback = new AnimateFeedback(julia, {feedbackType: AnimateJitterTranslate});
     updateFeedback();
-    $sketch.empty();
-    julia.drawFeedback($sketch, textFeedback);
 });
 $("#feedback_pulse").click(function(){
     textFeedback = new AnimateFeedback(julia, {feedbackType: AnimateJitterScale});
     updateFeedback();
-    $sketch.empty();
-    julia.drawFeedback($sketch, textFeedback);
 });
 $("#feedback_fade").click(function(){
     textFeedback = new AnimateFeedback(julia, {feedbackType: AnimateFade});
     updateFeedback();
-    $sketch.empty();
-    julia.drawFeedback($sketch, textFeedback);
 });
 $("#key_regular").click(function(){
     julia.removeEventSource(p_cap_key_hook);
@@ -334,7 +323,6 @@ julia.dispatchCompleted = function(new_alternatives, uiUpdated, pEvent) {
     }
 
     $sketch.empty();
-//    var feedbackToUse = pEvent instanceof PMouseEvent ? cursorFeedback : textFeedback;
     var merged = julia.drawFeedback($sketch, metaFeedback);
 
 
@@ -362,7 +350,7 @@ mHook.variance_x_px = 10;
 mHook.variance_y_px = 10;
 julia.addEventSource(mHook);
 julia.addEventSource(makeVoiceEventSource());
-julia.nAlternativesToKeep = 10;
+julia.nAlternativesToKeep = 25;
 reset();
 $("#start_speech").click(function(){
     voiceEventSource.start();
