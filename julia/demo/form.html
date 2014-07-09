@@ -30,7 +30,7 @@
 
 <div id="demo_settings">
     <div class="float-left">
-        <h3>Feedback</h3>
+        <h3>Text Field Feedback</h3>
         <div>
             <input id="feedback_regular" name="feedback" type="radio" checked="true"/>
             <label for="feedback_regular">regular</label>
@@ -53,6 +53,17 @@
         </div>
     </div>
 
+    <div class="float-left">
+        <h3>Cursor Feedback</h3>
+        <div>
+            <input id="feedback_cursor_opacity" name="feedback_cursor" type="radio" checked="true"/>
+            <label for="feedback_cursor_opacity">opacity</label>
+        </div>
+        <div>
+            <input id="feedback_cursor_mean" name="feedback_cursor" type="radio" />
+            <label for="feedback_cursor_mean">mean</label>
+        </div>
+    </div>
 
     <div class="float-left">
         <h3>Debug Info</h3>
@@ -62,12 +73,12 @@
         </div>
 
         <div>
-            <input id="dbg_dumpsnap" type="checkbox" checked="true"/>
+            <input id="dbg_dumpsnap" type="checkbox"/>
             <label for="dbg_dumpsnap">dump alternative renderings</label>
 
         </div>
     </div>
-    <div class="float-left">
+    <div class="float-clear">
         <h3>Input Source</h3>
         Keyboard type:
         <div>
@@ -89,7 +100,7 @@
     <table>
         <tr>
             <td>
-                <svg id="demo_interface" class="border1px" width="500" height="400"></svg>
+                <svg id="demo_interface" class="border1px no-cursor" width="500" height="400"></svg>
             </td>
             <td>
                 <div id="demo_alternatives"></div>
@@ -240,8 +251,8 @@ function reset() {
         rootView.addChildView(f.entry);
         rootView.addChildView(f.message);
     });
-//    var cursor = new Cursor(julia);
-//    rootView.addChildView(cursor);
+    var cursor = new Cursor(julia);
+    rootView.addChildView(cursor);
     $sketch.empty();
     $("#debug").empty();
     $("#alternative_interfaces").empty();
@@ -249,8 +260,21 @@ function reset() {
 }
 
 var julia = new Julia();
-var feedback = new OverlayFeedback(julia, {feedbackType: OverlayUnmodified});
-julia.nSamplesPerEvent = 1;
+var feedback = new OverlayFeedback(julia, {feedbackType: OverlayUnmodified, showOriginal: false});
+var cursorFeedback = new OverlayFeedback(julia, {showOriginal: false});
+julia.nSamplesPerEvent = 10;
+
+$("#feedback_cursor_opacity").click(function(){
+    cursorFeedback = new OverlayFeedback(julia, {feedbackType: OverlayUnmodified});
+    $sketch.empty();
+    julia.drawFeedback($sketch, feedback);
+});
+
+$("#feedback_cursor_mean").click(function(){
+    cursorFeedback = new MeanFeedback(julia);
+    $sketch.empty();
+    julia.drawFeedback($sketch, feedback);
+});
 
 $("#feedback_regular").click(function(){
      feedback = new OverlayFeedback(julia, {feedbackType: OverlayUnmodified});
@@ -286,13 +310,14 @@ $("#key_cap").click(function(){
     julia.addEventSource(p_cap_key_hook);
 });
 
-julia.dispatchCompleted = function(new_alternatives, uiUpdated) {
+julia.dispatchCompleted = function(new_alternatives, uiUpdated, pEvent) {
     if(!uiUpdated) {
         return;
     }
 
     $sketch.empty();
-    var merged = julia.drawFeedback($sketch, feedback);
+    var feedbackToUse = pEvent instanceof PMouseEvent ? cursorFeedback : feedback;
+    var merged = julia.drawFeedback($sketch, feedbackToUse);
 
 
     if($("#dbg_dumptext").is(':checked')) {
@@ -315,8 +340,8 @@ var mHook = new PMouseEventHook($sketch[0]);
 var voiceEventSource = makeVoiceEventSource();
 julia.addEventSource(voiceEventSource);
 
-mHook.variance_x_px = 1;
-mHook.variance_y_px = 1;
+mHook.variance_x_px = 10;
+mHook.variance_y_px = 10;
 julia.addEventSource(mHook);
 julia.addEventSource(makeVoiceEventSource());
 reset();

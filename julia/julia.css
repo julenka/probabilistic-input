@@ -46,6 +46,10 @@
     margin: 0px;
 }
 
+#demo_interface.no-cursor {
+    cursor: none;
+}
+
 h3 {
     font-family: Helvetica, sans-serif;
     margin-top: 10pt;

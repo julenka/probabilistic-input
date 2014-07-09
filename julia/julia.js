@@ -1056,7 +1056,7 @@ var Julia = Object.subClass({
         }
         // The mediator automatically resamples the views
         if(typeof this.dispatchCompleted !== "undefined") {
-            this.dispatchCompleted(this.alternatives, downsampledAlternatives.length > 0);
+            this.dispatchCompleted(this.alternatives, downsampledAlternatives.length > 0, pEvent);
         }
     },
     /**
@@ -1601,6 +1601,7 @@ var View = Object.subClass({
         this.cloneActionRequests(result);
         result.properties = shallowCopy(this.properties);
         result.__julia_id = this.__julia_id;
+        result._dirty = this._dirty;
         return result;
     },
     /**
