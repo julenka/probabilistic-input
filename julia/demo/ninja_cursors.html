@@ -31,7 +31,7 @@
         init: function(julia, properties) {
             var defaults = {
                 'off_color': '#1DB0E7',
-                'off_over_color':  '#1782AA',
+                'off_over_color':  '#0D465B',
                 'on_color': '#cc0000',
                 'on_over_color': '#810000',
                 'is_on': false,
@@ -82,13 +82,16 @@
             var y = this.properties.y;
             var w = this.properties.w;
             var h = this.properties.h;
-            s.rect(x, y, w, h).attr({fill: this.properties.background_color});
+            var rect = s.rect(x, y, w, h).attr({fill: this.properties.background_color});
+            if(this.properties.isTarget) {
+                rect.attr({stroke: '#5fd400', 'stroke-width':'3px'});
+            }
         }
     })
     // Your custom views here
 </script>
 <script>
-
+    var targetIndex = 0;
     /**
      * Set up the interface here
      * @param rootView
@@ -101,13 +104,33 @@
         var julia = rootView.julia;
         var buttonWidth = 50;
         var buttonHeight = 50;
+        var targets = [];
         for(var i = 0; i < nButtons; i++) {
-            rootView.addChildView(new ToggleButton(julia, {
+
+            var newButton = new ToggleButton(julia, {
                 x: Math.randint(buttonWidth, uiWidth - buttonWidth),
                 y: Math.randint(buttonHeight, uiHeight - buttonHeight),
                 w: buttonWidth,
                 h: buttonHeight
-            }));
+            });
+            newButton.addClickHandler(function(rootView){
+                targetIndex++;
+                targetIndex %= nButtons;
+                if(this.properties.isTarget) {
+                    this.properties.isTarget = false;
+                    var btn = rootView.findViewById(targets[targetIndex].__julia_id);
+                    btn.properties.isTarget = true;
+                }
+
+            });
+            if(i == 0) {
+                newButton.properties.isTarget = true;
+            }
+            targets.push(newButton);
+
+            rootView.addChildView(newButton);
+
+
         }
 //        rootView.addChildView(new Cursor());
     }
@@ -171,13 +194,13 @@
         julia.dispatchCompleted = function(new_alternatives, uiUpdated, pEvent) {
             $mainInterface.empty();
             julia.drawFeedback($mainInterface, julia.feedback);
-            julia.dumpAlternativesAsSnap($alternatives, $mainInterface.width(), $mainInterface.height(), 0.25,
-                    function() {
-                        $mainInterface.empty();
-                        julia.rootView.draw($mainInterface);
-                        julia.dumpAlternativesAsSnap($alternatives, $mainInterface.width(), $mainInterface.height(), 0.25);
-                    }
-            );
+//            julia.dumpAlternativesAsSnap($alternatives, $mainInterface.width(), $mainInterface.height(), 0.25,
+//                    function() {
+//                        $mainInterface.empty();
+//                        julia.rootView.draw($mainInterface);
+//                        julia.dumpAlternativesAsSnap($alternatives, $mainInterface.width(), $mainInterface.height(), 0.25);
+//                    }
+//            );
             var snap = Snap($mainInterface[0]);
             if(pEvent) {
                 pEvent.getSamples(julia.nSamplesPerEvent).forEach(function(sample){

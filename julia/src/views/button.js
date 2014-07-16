@@ -31,7 +31,7 @@ var Button = FSMView.subClass({
                     this.hit_test,
                     this.on_over,
                     undefined,
-                    true
+                    false
                 )
             ],
             over: [
@@ -54,7 +54,7 @@ var Button = FSMView.subClass({
                     this.hit_test,
                     function(){},
                     undefined,
-                    true
+                    false
                 )
             ],
             down: [
@@ -124,7 +124,7 @@ var Button = FSMView.subClass({
         var handled = false;
         var i = 0;
         while(i < this.click_handlers.length && !handled) {
-            handled = this.click_handlers[i](rootView);
+            handled = this.click_handlers[i].call(this, rootView);
             i++;
         }
     },

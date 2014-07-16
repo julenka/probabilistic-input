@@ -462,7 +462,7 @@ var LOG_LEVEL_VERBOSE = 4, LOG_LEVEL_DEBUG = 3, LOG_LEVEL_INFO = 2, LOG_LEVEL_ER
 // The current logging level. Modify this to change log level
 //noinspection UnnecessaryLocalVariableJS
 var gLogLevel = LOG_LEVEL_DEBUG;
-var gTraceLog = true;
+var gTraceLog = false;
 function log(level, objs) {
     var args = Array.prototype.slice.call(arguments, 1, arguments.length);
     if(gLogLevel >= level) {
@@ -1043,7 +1043,6 @@ var Julia = Object.subClass({
         });
     },
     setRootView: function(view) {
-        log(LOG_LEVEL_DEBUG, "setRootView");
         if(!(view instanceof ContainerView)) {
             throw "root view not instance of ContainerView!";
         }
@@ -1221,7 +1220,6 @@ var Julia = Object.subClass({
             });
             // If this action request sequence had a final action, set the new root view, and return
             if(hasFinalAction && (typeof viewClone.kill) === 'undefined' && mediationReply.accept) {
-                console.log("final");
                 newAlternatives.slice(0, newAlternatives.length - 1);
                 return newAlternatives;
             }
@@ -2856,7 +2854,7 @@ var NBestGate = NBestContainer.subClass({
 
             keypressHandlers.push(onMoveHandlerForAlternative(altRoot));
         }
-
+        $(window).off("keypress");
         $(window).on("keypress", function(e) {
 
             // http://stackoverflow.com/questions/10868006/trying-to-get-numbers-from-keypress-document-javascript
