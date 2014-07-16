@@ -92,6 +92,44 @@
 </script>
 <script>
     var targetIndex = 0;
+
+    function minDistance(targets, x, y) {
+        var minD = Infinity;
+        for(var i = 0; i < targets.length; i++) {
+            var dx = x - targets[i].properties.x;
+            var dy = y - targets[i].properties.y;
+            var d = Math.sqrt(dx * dx + dy * dy);
+            if(d < minD) {
+                minD = d;
+            }
+        }
+        return minD;
+    }
+
+    /**
+     * Uses Mitchell's best-candidate algorithm for generating uniform random samples
+     * http://bl.ocks.org/mbostock/d7bf3bd67d00ed79695b
+     */
+    function getRandomPosition(targets, width, height) {
+        var nCandidates = 20;
+        var candidates = [];
+        for(var i = 0; i < nCandidates; i++) {
+            candidates.push([Math.random() * width, Math.random() * height]);
+        }
+        var farthestCandidate = candidates[0];
+        // Use O(nˆ2) algorithm here
+        var farthestDistance = minDistance(targets, farthestCandidate[0], farthestCandidate[1]);
+        for(var i = 1; i < nCandidates; i++) {
+            var candidate = candidates[i];
+            var d = minDistance(targets, candidate[0], candidate[1]);
+            if(d > farthestDistance) {
+                farthestDistance = d;
+                farthestCandidate = candidate;
+            }
+        }
+        return farthestCandidate;
+    }
+
     /**
      * Set up the interface here
      * @param rootView
@@ -100,16 +138,17 @@
         var $mainInterface = $("#demo_interface");
         var uiWidth = $mainInterface.width();
         var uiHeight = $mainInterface.height();
-        var nButtons = 10;
+        var nButtons = 20;
         var julia = rootView.julia;
         var buttonWidth = 50;
         var buttonHeight = 50;
         var targets = [];
         for(var i = 0; i < nButtons; i++) {
-
+            var randomPosition = getRandomPosition(targets, uiWidth - buttonWidth, uiHeight - buttonHeight);
+//            var randomPosition = [Math.random() * uiWidth, Math.random() * uiHeight];
             var newButton = new ToggleButton(julia, {
-                x: Math.randint(buttonWidth, uiWidth - buttonWidth),
-                y: Math.randint(buttonHeight, uiHeight - buttonHeight),
+                x: randomPosition[0],
+                y: randomPosition[1],
                 w: buttonWidth,
                 h: buttonHeight
             });
@@ -194,13 +233,13 @@
         julia.dispatchCompleted = function(new_alternatives, uiUpdated, pEvent) {
             $mainInterface.empty();
             julia.drawFeedback($mainInterface, julia.feedback);
-//            julia.dumpAlternativesAsSnap($alternatives, $mainInterface.width(), $mainInterface.height(), 0.25,
-//                    function() {
-//                        $mainInterface.empty();
-//                        julia.rootView.draw($mainInterface);
-//                        julia.dumpAlternativesAsSnap($alternatives, $mainInterface.width(), $mainInterface.height(), 0.25);
-//                    }
-//            );
+            julia.dumpAlternativesAsSnap($alternatives, $mainInterface.width(), $mainInterface.height(), 0.25,
+                    function() {
+                        $mainInterface.empty();
+                        julia.rootView.draw($mainInterface);
+                        julia.dumpAlternativesAsSnap($alternatives, $mainInterface.width(), $mainInterface.height(), 0.25);
+                    }
+            );
             var snap = Snap($mainInterface[0]);
             if(pEvent) {
                 pEvent.getSamples(julia.nSamplesPerEvent).forEach(function(sample){

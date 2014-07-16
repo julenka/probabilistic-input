@@ -74,6 +74,11 @@ h3 {
     /* Inherit from border 1 px */
     border: 1px solid black;
 }
+
+#demo_alternatives svg {
+    /* Inherit from border 1 px */
+    border: 1px solid black;
+}
 #demo_description {
     width: 640px;
 }
