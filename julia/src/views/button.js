@@ -13,25 +13,49 @@
  */
 var Button = FSMView.subClass({
     className: "Button",
-    init: function (julia, properties) {
-        var defaults = {
+    init: function (julia, properties, defaults) {
+        $.extend(defaults,{
             x: 0,
             y: 0,
             w: 0,
             h: 0,
             text: "button"
-        };
+        } );
         this._super(julia, properties, defaults);
         this.click_handlers = [];
         // TODO: make it easy to apply common properties
         this.fsm_description = {
             start: [
+                new MouseMoveTransition(
+                    "over",
+                    this.hit_test,
+                    this.on_over,
+                    undefined,
+                    true
+                )
+            ],
+            over: [
                 new MouseDownTransition(
                     "down",
-                    this.hit_test,
+                    function() { return true; },
                     this.on_down,
                     undefined,
-                    true)
+                    true),
+
+                new MouseMoveTransition(
+                    "start",
+                    function(e) { return !this.hit_test(e)},
+                    this.on_over_out,
+                    undefined,
+                    false
+                ),
+                new MouseMoveTransition(
+                    "over",
+                    this.hit_test,
+                    function(){},
+                    undefined,
+                    true
+                )
             ],
             down: [
                 new MouseMoveTransition(
@@ -43,7 +67,7 @@ var Button = FSMView.subClass({
                 ),
                 new MouseMoveTransition(
                     "down",
-                    function(e) { return (this.hit_test(e));},
+                    this.hit_test,
                     this.on_move_in,
                     undefined,
                     false
@@ -63,9 +87,28 @@ var Button = FSMView.subClass({
     hit_test: function(e) {
         var rx = e.element_x - this.properties.x;
         var ry = e.element_y - this.properties.y;
-        return (rx > 0 && ry > 0 && rx < this.properties.w && ry < this.properties.h);
+//        return (rx > 0 && ry > 0 && rx < this.properties.w && ry < this.properties.h);
+        if(!(rx > 0 && ry > 0 && rx < this.properties.w && ry < this.properties.h)) {
+            return false;
+        }
+        var r = this.properties.w;
+        if(this.properties.h < r){
+            r = this.properties.h;
+        }
+        r = r/2;
+        var rx2 = rx - this.properties.w /2;
+        var ry2 = ry - this.properties.h/2;
+        var d = Math.sqrt(rx2 * rx2 + ry2 * ry2) / r;
+        return Math.dieRoll(1 - d);
+//        return Math.dieRoll(0.5);
+    },
+    on_over_out: function(e) {
+        // nop 2
     },
     on_out: function(e) {
+
+    },
+    on_over: function(e) {
 
     },
     on_move_in: function(e) {

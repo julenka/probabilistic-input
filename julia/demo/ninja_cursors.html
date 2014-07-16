@@ -1,0 +1,207 @@
+<!-- Created on 5/26/2014 -->
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Ninja Cursors</title>
+
+    <script type="text/javascript" src="../dist/julia.js"></script>
+
+    <!-- Julia CSS -->
+    <link type="text/css" rel="stylesheet" href="../julia.css"/>
+
+    <!-- Included Views-->
+
+</head>
+<body>
+<h3>Ninja Cursors</h3>
+
+<table>
+    <tr>
+        <td id="demo_container""><svg id="demo_interface" width="640" height="480"></svg></td>
+        <td><div id="demo_alternatives"></div></td>
+    </tr>
+</table>
+
+<div id="demo_settings"></div>
+
+<script>
+    // Circular 'button' that changes color on hover and when pressed changes color
+    var ToggleButton = Button.subClass({
+        className: "ToggleButton",
+        init: function(julia, properties) {
+            var defaults = {
+                'off_color': '#1DB0E7',
+                'off_over_color':  '#1782AA',
+                'on_color': '#cc0000',
+                'on_over_color': '#810000',
+                'is_on': false,
+                'is_over': false
+            };
+            this._super(julia, properties, defaults);
+            this.updateBackground();
+        },
+        on_over: function(e) {
+            this.properties.is_over = true;
+            this.updateBackground();
+
+        },
+        on_over_out: function(e) {
+            this.properties.is_over = false;
+            this.updateBackground();
+        },
+        on_up: function(e) {
+
+        },
+        on_click_final: function(e, rootView) {
+            this._super(e, rootView);
+            this.properties.is_on = !this.properties.is_on;
+            this.properties.is_over = false;
+            this.updateBackground();
+        },
+
+        updateBackground: function() {
+            if(this.properties.is_over) {
+                if(this.properties.is_on) {
+                    this.properties.background_color = this.properties.on_over_color;
+                } else {
+                    this.properties.background_color = this.properties.off_over_color;
+                }
+            } else {
+                if(this.properties.is_on) {
+                    this.properties.background_color = this.properties.on_color;
+                } else {
+                    this.properties.background_color = this.properties.off_color;
+                }
+            }
+        },
+
+        draw: function($el) {
+            // in this case $el will be an SVG element
+            var s = Snap($el[0]);
+            var x = this.properties.x;
+            var y = this.properties.y;
+            var w = this.properties.w;
+            var h = this.properties.h;
+            s.rect(x, y, w, h).attr({fill: this.properties.background_color});
+        }
+    })
+    // Your custom views here
+</script>
+<script>
+
+    /**
+     * Set up the interface here
+     * @param rootView
+     */
+    function setup(rootView) {
+        var $mainInterface = $("#demo_interface");
+        var uiWidth = $mainInterface.width();
+        var uiHeight = $mainInterface.height();
+        var nButtons = 10;
+        var julia = rootView.julia;
+        var buttonWidth = 50;
+        var buttonHeight = 50;
+        for(var i = 0; i < nButtons; i++) {
+            rootView.addChildView(new ToggleButton(julia, {
+                x: Math.randint(buttonWidth, uiWidth - buttonWidth),
+                y: Math.randint(buttonHeight, uiHeight - buttonHeight),
+                w: buttonWidth,
+                h: buttonHeight
+            }));
+        }
+//        rootView.addChildView(new Cursor());
+    }
+
+    /**
+     *
+     * attributes: name, id, checked
+     * description: description of the option (user sees this)
+     * onClick: execute when clicked
+     */
+    function addOption(attributes, description, onClick) {
+        var option = $("<input/>")
+                .attr("type", "radio")
+                .attr(attributes)
+                .click(onClick);
+        var label = $("<label/>")
+                .attr("for", attributes.id)
+                .html(description);
+        $("#demo_settings").append(option, label);
+    }
+
+    function setupOptions(julia) {
+//        var onOptionClicked = function(feedbackFn) {
+//            return function(e) {
+//                julia.feedback = feedbackFn();
+//            }
+//        };
+//        addOption({name: "feedback_options", id:"n_best_1", checked: true},
+//                "n best feedback, max 4",
+//                onOptionClicked(function() { return new NBestFeedback(julia, {n: 4})}) );
+    }
+
+    /**
+     * Executed when the document loads. Intended to be boilerplate, shouldn't have to replace much here (for now).
+     */
+    $(document).ready(function(){
+        var julia = new Julia();
+        var rootView = new ContainerView(julia);
+        julia.setRootView(rootView);
+
+        setup(rootView);
+
+        var $alternatives = $("#demo_alternatives");
+        var $mainInterface = $("#demo_interface");
+        // Add an event source
+        var mouseHook = new PNinjaCursorEventHook($mainInterface[0]);
+        julia.addEventSource(mouseHook);
+
+        julia.nSamplesPerEvent = 25;
+
+        // Initialize feedback
+        julia.feedback = new OverlayFeedback(julia,
+                {feedbackType:  OverlayOpacity,
+                    renderThreshold: 0.01});
+
+        julia.mediator.mediationThreshold = 0.2;
+        julia.drawFeedback($mainInterface, julia.feedback);
+
+        var nBestList = new NBestUIFeedback(julia, {n:4});
+
+        julia.dispatchCompleted = function(new_alternatives, uiUpdated, pEvent) {
+            $mainInterface.empty();
+            julia.drawFeedback($mainInterface, julia.feedback);
+            julia.dumpAlternativesAsSnap($alternatives, $mainInterface.width(), $mainInterface.height(), 0.25,
+                    function() {
+                        $mainInterface.empty();
+                        julia.rootView.draw($mainInterface);
+                        julia.dumpAlternativesAsSnap($alternatives, $mainInterface.width(), $mainInterface.height(), 0.25);
+                    }
+            );
+            var snap = Snap($mainInterface[0]);
+            if(pEvent) {
+                pEvent.getSamples(julia.nSamplesPerEvent).forEach(function(sample){
+                    snap.circle({cx: sample.element_x, cy: sample.element_y, r: 5, opacity: 0.2});
+                });
+            }
+
+        };
+
+        julia.ambiguousRequests = function(deferred, pEvent) {
+            console.log('ambiguous');
+            console.log(deferred);
+            $mainInterface.empty();
+            // TODO: Feedback needs to take a list of alternatives!
+            julia.drawFeedback($mainInterface, nBestList);
+            var snap = Snap($mainInterface[0]);
+            pEvent.getSamples(julia.nSamplesPerEvent).forEach(function(sample){
+                snap.circle({cx: sample.element_x, cy: sample.element_y, r: 5, opacity: 0.2});
+            });
+        }
+
+        setupOptions(julia);
+
+    });
+</script>
+</body>
+</html>

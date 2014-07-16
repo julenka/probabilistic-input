@@ -462,7 +462,7 @@ var LOG_LEVEL_VERBOSE = 4, LOG_LEVEL_DEBUG = 3, LOG_LEVEL_INFO = 2, LOG_LEVEL_ER
 // The current logging level. Modify this to change log level
 //noinspection UnnecessaryLocalVariableJS
 var gLogLevel = LOG_LEVEL_DEBUG;
-var gTraceLog = false;
+var gTraceLog = true;
 function log(level, objs) {
     var args = Array.prototype.slice.call(arguments, 1, arguments.length);
     if(gLogLevel >= level) {
@@ -506,6 +506,8 @@ var DOMEventSource = PEventSource.subClass({
     }
 });
 
+
+
 var PMouseEventHook = DOMEventSource.subClass({
     className: "PMouseEventHook",
     /**
@@ -522,9 +524,35 @@ var PMouseEventHook = DOMEventSource.subClass({
     },
     addListener: function(fn) {
         var me = this;
+
         ['mousedown', 'mousemove', 'mouseup', 'click'].forEach(function(type) {
             var fn2 = function(e) {
                 fn(new PMouseEvent(1, e, me.variance_x_px, me.variance_y_px, type, e.currentTarget));
+            };
+            me.event_listeners.push({type: type, fn: fn2});
+            me.el.addEventListener(type, fn2);
+        });
+    }
+});
+
+var PNinjaCursorEventHook = DOMEventSource.subClass({
+    className: "PNinjaCursorEventHook",
+    /**
+     * Captures mouse events on a DOM element and generated PMouseEvents (probabilistic mouse events)
+     * @param el
+     * @param variance_x_px x variance. Default is 10
+     * @param variance_y_px y variance. Default is 10
+     */
+    init: function(el) {
+        //noinspection JSUnresolvedFunction
+        this._super(el);
+    },
+    addListener: function(fn) {
+        var me = this;
+        var $el = $(this.el);
+        ['mousedown', 'mousemove', 'mouseup', 'click'].forEach(function(type) {
+            var fn2 = function(e) {
+                fn(new PNinjaCursorEvent(1, e, type, $el.width(), $el.height(), e.currentTarget));
             };
             me.event_listeners.push({type: type, fn: fn2});
             me.el.addEventListener(type, fn2);
@@ -746,6 +774,63 @@ var PVoiceEventSample = PEvent.subClass({
     }
 });
 
+var PNinjaCursorEvent = PEvent.subClass({
+    className: "PNinjaCursorEvent",
+    init: function(identity_p, e, type, uiWidth, uiHeight, currentTarget) {
+        this._super(identity_p, e);
+        this.type = type;
+        this.source = "mouse";
+
+        var left = 0, top = 0;
+        //noinspection JSUnresolvedVariable
+        if (currentTarget !== window) {
+            //noinspection JSHint
+            var offset = $(currentTarget).offset();
+            left = offset.left;
+            top = offset.top;
+        }
+        if(isNaN(left)) {
+            left = 0 ;
+        }
+        if(isNaN(top)) {
+            top = 0;
+        }
+        this.element_x = e.pageX - left;
+        this.element_y = e.pageY - top;
+        this.uiWidth = uiWidth;
+        this.uiHeight = uiHeight;
+    },
+    getSamples: function(n){
+        var result = [];
+        var nRows = 5;
+        var nCols = n / nRows;
+
+        var cellWidth = this.uiWidth / nCols;
+        var cellHeight = this.uiHeight / nRows;
+
+        for(var row = 0; row < nRows; row++) {
+            for(var col =  0; col < nCols; col++) {
+                var x1 = this.element_x % cellWidth;
+                var y1 = this.element_y % cellHeight;
+
+                var x2 = col * cellWidth + x1;
+                var y2 = row * cellHeight + y1;
+
+                for(var i = 0; i < 5; i++) {
+                    result.push(new PMouseEventSample(1/(n * 5), this,
+                        0,0, x2, y2
+                    ));
+                }
+
+            }
+        }
+
+        return result;
+    }
+
+});
+
+
 var PMouseEvent = PEvent.subClass({
     className: "PMouseEvent",
     init: function (identity_p, e, sigma_x, sigma_y, type, currentTarget) {
@@ -958,6 +1043,7 @@ var Julia = Object.subClass({
         });
     },
     setRootView: function(view) {
+        log(LOG_LEVEL_DEBUG, "setRootView");
         if(!(view instanceof ContainerView)) {
             throw "root view not instance of ContainerView!";
         }
@@ -1040,7 +1126,11 @@ var Julia = Object.subClass({
             log(LOG_LEVEL_VERBOSE, pEvent.type, seq.requests[seq.requests.length-1].toString().replace(/\s+/g," "), Math.roundWithSignificance(seq.weight,2));
         });
         var mediationResults = this.mediator.mediate(actionRequests);
-        var newAlternatives = this.updateInterfaceAlternatives(mediationResults);
+        var newAlternatives = this.updateInterfaceAlternatives(mediationResults, pEvent);
+        if(!newAlternatives) {
+            // The mediation includded some deferred results, dispatch has been deferred
+            return;
+        }
         var combinedAlternatives = this.combineInterfaceAlternatives(newAlternatives);
         var downsampledAlternatives = this.downSampleInterfaceAlternatives(
             combinedAlternatives,
@@ -1077,7 +1167,7 @@ var Julia = Object.subClass({
      * @param mediationResults
      * @return {Array} list of the new alternatives which are a result of executing the action requests
      */
-    updateInterfaceAlternatives: function(mediationResults) {
+    updateInterfaceAlternatives: function(mediationResults, pEvent) {
         // Update interface alternatives based on mediation results
         var newAlternatives = [], mediationReply, viewClone;
         var deferred = [];
@@ -1085,66 +1175,70 @@ var Julia = Object.subClass({
         for(i = 0; i < mediationResults.length; i++) {
             mediationReply = mediationResults[i];
 
-            if(mediationReply.accept) {
-                var modifiedViews = [];
-                var hasFinalAction = false;
-                // for each action request, in order to properly move over the viewContext to the clone,
-                // we need to let each view know about all requests that came from it. Then it can appropriately
-                // update the viewContext for each request when the view gets cloned.
-                mediationReply.actionRequestSequence.requests.forEach(function(request) {
-                    var viewContext = request.viewContext;
-                    if(viewContext.actionRequests === undefined) {
-                        viewContext.actionRequests = [];
-                    }
-                    viewContext.actionRequests.push(request);
-                    modifiedViews.push(viewContext);
-                });
+            var modifiedViews = [];
+            var hasFinalAction = false;
+            // for each action request, in order to properly move over the viewContext to the clone,
+            // we need to let each view know about all requests that came from it. Then it can appropriately
+            // update the viewContext for each request when the view gets cloned.
+            mediationReply.actionRequestSequence.requests.forEach(function(request) {
+                var viewContext = request.viewContext;
+                if(viewContext.actionRequests === undefined) {
+                    viewContext.actionRequests = [];
+                }
+                viewContext.actionRequests.push(request);
+                modifiedViews.push(viewContext);
+            });
 
-                viewClone = mediationReply.actionRequestSequence.rootView.clone();
-                viewClone.kill = undefined;
-                mediationReply.actionRequestSequence.requests.forEach(function(request){
-                    if(!request.reversible) {
-                        hasFinalAction = true;
-                    }
-                    // TODO: this only works if there is only one container. Figure out how to handle multiple containers
-                    var oldCount = viewClone.children.length;
-                    request.fn.call(request.viewContext, request.event, viewClone);
-                    // set the viewContext dirty bit
-                    request.viewContext._dirty = true;
-                    if(viewClone.children.length !== oldCount) {
-                        viewClone._dirty = true;
-                    }
-                });
-                if((typeof viewClone.kill) === 'undefined') {
+            viewClone = mediationReply.actionRequestSequence.rootView.clone();
+            viewClone.kill = undefined;
+            mediationReply.actionRequestSequence.requests.forEach(function(request){
+                if(!request.reversible) {
+                    hasFinalAction = true;
+                }
+                // TODO: this only works if there is only one container. Figure out how to handle multiple containers
+                var oldCount = viewClone.children.length;
+                request.fn.call(request.viewContext, request.event, viewClone);
+                // set the viewContext dirty bit
+                request.viewContext._dirty = true;
+                if(viewClone.children.length !== oldCount) {
+                    viewClone._dirty = true;
+                }
+            });
+
+            if((typeof viewClone.kill) === 'undefined') {
+                if(mediationReply.accept) {
                     newAlternatives.push({view: viewClone, probability: mediationReply.probability});
+                } else {
+                    deferred.push({view: viewClone, probability: mediationReply.probability});
                 }
 
-                // since different action request sequences may be possible for the same view, we need to
-                // remove the action request information for each view after we perform the clone and update
-                modifiedViews.forEach(function(view){
-                    view.actionRequests = undefined;
-                });
-                // If this action request sequence had a final action, set the new root view, and return
-                if(hasFinalAction && (typeof viewClone.kill) === 'undefined') {
-
-                    newAlternatives.slice(0, newAlternatives.length - 1);
-                    return newAlternatives;
-                }
-            } else {
-                deferred.push(mediationReply);
             }
+
+            // since different action request sequences may be possible for the same view, we need to
+            // remove the action request information for each view after we perform the clone and update
+            modifiedViews.forEach(function(view){
+                view.actionRequests = undefined;
+            });
+            // If this action request sequence had a final action, set the new root view, and return
+            if(hasFinalAction && (typeof viewClone.kill) === 'undefined' && mediationReply.accept) {
+                console.log("final");
+                newAlternatives.slice(0, newAlternatives.length - 1);
+                return newAlternatives;
+            }
+
             // TODO decide what to do for requests that are not accepted (deferred) For now, do nothing.
         }
 
+        // TODO: show N best list
         if(deferred.length > 0) {
             var logLevel = LOG_LEVEL_DEBUG;
-            window.alert("ambiguous action request! See log output for details");
             log(logLevel, "ambiguous request! Can't decide between " + deferred.length + " requests:");
-            deferred.forEach(function(reply, i) {
+            deferred.forEach(function(vp, i) {
                 log(logLevel, "view " + i + ": ");
-                var seq = reply.actionRequestSequence;
-                seq.requests[seq.requests.length - 1].viewContext.logDump(logLevel);
+                vp.view.logDump(logLevel);
             });
+            this.ambiguousRequests(deferred, pEvent);
+            return false;
         }
 
         return newAlternatives;
@@ -2422,6 +2516,7 @@ NBestListBase = Object.subClass({
                 delete julia.__julia_dont_dispatch;
                 julia.dispatchPEvent(new PMouseEvent(1, e, 10, 10, 'mousedown', e.currentTarget));
                 julia.dispatchCompleted(julia.alternatives, true);
+                $el.off("mousedown touchstart");
             });
         }
 
