@@ -25,7 +25,7 @@ function addTouchOverlay() {
     snap.attr({'id': 'touch-overlay'});
     var upR = 15;
     var downR = 10;
-    var cursor = snap.circle(0,0, upR).attr({fill: '#cccccc', opacity: 0.1});
+    var cursor = snap.circle(0,0, upR).attr({fill: '#444', opacity: 0.1});
     $(document).mousemove(function(e){
         cursor.attr({cx: e.clientX, cy: e.clientY});
         return false;
