@@ -1230,11 +1230,6 @@ var Julia = Object.subClass({
         // TODO: show N best list
         if(deferred.length > 0) {
             var logLevel = LOG_LEVEL_DEBUG;
-            log(logLevel, "ambiguous request! Can't decide between " + deferred.length + " requests:");
-            deferred.forEach(function(vp, i) {
-                log(logLevel, "view " + i + ": ");
-                vp.view.logDump(logLevel);
-            });
             this.ambiguousRequests(deferred, pEvent);
             return false;
         }
@@ -1317,6 +1312,17 @@ var Julia = Object.subClass({
     dumpAlternativesAsSnap: function($el, snap_width, snap_height, snap_scale, on_click) {
         $el.empty();
         var me = this;
+
+        var d = $("<div class='float-left'></div>");
+        d.append(["<div>","root", "</div>"].join(" "));
+
+        var s = Snap(snap_width * snap_scale, snap_height * snap_scale);
+        var s_dom = s.node;
+        s_dom.setAttribute("viewBox", [0, 0, snap_width, snap_height].join(" "));
+        d.append(s_dom);
+        this.rootView.draw($(s_dom));
+        $el.append(d);
+
         this.alternatives.forEach(function(view_probability, i) {
             var d = $("<div class='float-left'></div>");
 
@@ -1338,6 +1344,8 @@ var Julia = Object.subClass({
 
     dumpAlternativesAsText: function($el) {
         $el.empty();
+
+
         this.alternatives.forEach(function(view_probability, i){
             var d = $("<div class='float-left'></div>");
             d.append(["<div>","i", i, ":", Math.roundWithSignificance(view_probability.probability, 2), "</div>"].join(" "));
@@ -2770,12 +2778,13 @@ var NBestContainer = View.subClass({
             // Explanation at http://stackoverflow.com/questions/1451009/javascript-infamous-loop-issue
             var onDownHandlerForAlternative = function(alternative) {
                 return function(e){
-                    console.log("mousedown2");
                     julia.setRootView(alternative);
                     delete julia.__julia_dont_dispatch;
 
                     julia.dispatchCompleted(julia.alternatives, true);
                     e.stopPropagation();
+                    $(g.node).off("mousedown touchstart");
+                    $el.off("mousedown touchstart");
                     return true;
                 };
             };
