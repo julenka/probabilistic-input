@@ -2,11 +2,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Octopocus</title>
-
-    <!-- Snap SVG library -->
-
-    <script type="text/javascript" src="../lib/dollar.js"></script>
+    <title>iPad Air</title>
 
     <!-- Julia library -->
     <script type="text/javascript" src="../dist/julia.js"></script>
@@ -14,27 +10,18 @@
     <!-- Julia CSS -->
     <link type="text/css" rel="stylesheet" href="../julia.css"/>
 
-    <style>
-        #gesture {
-            margin-top: -230px;
-            font-family: Helvetica Neue, Helvetica, Arial;
-            font-size: xx-large;
-            width: 100%;
-            height: 100%;
-            text-align: center;
-        }
-    </style>
 </head>
 <body>
-<h3>Octopocus</h3>
+<h3>Your Demo Title Here</h3>
 
 <div id="ipad_container">
     <div id="ipad_screen">
         <svg id="demo_interface" width="546" height="407"></svg>
-        <div id="gesture"></div>
     </div>
 </div>
-
+<script>
+    // Your custom views here
+</script>
 <script>
 
     /**
@@ -42,13 +29,7 @@
      * @param rootView
      */
     function setup(rootView) {
-        rootView.addChildView(new Octopocus(rootView.julia, {}, function(gestureName) {
-            var $gestureDiv = $("#gesture");
-            $gestureDiv.html(gestureName);
-            $gestureDiv.fadeIn(function(){
-                $gestureDiv.fadeOut();
-            });
-        }));
+
     }
 
     /**
@@ -66,6 +47,17 @@
                 .attr("for", attributes.id)
                 .html(description);
         $("#demo_settings").append(option, label);
+    }
+
+    function setupOptions(julia) {
+//        var onOptionClicked = function(feedbackFn) {
+//            return function(e) {
+//                julia.feedback = feedbackFn();
+//            }
+//        };
+//        addOption({name: "feedback_options", id:"n_best_1", checked: true},
+//                "n best feedback, max 4",
+//                onOptionClicked(function() { return new NBestFeedback(julia, {n: 4})}) );
     }
 
     /**
@@ -100,17 +92,17 @@
             }
             $mainInterface.empty();
             julia.drawFeedback($mainInterface, julia.feedback);
-//            julia.dumpAlternativesAsSnap($alternatives, $mainInterface.width(), $mainInterface.height(), 0.25,
-//                    function() {
-//                        $mainInterface.empty();
-//                        julia.rootView.draw($mainInterface);
-//                        julia.dumpAlternativesAsSnap($alternatives, $mainInterface.width(), $mainInterface.height(), 0.25);
-//                    }
-//            );
+            julia.dumpAlternativesAsSnap($alternatives, $mainInterface.width(), $mainInterface.height(), 0.25,
+                    function() {
+                        $mainInterface.empty();
+                        julia.rootView.draw($mainInterface);
+                        julia.dumpAlternativesAsSnap($alternatives, $mainInterface.width(), $mainInterface.height(), 0.25);
+                    }
+            );
         };
 
-        // add a touch overlay to the UI`
-        addTouchOverlay();
+        setupOptions(julia);
+
     });
 </script>
 </body>
