@@ -1,0 +1,102 @@
+<!-- Created on 5/26/2014 -->
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Diagramming App</title>
+
+    <!-- Julia library -->
+    <script type="text/javascript" src="../dist/julia.js"></script>
+
+    <!-- Julia CSS -->
+    <link type="text/css" rel="stylesheet" href="../julia.css"/>
+
+</head>
+<body>
+<h3 class="centered">Diagramming App</h3>
+
+<div id="ipad_container">
+    <div id="ipad_screen">
+        <svg id="demo_interface" width="546" height="407"></svg>
+    </div>
+</div>
+<script>
+    // Your custom views here
+</script>
+<script>
+
+    /**
+     * Set up the interface here
+     * @param rootView
+     */
+    function setup(rootView) {
+        var julia = rootView.julia;
+        function path2str(el) {
+            return el.x + ", " + el.y;
+        };
+        var lineColor = "#333";
+        var onLineCompleted = function(p1, p2, root) {
+            var new_line = new Path(julia, {radius: 3, color: lineColor,
+                path: [p1, p2].map(path2str)
+            });
+            root.addChildView(new_line);
+        };
+
+        var onPathCompleted = function(path, root) {
+            root.addChildView(new Path(julia, {radius: 3, color: lineColor,
+                path: path.map(path2str)
+            }));
+        };
+        var path_brush = new PathBrush(julia, {color: lineColor,
+            width: 3,
+            onPathCompleted: onPathCompleted, onLineCompleted: onLineCompleted});
+        rootView.addChildView(path_brush);
+
+        var itemSize = 50;
+        var propsForColor  = function(color){
+            return    {
+                x: Math.randint(0, 300),
+                y: Math.randint(0, 300),
+                w: itemSize,
+                h: itemSize,
+                color: color
+            };
+
+        };
+
+    }
+
+
+    /**
+     * Executed when the document loads. Intended to be boilerplate, shouldn't have to replace much here (for now).
+     */
+    $(document).ready(function(){
+        var mouse_variance = 10;
+        var julia = new Julia();
+        var rootView = new ContainerView(julia, {background_color: "#eee"});
+        julia.setRootView(rootView);
+        julia.nSamplesPerEvent = 10;
+        setup(rootView);
+
+        var $alternatives = $("#demo_alternatives");
+        var $mainInterface = $("#demo_interface");
+        // Add an event source
+        var mouseHook = new PMouseEventHook($mainInterface[0], mouse_variance, mouse_variance);
+        julia.addEventSource(mouseHook);
+        julia.feedback = new NBestFeedback(julia, {n: 4, feedback_type: NBestGate});
+
+        julia.drawFeedback($mainInterface, julia.feedback);
+
+        var update = function() {
+            $mainInterface.empty();
+
+            julia.drawFeedback($mainInterface, julia.feedback);
+            julia.dumpAlternativesAsSnap($alternatives, $mainInterface.width(), $mainInterface.height(), 0.25);
+
+
+        }
+        window.setInterval(update, 30);
+
+    });
+</script>
+</body>
+</html>
