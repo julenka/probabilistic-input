@@ -3,7 +3,22 @@ module.exports = function(grunt) {
     // http://www.brianchu.com/blog/2013/07/11/grunt-by-example-a-tutorial-for-javascripts-task-runner/
     // http://gruntjs.com/getting-started
 
-    var src_files = ['lib/*.js', 'src/julia.js', 'src/touchOverlay.js', 'src/views/*.js', 'src/feedback/*.js'];
+    // Dependenceis must be precisely specified because order matters
+    var src_files = ['lib/*.js',
+        'src/globals.js',
+        'src/extensions.js',
+        'src/inheritance.js',
+        'src/simpleGestureDetector.js',
+        'src/logging.js',
+        'src/julia.js',
+        'src/mediator.js',
+        'src/touchOverlay.js',
+        'src/view.js',
+        'src/fsm.js',
+        'src/pEventSource.js',
+        'src/pevents/*.js',
+        'src/feedback/*.js',
+        'src/views/*.js'];
     // All upfront config goes in a massive nested object.
     grunt.initConfig({
         // read package configuration
