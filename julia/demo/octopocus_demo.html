@@ -86,7 +86,7 @@
         var touchHook = new PTouchEventHook($mainInterface[0], 0, 0);
         julia.addEventSource(mouseHook);
         julia.addEventSource(touchHook);
-
+        julia.nSamplesPerEvent = 10;
         // Initialize feedback
         julia.feedback = new OverlayFeedback(julia,
                 {feedbackType:  OverlayOpacity,

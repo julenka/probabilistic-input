@@ -21,19 +21,18 @@ var Octopocus = FSMView.subClass({
             down: [
 
             ]
-
         };
+        this.recognizer = new DollarRecognizer();
         var gestures = ["rectangle", "triangle", "arrow"];
         var me = this;
         this.onGestureCompleted = onGestureCompleted;
-        var colors = ["#4F8595", "#FFA733", "#9AA533", "#FBD733"];
+        var colors = ["#AEEE00", "#01B0F0", "#FF358B", "#333333"];
         gestures.forEach(function(gesture, idx) {
             var state = "down_" + gesture;
             // for now, let's just assume that we are returning true with probably 0.33
-            me.fsm_description.start.push(new MouseDownTransition(state,
-                function() {
-                    return true;
-                },
+            me.fsm_description.start.push(
+                new MouseDownTransition(state,
+                    RETURN_TRUE,
                 function(e, rootView) {
                     this.gesture_start(e, rootView);
                     this.properties.color = colors[idx];
@@ -42,7 +41,7 @@ var Octopocus = FSMView.subClass({
                 true
             ));
             var new_state = [
-                new MouseMoveTransition(state,
+                new MouseMoveTransitionWithProbability(state,
                     me.recognizeGesture.curry(gesture),
                     me.gesture_progress,
                     undefined,
@@ -65,7 +64,7 @@ var Octopocus = FSMView.subClass({
         });
     },
     recognizeGesture: function(gestureName) {
-        var recognizer = new DollarRecognizer();
+        var recognizer = this.recognizer;
 
         for(var i = 0; i < recognizer.Unistrokes.length; i++) {
             if(recognizer.Unistrokes[i].Name === gestureName) {
@@ -96,7 +95,7 @@ var Octopocus = FSMView.subClass({
                         return {X: p.X + dp.x, Y: p.Y + dp.y};
                     }
                 );
-                return Math.dieRoll(gesture_probability);
+                return gesture_probability;
             }
         }
 

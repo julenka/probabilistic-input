@@ -47,7 +47,7 @@
 }
 
 /* The alternative interfaces often fall off the screen. Don't add scrollbars if they do */
-body {
+body.demo {
     overflow: hidden;
 }
 

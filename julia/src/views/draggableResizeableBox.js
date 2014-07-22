@@ -38,14 +38,14 @@ var DraggableBox = FSMView.subClass({
                     true)
             ],
             dragging: [
-                new MouseMoveTransition(
+                new MouseMoveTransitionWithProbability(
                     "dragging",
                     this.drag_predicate,
                     this.drag_progress,
                     undefined,
                     true
                 ),
-                new MouseUpTransition(
+                new MouseUpTransitionWithProbability(
                     "start",
                     this.drag_predicate,
                     undefined,
@@ -71,7 +71,7 @@ var DraggableBox = FSMView.subClass({
         return (coords.rx > 0 && coords.ry > 0 && coords.rx < this.properties.w && coords.ry < this.properties.h);
     },
     drag_predicate: function(e) {
-        return true;
+        return 1;
     },
     /**
      * Called when a gesture (e.g. the drag, in this case) starts.
@@ -164,13 +164,13 @@ var DraggableResizeableBox = DraggableBox.subClass({
                     true)
             );
             this.fsm_description[name] = [
-                new MouseMoveTransition(
+                new MouseMoveTransitionWithProbability(
                     name,
                     this.drag_predicate,
                     this.drag_progress,
                     undefined,
                     true
-                ), new MouseUpTransition(
+                ), new MouseUpTransitionWithProbability(
                     "start",
                     this.drag_predicate,
                     undefined,
@@ -312,17 +312,11 @@ var DraggableResizeableBox3 = DraggableResizeableBox.subClass({
         var dy = Math.abs(this.drag_start_info.mouse_y - e.element_y);
         // TODO: this should be resolution independent, and should have to do with probabilities...
         if(this.resizingHorizontally() && dy > 30) {
-            if(Math.randint(0, 10) === 1) {
-                return false;
-            }
-
+            return 0.9;
         } else if (this.resizingVertically() && dx > 30) {
-            var x = Math.randint(0,10);
-            if(x === 1) {
-                return false;
-            }
+            return 0.9;
         }
-        return true;
+        return 1;
     },
     resizingVertically: function() { return this.current_state === "resize_top" || this.current_state === "resize_bottom";},
     resizingHorizontally: function() { return this.current_state === "resize_left" || this.current_state === "resize_right";},
