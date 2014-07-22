@@ -98,7 +98,27 @@ var FSMView = View.subClass({
 
 var Transition = Object.subClass({
     className: "Transition",
-    init: function(to,source,type,predicate,feedback_action,final_action,handles_event) {
+    /**
+     * attrs: to (required), source (required), type (required), predicate (required), feedback_action (default: undefined)
+     * final_action (default: undefined), handles_event (default: false)
+     * @param attrs
+     */
+    init: function(attrs) {
+        if(arguments.length === 7) {
+            this.initLegacy.apply(this, arguments)
+        } else if (arguments.length === 1 ) {
+            var defaults = {
+                feedback_action: undefined,
+                final_action: undefined,
+                handles_event: false
+            };
+            $.extend(this, defaults);
+            $.extend(this, attrs);
+        } else {
+            throw "Transition init() called with wrong number of parameters";
+        }
+    },
+    initLegacy: function(to,source,type,predicate,feedback_action,final_action,handles_event) {
         this.to = to;
         this.source = source;
         this.type = type;

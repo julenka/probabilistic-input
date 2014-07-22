@@ -19,7 +19,8 @@ var GestureRecognizer = FSMView.subClass({
         this.path = [];
         this.fsm_description = {
             start: [
-                new MouseDownTransition("down",
+                new MouseDownTransition(
+                    "down",
                     RETURN_TRUE,
                     this.gesture_start,
                     undefined,
