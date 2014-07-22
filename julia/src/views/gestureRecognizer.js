@@ -20,7 +20,7 @@ var GestureRecognizer = FSMView.subClass({
         this.fsm_description = {
             start: [
                 new MouseDownTransition("down",
-                    function() { return true},
+                    RETURN_TRUE,
                     this.gesture_start,
                     undefined,
                     true
@@ -28,13 +28,13 @@ var GestureRecognizer = FSMView.subClass({
             ],
             down: [
                 new MouseMoveTransition("down",
-                    function() { return true },
+                    RETURN_TRUE,
                     this.gesture_progress,
                     undefined,
                     true
                 ),
-                new MouseUpTransition("start",
-                    Math.dieRoll.curry(0.7),
+                new MouseUpTransitionWithProbability("start",
+                    function() { return 0.7; },
                     this.gesture_not_recognized,
                     undefined,
                     true
@@ -46,7 +46,7 @@ var GestureRecognizer = FSMView.subClass({
         var me = this;
         gestures.forEach(function(gesture) {
             // for now, let's just assume that we are returning true with probably 0.33
-            me.fsm_description.down.push(new MouseUpTransition("start",
+            me.fsm_description.down.push(new MouseUpTransitionWithProbability("start",
                 function(e, rootView) {
                     return this.recognizeGesture(gesture);
                 },
@@ -78,10 +78,10 @@ var GestureRecognizer = FSMView.subClass({
                 if(score < 0.8) {
                     return false;
                 }
-                return Math.dieRoll(results[i].Score);
+                return results[i].Score;
             }
         }
-        return false;
+        return 0;
     },
     clone: function() {
         var result = this._super();
