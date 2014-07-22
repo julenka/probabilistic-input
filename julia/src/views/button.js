@@ -31,7 +31,7 @@ var Button = FSMView.subClass({
         // TODO: make it easy to apply common properties
         this.fsm_description = {
             start: [
-                new MouseMoveTransition(
+                new MouseMoveTransitionWithProbability(
                     "over",
                     this.hit_test,
                     this.on_over,
@@ -47,14 +47,14 @@ var Button = FSMView.subClass({
                     undefined,
                     true),
 
-                new MouseMoveTransition(
+                new MouseMoveTransitionWithProbability(
                     "start",
-                    function(e) { return !this.hit_test(e)},
+                    function(e) { return 1 - this.hit_test(e);},
                     this.on_over_out,
                     undefined,
                     false
                 ),
-                new MouseMoveTransition(
+                new MouseMoveTransitionWithProbability(
                     "over",
                     this.hit_test,
                     function(){},
@@ -63,14 +63,14 @@ var Button = FSMView.subClass({
                 )
             ],
             down: [
-                new MouseMoveTransition(
+                new MouseMoveTransitionWithProbability(
                     "start",
-                    function(e) { return ! (this.hit_test(e));},
+                    function(e) { return 1 - this.hit_test(e);},
                     this.on_out,
                     undefined,
                     false
                 ),
-                new MouseMoveTransition(
+                new MouseMoveTransitionWithProbability(
                     "down",
                     this.hit_test,
                     this.on_move_in,
@@ -89,13 +89,14 @@ var Button = FSMView.subClass({
             ]
         };
     },
+    /* Return whether hit or not as a probability */
     hit_test: function(e) {
         var rx = e.element_x - this.properties.x;
         var ry = e.element_y - this.properties.y;
         if(!(rx > 0 && ry > 0 && rx < this.properties.w && ry < this.properties.h)) {
-            return false;
+            return 0;
         }
-        return true;
+        return 1;
     },
     on_over_out: function(e) {
         // nop 2
@@ -126,6 +127,7 @@ var Button = FSMView.subClass({
     draw: function ($el) {
         var c = this.current_state === "start" ? this.properties.background_color : this.properties.over_background_color;
         var c2 = this.current_state === "start" ? "black" : "white";
+
 
         // in this case $el will be an SVG element
         var s = Snap($el[0]);

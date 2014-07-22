@@ -72,8 +72,7 @@
             var rx2 = rx - this.properties.w /2;
             var ry2 = ry - this.properties.h/2;
             var d = Math.sqrt(rx2 * rx2 + ry2 * ry2) / r;
-            return Math.dieRoll(1 - d);
-            return Math.dieRoll(0.5);
+            return 1 - d;
         },
         updateBackground: function() {
             if(this.properties.is_over) {

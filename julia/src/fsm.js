@@ -96,13 +96,6 @@ var FSMView = View.subClass({
 });
 
 
-
-/**
- * View that is governed by a Finite State Machine
- * @type {*}
- */
-
-
 var Transition = Object.subClass({
     className: "Transition",
     init: function(to,source,type,predicate,feedback_action,final_action,handles_event) {
@@ -173,5 +166,85 @@ var KeydownTransition = Transition.subClass({
     init: function(to, predicate, feedback_action, final_action, handles_event) {
         //noinspection JSUnresolvedFunction
         this._super(to, "keyboard", "keydown", predicate, feedback_action, final_action, handles_event);
+    }
+});
+
+var VoiceTransition = Transition.subClass({
+    className: "VoiceTransition",
+    init: function(to,type,predicate,feedback_action,final_action,handles_event) {
+        this._super(to, "voice", type, predicate, feedback_action, final_action, handles_event);
+    }
+
+});
+
+var MouseTransition = Transition.subClass({
+    className: "MouseTransition",
+    init: function(to, type, predicate, feedback_action, final_action, handles_event) {
+        this._super(to, "mouse", type, predicate, feedback_action, final_action, handles_event);
+    }
+});
+
+
+
+var TransitionWithProbability = Transition.subClass({
+    className: "TransitionWithProbability",
+    init: function(to,source,type,probability_function,feedback_action,final_action,handles_event) {
+        var probability_wrapper = function(e, rootView) {
+            // Set the context of the predicate to be 'this', which will be set as the interactor bound to the FSM
+            var probability = probability_function.call(this, e, rootView);
+            return Math.dieRoll(probability);
+        };
+        this._super(to,source,type,probability_wrapper,feedback_action,final_action,handles_event);
+    }
+});
+
+var VoiceTransitionWithProbability = TransitionWithProbability.subClass({
+    className: "VoiceTransitionWithProbability",
+    init: function(to,type,probability_function,feedback_action,final_action,handles_event) {
+        this._super(to, "voice", type, probability_function, feedback_action, final_action, handles_event);
+    }
+
+});
+
+var MouseTransitionWithProbability = TransitionWithProbability.subClass({
+    className: "MouseTransitionWithProbability",
+    init: function(to, type, probability_function, feedback_action, final_action, handles_event) {
+        this._super(to, "mouse", type, probability_function, feedback_action, final_action, handles_event);
+    }
+});
+
+var MouseDownTransitionWithProbability = MouseTransitionWithProbability.subClass({
+    className: "MouseDownTransitionWithProbability",
+    init: function(to, probability_function, feedback_action, final_action, handles_event) {
+        this._super(to, "mousedown", probability_function, feedback_action, final_action, handles_event);
+    }
+});
+
+var MouseMoveTransitionWithProbability = MouseTransitionWithProbability.subClass({
+    className: "MouseMoveTransitionWithProbability",
+    init: function(to, probability_function, feedback_action, final_action, handles_event) {
+        this._super(to, "mousemove", probability_function, feedback_action, final_action, handles_event);
+    }
+});
+
+var MouseUpTransitionWithProbability = MouseTransitionWithProbability.subClass({
+    className: "MouseUpTransitionWithProbability",
+    init: function(to, probability_function, feedback_action, final_action, handles_event) {
+        this._super(to, "mouseup", probability_function, feedback_action, final_action, handles_event);
+    }
+});
+var KeypressTransitionWithProbability = TransitionWithProbability.subClass({
+    className: "KeypressTransitionWithProbability",
+    init: function(to, probability_function, feedback_action, final_action, handles_event) {
+        //noinspection JSUnresolvedFunction
+        this._super(to, "keyboard", "keypress", probability_function, feedback_action, final_action, handles_event);
+    }
+});
+
+var KeydownTransitionWithProbability = TransitionWithProbability.subClass({
+    className: "KeydownTransitionWithProbability",
+    init: function(to, probability_function, feedback_action, final_action, handles_event) {
+        //noinspection JSUnresolvedFunction
+        this._super(to, "keyboard", "keydown", probability_function, feedback_action, final_action, handles_event);
     }
 });
