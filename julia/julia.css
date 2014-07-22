@@ -46,6 +46,14 @@
     margin: 0px;
 }
 
+/* The alternative interfaces often fall off the screen. Don't add scrollbars if they do */
+body {
+    overflow: hidden;
+}
+
+td {
+    vertical-align: top;
+}
 
 h3 {
     font-family: Helvetica, sans-serif;

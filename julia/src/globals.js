@@ -178,3 +178,23 @@ var bind = function (context, name) {
         return context[name].apply(context, arguments);
     };
 };
+
+/**
+ * Convenience method that adds a radio button with given attributes to a
+ * containing jquery object.
+ *
+ * container: this is where the radio button gets added (jquery object)
+ * attributes: {name, id, checked}
+ * description: description of the option (user sees this)
+ * onClick: execute when clicked
+ */
+function juliaDemoAddRadioOption($container, attributes, description, onClick) {
+    var option = $("<input/>")
+        .attr("type", "radio")
+        .attr(attributes)
+        .click(onClick);
+    var label = $("<label/>")
+        .attr("for", attributes.id)
+        .html(description);
+    $container.append(option, label);
+}
