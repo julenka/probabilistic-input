@@ -96,6 +96,39 @@ var OverlayFeedbackBase = View.subClass({
             window.__julia_snap = Snap();
         }
     },
+    /** Returns a filter that has given grayscale value, rounded to tenth.
+     * Grayscale values are cached.
+     * @param value
+     */
+    grayscaleFilterForValue: function(value) {
+        var valueToTenth = Math.roundWithSignificance(value, 2);
+        if(!window.__julia_snap_filter_grayscale){
+            window.__julia_snap_filter_grayscale = {};
+        }
+        if(!window.__julia_snap_filter_grayscale[valueToTenth]) {
+            window.__julia_snap_filter_grayscale[valueToTenth] = window.__julia_snap
+                .filter(Snap.filter.grayscale(value))
+                .attr({x:0, y:0, width: 1000, height: 1000});
+        }
+        return window.__julia_snap_filter_grayscale[valueToTenth];
+    },
+    /**
+     * Returns a filter that has a given blur value, rounded to tenth.
+     * Values are cached.
+     * @param value
+     */
+    blurFilterForValue: function(value) {
+        var valueToTenth = Math.roundWithSignificance(value, 2);
+        if(!window.__julia_snap_filter_blur){
+            window.__julia_snap_filter_blur = {};
+        }
+        if(!window.__julia_snap_filter_blur[valueToTenth]) {
+            window.__julia_snap_filter_blur[valueToTenth] = window.__julia_snap
+                .filter(Snap.filter.blur(value))
+                .attr({x:0, y:0, width: 1000, height: 1000});
+        }
+        return window.__julia_snap_filter_blur[valueToTenth];
+    },
     draw: function($el) {
         throw "OverlayFeedbackBase should be subclassed! Draw() not implemented";
     }
@@ -125,17 +158,14 @@ var OverlayOpacitySaturation = OverlayFeedbackBase.subClass({
     className: "OverlayOpacitySaturation",
     init: function(julia, view, probability) {
         this._super(julia, view, probability);
-        // HACK. We set up julia to have a Snap reference so we can get filters
-
     },
-    draw: function($el) {
 
+    draw: function($el) {
         var s = Snap($el[0]);
         var group = s.group();
-        window.__julia_snap_filter_grayscale = window.__julia_snap.filter(Snap.filter.grayscale(1 - this.probability));
         group.attr({
             opacity: Math.roundWithSignificance(this.probability, 2),
-            filter: window.__julia_snap_filter_grayscale
+            filter: this.grayscaleFilterForValue(1 - this.probability)
         });
         this.view.draw($(group.node), this.probability);
     }
@@ -153,10 +183,9 @@ var OverlayOpacitySaturationAmbiguous = OverlayOpacitySaturation.subClass({
     draw: function($el) {
         var s = Snap($el[0]);
         var group = s.group();
-        window.__julia_snap_filter_grayscale = window.__julia_snap.filter(Snap.filter.grayscale(1 - this.probability));
         group.attr({
             opacity: Math.roundWithSignificance(this.probability, 2),
-            filter: window.__julia_snap_filter_grayscale
+            filter: this.grayscaleFilterForValue(1 - this.probability)
         });
         if(typeof(this.view.drawAmbiguous) !== 'undefined') {
             this.view.drawAmbiguous($(group.node));
@@ -199,9 +228,8 @@ var OverlayBlur = OverlayFeedbackBase.subClass({
     draw: function($el) {
         var s = Snap($el[0]);
         var group = s.group();
-        window.__julia_snap_filter_blur = window.__julia_snap.filter(Snap.filter.blur(5 * (1 - this.probability)));
         group.attr({
-            filter: window.__julia_snap_filter_blur
+            filter: this.blurFilterForValue(1 - this.probability)
         });
         this.view.draw($(group.node));
     }
