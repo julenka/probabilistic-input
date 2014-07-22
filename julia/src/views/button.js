@@ -14,11 +14,16 @@
 var Button = FSMView.subClass({
     className: "Button",
     init: function (julia, properties, defaults) {
+        if(!defaults) {
+            defaults = {};
+        }
         $.extend(defaults,{
             x: 0,
             y: 0,
             w: 0,
             h: 0,
+            background_color: 'white',
+            over_background_color: 'black',
             text: "button"
         } );
         this._super(julia, properties, defaults);
@@ -87,20 +92,10 @@ var Button = FSMView.subClass({
     hit_test: function(e) {
         var rx = e.element_x - this.properties.x;
         var ry = e.element_y - this.properties.y;
-//        return (rx > 0 && ry > 0 && rx < this.properties.w && ry < this.properties.h);
         if(!(rx > 0 && ry > 0 && rx < this.properties.w && ry < this.properties.h)) {
             return false;
         }
-        var r = this.properties.w;
-        if(this.properties.h < r){
-            r = this.properties.h;
-        }
-        r = r/2;
-        var rx2 = rx - this.properties.w /2;
-        var ry2 = ry - this.properties.h/2;
-        var d = Math.sqrt(rx2 * rx2 + ry2 * ry2) / r;
-        return Math.dieRoll(1 - d);
-//        return Math.dieRoll(0.5);
+        return true;
     },
     on_over_out: function(e) {
         // nop 2
@@ -129,8 +124,9 @@ var Button = FSMView.subClass({
         }
     },
     draw: function ($el) {
-        var c = this.current_state === "start" ? "white" : "black";
+        var c = this.current_state === "start" ? this.properties.background_color : this.properties.over_background_color;
         var c2 = this.current_state === "start" ? "black" : "white";
+
         // in this case $el will be an SVG element
         var s = Snap($el[0]);
         var x = this.properties.x;
