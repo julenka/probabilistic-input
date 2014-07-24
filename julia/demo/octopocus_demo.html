@@ -52,23 +52,6 @@
     }
 
     /**
-     *
-     * attributes: name, id, checked
-     * description: description of the option (user sees this)
-     * onClick: execute when clicked
-     */
-    function addOption(attributes, description, onClick) {
-        var option = $("<input/>")
-                .attr("type", "radio")
-                .attr(attributes)
-                .click(onClick);
-        var label = $("<label/>")
-                .attr("for", attributes.id)
-                .html(description);
-        $("#demo_settings").append(option, label);
-    }
-
-    /**
      * Executed when the document loads. Intended to be boilerplate, shouldn't have to replace much here (for now).
      */
     $(document).ready(function(){
@@ -100,16 +83,7 @@
             }
             $mainInterface.empty();
             julia.drawFeedback($mainInterface, julia.feedback);
-//            julia.dumpAlternativesAsSnap($alternatives, $mainInterface.width(), $mainInterface.height(), 0.25,
-//                    function() {
-//                        $mainInterface.empty();
-//                        julia.rootView.draw($mainInterface);
-//                        julia.dumpAlternativesAsSnap($alternatives, $mainInterface.width(), $mainInterface.height(), 0.25);
-//                    }
-//            );
-        };
 
-        // add a touch overlay to the UI`
         addTouchOverlay();
     });
 </script>

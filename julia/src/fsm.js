@@ -125,7 +125,7 @@ var Transition = Object.subClass({
         this.predicate = predicate;
         //noinspection JSUnusedGlobalSymbols
         this.feedback_action = feedback_action;
-        //noinspection JSUnusedGlobalSymbols
+        //noinspection JSUnusedGlobalS  ymbols
         this.final_action = final_action;
         this.handles_event = handles_event;
     },
