@@ -65,7 +65,24 @@ var Menu = FSMView.subClass({
             var itemJSON = menuItemsJSON[i];
             this.menuItems.push(new MenuItem(itemJSON, [], i));
         }
-        console.log(this.menuItems);
+    },
+    depthFirstTraversal: function() {
+        var s = [];
+        var result = [];
+        var i = 0;
+        for (i = 0; i < this.menuItems.length; i++) {
+            s.push(this.menuItems[i]);
+        }
+        while(s.length > 0) {
+            // Remove the first element and return the value. It is returned in an array
+            // e.g. [1,2,3].splice(0,1) returne [1]
+            var current = s.splice(-1,1)[0];
+            result.push(current);
+            for(i = 0; current.children && i < current.children.length; i++) {
+                s.push(current.children[i]);
+            }
+        }
+        return result.reverse();
     },
     clone: function() {
         var result = this._super();
@@ -81,33 +98,43 @@ var Menu = FSMView.subClass({
         if(this.active_child) {
             // always draw the top
             var current_children = this.menuItems;
-            var current_level = 0;
+            var current_level = -1;
             var selected_index = -1;
-            // Draw the menus in the path
-            for(var i = 0; i < this.active_child.path; i++) {
+
+            // Draw the menus in the path, e.g. the parent menus
+            for(var i = 0; i < this.active_child.path.length; i++) {
+                // we need to create a new matrix every time because translate appends to current translation,
+                // we want translation to be from 0,0 every time
+                m = new Snap.Matrix();
+                current_level = i;
                 selected_index = this.active_child.path[i].index_in_parent;
+
                 this.drawSubMenu(current_children, current_level, selected_index, current_group);
-                current_children = this.active_child.path[i].children;
-                current_level++;
-                current_group = current_group.group();
-                current_group.attr({transform: m.toTransformString()});
-                if(current_level == 0) {
+                if(current_level === 0) {
                     m.translate(this.properties.top_item_width * selected_index, this.properties.item_height);
                 } else {
-                    m.translate(this.properties.item_width, this.properties.item_height * selected_index);
+                    m.translate(this.properties.item_width, this.properties.item_height * (selected_index));
                 }
 
+                // update variables
+                current_children = this.active_child.path[i].children;
+                current_group = current_group.group();
+                current_group.attr({transform: m.toTransformString()});
             }
+            current_level++;
+
             // Draw the menu at our level
-            this.drawSubMenu(this.menuItems, current_level, this.active_child.index_in_parent,  current_group);
+            this.drawSubMenu(current_children, current_level, this.active_child.index_in_parent,  current_group);
             selected_index = this.active_child.index_in_parent;
+
+            // If the active item has children, draw the menus there also
             if(this.active_child.children && this.active_child.children.length > 0) {
                 current_level++;
-                console.log(selected_index)
+                m = new Snap.Matrix();
                 if(current_level == 1) {
                     m.translate(this.properties.top_item_width * selected_index, this.properties.item_height);
                 } else {
-                    m.translate(this.properties.item_width, this.properties.item_height * selected_index);
+                    m.translate(this.properties.item_width, this.properties.item_height * (selected_index));
                 }
                 current_children = this.active_child.children;
                 current_group = current_group.group();
@@ -148,7 +175,7 @@ var Menu = FSMView.subClass({
                 .attr({fill: "white"});
             for(var i = 0; i < items.length; i++) {
                 if( i === selected_index) {
-                    parent.rect(0, i * props.item_height, props.item_width, props.item_height);
+                    parent.rect(0, i * props.item_height, props.item_width, props.item_height).attr({fill: props.highlight_color});
                 }
                 var text_x = props.inner_padding;
                 var text_y = i * props.item_height + props.inner_padding + props.text_height;
