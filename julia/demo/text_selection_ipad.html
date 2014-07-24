@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Text Selection</title>
+
+    <!-- Julia library -->
+    <script type="text/javascript" src="../dist/julia.js"></script>
+
+    <link rel="stylesheet" href="../julia.css"/>
+    <style>
+        #test_svg {
+            float: left;
+            cursor: none;
+        }
+    </style>
+</head>
+<body>
+<h3 class="centered">Text Selection</h3>
+<div id="ipad_container">
+    <div id="ipad_screen">
+        <svg id="demo_interface" width="546" height="407"></svg>
+    </div>
+</div>
+
+<script>
+    // Global variables
+
+    var LOREN_IPSUM = "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nulla ac nisi id felis rutrum aliquam. Sed et risus vitae leo suscipit tincidunt dictum at sapien. Integer sit amet augue leo. Quisque aliquet fermentum nisl id tincidunt. Phasellus pretium dolor vitae libero facilisis, iaculis dictum sem molestie. Suspendisse ac semper augue, ut ullamcorper lorem. Interdum et malesuada fames ac ante ipsum primis in faucibus.";
+    for(var i = 0; i < 3; i++){
+        LOREN_IPSUM += LOREN_IPSUM;
+    }
+
+    function setup(rootView) {
+        var pad_x = 20;
+        var pad_y = 20;
+        var scrollView = new ScrollView(rootView.julia);
+        var textView = new HighlightTextView(rootView.julia, {x: pad_x, y: pad_y, w: $("#demo_interface").width()
+                - 2 * pad_x, text: LOREN_IPSUM});
+
+        scrollView.addChildView(textView);
+        rootView.addChildView(scrollView);
+
+    }
+
+    // Put your initialization code here
+    $(document).ready(function(){
+        var julia = new Julia({nSamplesPerEvent: 100});
+
+        var $sketch = $("#demo_interface");
+        // set up Julia
+        var mouseHook = new PMouseEventHook($sketch[0], 0, 0);
+        julia.addEventSource(mouseHook);
+
+        // Set up views
+        var rootView = new ContainerView(julia);
+        julia.setRootView(rootView);
+        setup(rootView);
+
+        // Do stuff when an event has been dispatched
+        julia.feedback = new NBestFeedback(julia,{feedbackType: });
+        julia.dwellForFeedback = true;
+        julia.drawFeedback($sketch, julia.feedback);
+
+        julia.dispatchCompleted = function(new_alternatives, uiUpdated) {
+            $sketch.empty();
+            julia.drawFeedback($sketch, julia.feedback);
+        };
+
+        addTouchOverlay();
+    });
+
+</script>
+</body>
+</html>
