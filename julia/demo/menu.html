@@ -1,0 +1,158 @@
+<!-- Created on 5/26/2014 -->
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Menu Prediction</title>
+    <!-- Julia library -->
+    <script type="text/javascript" src="../dist/julia.js"></script>
+
+    <!-- Julia CSS -->
+    <link type="text/css" rel="stylesheet" href="../julia.css"/>
+    <style>
+        #menu_result {
+            margin-top: -230px;
+            font-family: Helvetica Neue, Helvetica, Arial;
+            font-size: xx-large;
+            width: 100%;
+            height: 100%;
+            text-align: center;
+        }
+        svg {
+            cursor: default;
+            background-color: #33aaee;
+        }
+    </style>
+
+</head>
+<body>
+<h3>Menu Prediction</h3>
+
+<div id="demo_description">Describe your demo here</div>
+<table>
+    <tr>
+        <td>
+            <svg id="demo_interface" width="640" height="480"></svg>
+            <div id="menu_result"></div>
+        </td>
+        <td><div id="demo_alternatives"></div></td>
+    </tr>
+</table>
+
+<div id="demo_settings"></div>
+<script>
+    // Globals
+
+    var MENU_ITEMS = [
+        {name:"App", children: [
+            {name: "About", frequency: 1},
+            {name: "Check...", children: [
+                {name:"Updates", frequency: 1},
+                {name:"Security", frequency: 1},
+            ]},
+            {name: "Services", children: [
+                {name: "Copy Path", frequency: 1},
+                {name: "Share", frequency: 1},
+            ]},
+            {name: "Quit", frequency: 5}
+        ]},
+        {name:"File", children: [
+            {name: "New...", frequency: 5},
+            {name: "Open...", frequency: 8},
+            {name: "Recent", children: [
+                {name: "Bridges.txt", frequency: 4},
+                {name: "Cones.txt", frequency: 4},
+                {name: "Rods.txt", frequency: 4}
+            ]},
+            {name: "Import...", frequency: 5},
+            {name: "Save...", frequency: 13}
+        ]},
+        {name:"Edit", children: [
+            {name: "Cut", frequency: 5},
+            {name: "Copy", frequency: 9},
+            {name: "Paste", frequency: 10},
+            {name: "Delete", frequency: 4},
+            {name: "Find...", children: [
+                {name: "Find...", frequency: 5},
+                {name: "Replace...", frequency: 3},
+                {name: "Delete...", frequency: 1},
+            ]}
+        ]},
+        {name:"Help", children: [
+            {name: "Tips", frequency: 1},
+            {name: "Productivity", frequency: 1}
+        ]}
+    ];
+</script>
+<script>
+
+    /**
+     * Set up the interface here
+     * @param rootView
+     */
+    function setup(rootView) {
+        var menu = new Menu(rootView.julia, MENU_ITEMS, { bar_width: $("#demo_interface").width()});
+        menu.onItemSelected = function(item) {
+            var $menuResultDiv = $("#menu_result");
+            $menuResultDiv.html(item.name);
+            $menuResultDiv.fadeIn(function(){
+                $menuResultDiv.fadeOut();
+            });
+        }
+        rootView.addChildView(menu);
+    }
+
+    function setupOptions(julia) {
+//        var onOptionClicked = function(feedbackFn) {
+//            return function(e) {
+//                julia.feedback = feedbackFn();
+//            }
+//        };
+//        juliaDemoAddRadioOption({name: "feedback_options", id:"n_best_1", checked: true},
+//                "n best feedback, max 4",
+//                onOptionClicked(function() { return new NBestFeedback(julia, {n: 4})}) );
+    }
+
+    /**
+     * Executed when the document loads. Intended to be boilerplate, shouldn't have to replace much here (for now).
+     */
+    $(document).ready(function(){
+        var mouse_variance = 1;
+        var julia = new Julia({
+            nSamplesPerEvent: 1
+        });
+        var rootView = new ContainerView(julia);
+        julia.setRootView(rootView);
+
+        setup(rootView);
+
+        var $alternatives = $("#demo_alternatives");
+        var $mainInterface = $("#demo_interface");
+        // Add an event source
+        var mouseHook = new PMouseEventHook($mainInterface[0], mouse_variance, mouse_variance);
+        julia.addEventSource(mouseHook);
+
+        // Initialize feedback
+        julia.feedback = new OverlayFeedback(julia,
+                {feedbackType:  OverlayOpacity,
+                    renderThreshold: 0.01});
+
+        julia.drawFeedback($mainInterface, julia.feedback);
+
+        julia.dispatchCompleted = function(new_alternatives, uiUpdated) {
+            $mainInterface.empty();
+            julia.drawFeedback($mainInterface, julia.feedback);
+            julia.dumpAlternativesAsSnap($alternatives, $mainInterface.width(), $mainInterface.height(), 0.25,
+                    function() {
+                        $mainInterface.empty();
+                        julia.rootView.draw($mainInterface);
+                        julia.dumpAlternativesAsSnap($alternatives, $mainInterface.width(), $mainInterface.height(), 0.25);
+                    }
+            );
+        };
+
+        setupOptions(julia);
+
+    });
+</script>
+</body>
+</html>

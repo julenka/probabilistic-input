@@ -25,7 +25,7 @@ var MenuItem = Object.subClass({
         }
     },
     toString: function() {
-        var names = this.path.map(function(x) { return x.name});
+        var names = this.path.map(function(x) { return x.name;});
         return names.join('->');
     },
     /**
@@ -93,6 +93,7 @@ var Menu = FSMView.subClass({
             text_height: 10,
             highlight_color: "#5776F1"
         };
+
         this._super(julia, properties, defaults);
 
         this.menuItems = [];
@@ -100,6 +101,86 @@ var Menu = FSMView.subClass({
             var itemJSON = menuItemsJSON[i];
             this.menuItems.push(new MenuItem(itemJSON, [], i));
         }
+        this.initFSM();
+    },
+    initFSM: function() {
+        this.fsm_description = {
+            start: [
+                new MouseDownTransition(
+                    "down",
+                    this.hitTestAndUpdate,
+                    this.onDown,
+                    undefined,
+                    true
+                )
+            ],
+            down: [
+                new MouseMoveTransition(
+                    "down",
+                    this.hitTestAndUpdate,
+                    this.onMenuItemUpdate,
+                    undefined,
+                    true
+                ),
+                new MouseDownTransition(
+                    "start",
+                    this.hitTestAndUpdate,
+                    undefined,
+                    function(e, rootView) {
+                        if(this.onItemSelected) {
+                            this.onItemSelected(this.active_child);
+                        }
+                        this.closeMenu();
+                    },
+                    true
+                ),
+                new MouseDownTransition(
+                    "start",
+                    function(e){return !this.hitTestAndUpdate(e);},
+                    undefined,
+                    this.closeMenu,
+                    true
+                )
+            ]
+        };
+    },
+    /**
+     * Closes the menu
+     * @param e
+     */
+    closeMenu: function() {
+        this.active_child = undefined;
+    },
+    /**
+     * Perform a hit test given the mouse event e
+     * and update the currently active item
+     * @param e mouse event
+     */
+    hitTestAndUpdate: function(e){
+        var rx = e.element_x - this.properties.x;
+        var ry = e.element_y - this.properties.y;
+        var result = this.hitTest(rx, ry);
+        if(result) {
+            this.setActiveChild(result);
+            return true;
+        }
+        return false;
+    },
+    /**
+     * Feedback Called when the menu initially gets clicked
+     * @param e
+     * @param rootView
+     */
+    onDown: function(e, rootView) {
+
+    },
+    /**
+     * Feedback Called when the active menu item updates
+     * @param e
+     * @param rootView
+     */
+    onMenuItemUpdate: function(e, rootView) {
+
     },
     /** Set the active menu item
      * Unsets the previous active menu item.
@@ -135,6 +216,9 @@ var Menu = FSMView.subClass({
         return undefined;
     },
     depthFirstTraversal: function() {
+        if(this.dfsCache) {
+            return this.dfsCache;
+        }
         var s = [];
         var result = [];
         var i = 0;
@@ -154,7 +238,20 @@ var Menu = FSMView.subClass({
     },
     clone: function() {
         var result = this._super();
+        var dfs = this.depthFirstTraversal();
+        var activeIndex = -1;
+        for(var i = 0; i < dfs.length; i++) {
+            if(dfs[i] === this.active_child) {
+                activeIndex = i;
+            }
+        }
         result.menuItems = deepCopy(this.menuItems);
+        if(activeIndex > -1) {
+            dfs = result.depthFirstTraversal();
+            result.active_child = dfs[activeIndex];
+        }
+        result.onItemSelected = this.onItemSelected;
+        return result;
     },
     draw: function($el) {
         var snap = Snap($el[0]);
