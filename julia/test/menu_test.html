@@ -17,6 +17,9 @@
     </style>
 </head>
 <body>
+<h3>Testing Hit Testing</h3>
+<div>Expect when you mouse over a menu item for it to become active. Pressing escape sets active to undefined</div>
+<svg id="test3" class="border1px" width="500" height="500"></svg>
 <h4>Can we draw a menu with items at levels 0, 1 and 2?</h4>
 <svg id="test2" class="border1px" width="500" height="500"></svg>
 <h4>Can we draw a menu with items at levels 0 and 1?</h4>
@@ -34,11 +37,76 @@
                 nextItem.tick = 0;
             };
             var activeIndex = nextItem.tick % bfsChildren.length;
-            menu.active_child = bfsChildren[activeIndex];
+            menu.setActiveChild(bfsChildren[activeIndex]);
             nextItem.tick++;
             $svg.empty();
             menu.draw($svg);
         }, 1000);
+    }
+
+    function test3() {
+        var menuItems = [
+            {name:"App", children: [
+                {name: "About"},
+                {name: "Check...", children: [
+                    {name:"Updates"},
+                    {name:"Security"},
+                ]},
+                {name: "Services", children: [
+                    {name: "Copy Path"},
+                    {name: "Share"},
+                ]},
+                {name: "Quit"}
+            ]},
+            {name:"File", children: [
+                {name: "New..."},
+                {name: "Open..."},
+                {name: "Recent", children: [
+                    {name: "Bridges.txt"},
+                    {name: "Cones.txt"},
+                    {name: "Rods.txt"}
+                ]},
+                {name: "Import..."},
+                {name: "Save..."}
+            ]},
+            {name:"Edit", children: [
+                {name: "Cut"},
+                {name: "Copy"},
+                {name: "Paste"},
+                {name: "Delete"},
+                {name: "Find...", children: [
+                    {name: "Find..."},
+                    {name: "Replace..."},
+                    {name: "Delete..."},
+                ]}
+            ]},
+            {name:"Help", children: [
+                {name: "Tips"},
+                {name: "Productivity"}
+            ]}
+        ];
+        var $svg = $("#test3");
+        var menu = new Menu(julia, menuItems, {
+            bar_width: $svg.width()
+        });
+
+        $svg.on('mousemove', function(e) {
+            var offset = $svg.offset();
+            var rx = e.pageX - offset.left;
+            var ry = e.pageY - offset.top;
+
+            $svg.empty();
+            var s = Snap($svg[0]);
+
+            var child = menu.hitTest(rx, ry);
+            if(child) {
+                menu.setActiveChild(child);
+            }
+            menu.draw($svg);
+            s.text(350, 480, "rx: " + rx + " ry: " + ry);
+
+        });
+        menu.draw($svg);
     }
     function test2() {
         var menuItems = [
@@ -53,7 +121,6 @@
                     {name: "Share"},
                 ]},
                 {name: "Quit"}
-
             ]},
             {name:"File", children: [
                 {name: "New..."},
@@ -139,8 +206,9 @@
     // Put your initialization code here
     $(document).ready(function(){
         test0();
-//        test1();
+        test1();
         test2();
+        test3();
     });
 
 </script>

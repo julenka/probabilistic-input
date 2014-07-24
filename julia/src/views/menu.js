@@ -27,6 +27,41 @@ var MenuItem = Object.subClass({
     toString: function() {
         var names = this.path.map(function(x) { return x.name});
         return names.join('->');
+    },
+    /**
+     * Performs hit test on menu item and all submenus
+     * @param rx x relative to left of parent
+     * @param ry y relative totop of parent
+     * @param props menu display properties
+     * @return undefined if
+     */
+    hit: function(rx, ry, props) {
+        // If we are not the topmost element, and our parent is not active,
+        // then we are not visible so we do not get hit
+        if(this.path.length > 0 && !this.path[this.path.length - 1].is_active) {
+            return undefined;
+        }
+        var item_width = this.path.length === 0 ? props.top_item_width : props.item_width;
+        var item_x = this.path.length === 0 ? this.index_in_parent * props.top_item_width : 0;
+        var item_y = this.path.length === 0 ? 0 : this.index_in_parent * props.item_height;
+        var rx2 = rx - item_x;
+        var ry2 = ry - item_y;
+        if(rx2 > 0 && rx2 < item_width && ry2 > 0 && ry2 < props.item_height) {
+            return this;
+        }
+        for(var i = 0; i < this.children.length; i++) {
+            var child = this.children[i];
+            // Left of sub-menu
+            var left = this.path.length === 0 ? item_x : item_x + item_width;
+            var top = this.path.length === 0 ? item_y + props.item_height : item_y;
+            rx2 = rx - left;
+            ry2 = ry - top;
+            var result = this.children[i].hit(rx2, ry2, props);
+            if(result) {
+                return result;
+            }
+        }
+        return undefined;
     }
 });
 
@@ -65,6 +100,39 @@ var Menu = FSMView.subClass({
             var itemJSON = menuItemsJSON[i];
             this.menuItems.push(new MenuItem(itemJSON, [], i));
         }
+    },
+    /** Set the active menu item
+     * Unsets the previous active menu item.
+     */
+    setActiveChild: function(child){
+        if(this.active_child) {
+            for(var i = 0; i < this.active_child.path.length; i++) {
+                delete this.active_child.path[i].is_active;
+            }
+            delete this.active_child.is_active;
+        }
+        for(var i = 0; i < child.path.length; i++) {
+            child.path[i].is_active = true;
+        }
+        child.is_active = true;
+        this.active_child = child;
+    },
+    /**
+     * Performs a hit test on the menu, returning the menu item hit.
+     * If no menu item is hit, returns undefined
+     * @param x The x coordinate relative to the interface
+     * @param y The y coordinate relative to the interface
+     */
+    hitTest: function(x, y) {
+        var rx = x - this.properties.x;
+        var ry = y - this.properties.y;
+        for(var i = 0; i < this.menuItems.length; i++) {
+            var result = this.menuItems[i].hit(rx, ry, this.properties);
+            if(result) {
+                return result;
+            }
+        }
+        return undefined;
     },
     depthFirstTraversal: function() {
         var s = [];
