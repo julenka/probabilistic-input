@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Menu Building Blocks</title>
+    <!-- Snap SVG library -->
+
+
+    <!-- Julia library -->
+    <script type="text/javascript" src="../dist/julia.js"></script>
+
+    <link rel="stylesheet" href="../julia.css" />
+    <style>
+        svg {
+            cursor: default;
+            background-color: #33aaee;
+        }
+    </style>
+</head>
+<body>
+<!--<h4>Can we properly draw all menu items in their correct locations?</h4>-->
+<!--<div>Draw the menu. Every 1 second, advance the currently selected item. Make sure everything is correct (show currently selected-->
+<!--item as well)</div>-->
+<!--<svg id="test3" class="border1px" width="500" height="500"></svg>-->
+<!--<h4>Can we draw a menu with items at levels 0, 1 and 2?</h4>-->
+<!--<svg id="test2" class="border1px" width="500" height="500"></svg>-->
+<h4>Can we draw a menu with items at levels 0 and 1?</h4>
+<svg id="test1" class="border1px" width="500" height="500"></svg>
+<h4>Can we draw a menu with items only at 0?</h4>
+<svg id="test0" class="border1px" width="500" height="500" ></svg>
+
+<script>
+    var julia = new Julia();
+    function test1(){
+        var menuItems = [
+            {name:"App", children: [
+                {name: "About"},
+                {name: "Check..."},
+                {name: "Quit"}
+
+            ]},
+            {name:"File", children: [
+                {name: "New..."},
+                {name: "Open..."},
+                {name: "Import..."},
+                {name: "Save..."}
+            ]},
+            {name:"Edit", children: [
+                {name: "Cut"},
+                {name: "Copy"},
+                {name: "Paste"},
+                {name: "Delete"}
+            ]},
+            {name:"Help", children: [
+                {name: "Tips"},
+                {name: "Productivity"}
+            ]}
+        ];
+        var $svg = $("#test1");
+        var menu = new Menu(julia, menuItems, {
+            bar_width: $svg.width()
+        });
+        menu.draw($svg);
+        setInterval(function nextItem() {
+            // Functions as first class objects allows us to set up an internal tick variable!
+            if(!nextItem.tick) {
+                nextItem.tick = 0;
+            };
+            var activeIndex = nextItem.tick % menu.menuItems.length;
+            menu.active_child = menu.menuItems[activeIndex];
+            nextItem.tick ++;
+            $svg.empty();
+            menu.draw($svg);
+        }, 1000);
+    };
+    function test0(){
+        var menuItems = [
+            {name:"MyApp"},
+            {name:"File"},
+            {name:"Edit"},
+            {name:"Help"}
+        ];
+        var $svg = $("#test0");
+        var menu = new Menu(julia, menuItems, {
+            bar_width: $svg.width()
+        });
+
+        menu.draw($svg);
+    };
+    // Put your initialization code here
+    $(document).ready(function(){
+        test0();
+        test1();
+    });
+
+</script>
+</body>
+</html>
