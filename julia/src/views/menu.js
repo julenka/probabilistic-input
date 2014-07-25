@@ -158,7 +158,7 @@ var Menu = FSMView.subClass({
         });
         this.fsm_description = {
             start: [
-                new MouseMoveTransition(
+                new MouseMoveTransitionWithProbability(
                     "down",
                     this.hitTestAndUpdate,
                     this.updateSelectedFromMouse,
@@ -168,7 +168,7 @@ var Menu = FSMView.subClass({
                 predictTransition
             ],
             down: [
-                new MouseMoveTransition(
+                new MouseMoveTransitionWithProbability(
                     "down",
                     this.hitTestAndUpdate,
                     this.updateSelectedFromMouse,
@@ -177,7 +177,7 @@ var Menu = FSMView.subClass({
                 ),
                 new MouseDownTransition(
                     "start",
-                    this.hitTestAndUpdate,
+                    RETURN_TRUE,
                     undefined,
                     this.selectActiveChild,
                     true
@@ -212,14 +212,26 @@ var Menu = FSMView.subClass({
      * and update the currently active item
      * @param e mouse event
      */
-    hitTestAndUpdate: function(e){
+    hitTestAndUpdate: function(e, rootView){
         var rx = e.element_x - this.properties.x;
         var ry = e.element_y - this.properties.y;
         var result = this.hitTest(rx, ry);
         if(result) {
-            return true;
+            if(window.__menu.predictor) {
+
+                var samples = window.__menu.predictor.predictFromMenu(this).getSamples();
+                for(var i = 0; i < samples.length; i++) {
+                    if(this.active_child && samples[i].item.stringIdentifier() == this.active_child.stringIdentifier()) {
+                        return samples[i].identity_p;
+                    }
+                }
+                return 0.1;
+            } else {
+                return 1;
+            }
+
         }
-        return false;
+        return 0;
     },
     selectActiveChild: function(e, rootView) {
         console.log('here');

@@ -30,10 +30,9 @@
     future events. Uses a frequency table to generate probabilistic prediction events which are then
     sent through the input system. Opacity or an N-best list may then be used to generate appropriate feedback.</div>
 
-<div id="demo_settings">
-</div>
-<div id="demo_settings2">
-</div>
+<div id="demo_settings"></div>
+<div id="demo_settings2"></div>
+<div id="demo_settings3"></div>
 <table>
     <tr>
         <td>
@@ -125,6 +124,10 @@
          */
         predict: function(rootView) {
             var menu = rootView.findViewById(this.menu_id);
+            return this.predictFromMenu(menu);
+
+        },
+        predictFromMenu: function(menu) {
             var result = new MenuPredictionEvent();
             if(!menu.active_child) {
                 return result;
@@ -229,6 +232,7 @@
      */
     function setup(rootView) {
         var menu = new Menu(rootView.julia, MENU_ITEMS, { bar_width: $("#demo_interface").width()});
+        window.__menu = menu;
         menu.onItemSelected = function(item) {
             var $menuResultDiv = $("#menu_result");
             $menuResultDiv.html(item.name);
@@ -286,6 +290,20 @@
                     julia.addEventSource(window.__mouseSource);
                 }
         );
+
+        juliaDemoAddRadioOption($("#demo_settings3"),{name: "priors", id:"pr_1", checked: true},
+                "priors off",
+                function(e) {
+                    delete window.__menu.predictor;
+                }
+        );
+        juliaDemoAddRadioOption($("#demo_settings3"),{name: "priors", id:"pr_2", checked: false},
+                "priors on",
+                function(e) {
+                    console.log("turning predictor on");
+                    window.__menu.predictor = window.__predictor;
+                }
+        );
     }
 
     /**
@@ -296,7 +314,7 @@
         var julia = new Julia({
             nSamplesPerEvent: 10
         });
-        var rootView = new ContainerView(julia, {"background_color" : "#33aaee"});
+        var rootView = new ContainerView(julia, {"background_color" : "#ddd"});
         julia.setRootView(rootView);
 
         setup(rootView);
