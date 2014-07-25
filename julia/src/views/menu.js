@@ -121,6 +121,24 @@ var Menu = FSMView.subClass({
         this.initFSM();
     },
     initFSM: function() {
+        var predictTransition = new Transition({
+            to: "down",
+            source: "virtual",
+            type: "menu",
+            predicate: function(predictionEvent) {
+                var menuItems = this.depthFirstTraversal();
+                var needle_id = predictionEvent.item.stringIdentifier();
+                console.log("needle: ", needle_id);
+                for(var i = 0; i < menuItems.length; i++) {
+                    if(menuItems[i].stringIdentifier() === needle_id) {
+                        this.setActiveChild(menuItems[i]);
+                        break;
+                    }
+                }
+            },
+            feedback_action: this.onDown,
+            handles_event: true
+        });
         this.fsm_description = {
             start: [
                 new MouseDownTransition(
@@ -130,24 +148,7 @@ var Menu = FSMView.subClass({
                     undefined,
                     true
                 ),
-                new Transition({
-                    to: "down",
-                    source: "virtual",
-                    type: "menu",
-                    predicate: function(predictionEvent) {
-                        var menuItems = this.depthFirstTraversal();
-                        var needle_id = predictionEvent.item.stringIdentifier();
-                        console.log("needle: ", needle_id);
-                        for(var i = 0; i < menuItems.length; i++) {
-                            if(menuItems[i].stringIdentifier() === needle_id) {
-                                this.setActiveChild(menuItems[i]);
-                                break;
-                            }
-                        }
-                    },
-                    feedback_action: this.onDown,
-                    handles_event: true
-                })
+                predictTransition
             ],
             down: [
                 new MouseMoveTransition(
@@ -177,7 +178,8 @@ var Menu = FSMView.subClass({
                     undefined,
                     this.selectActiveChild,
                     true
-                )
+                ),
+                predictTransition
             ]
         };
     },

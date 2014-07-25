@@ -19,7 +19,6 @@
         }
         svg {
             cursor: default;
-            background-color: #33aaee;
         }
     </style>
 
@@ -34,11 +33,79 @@
             <svg id="demo_interface" width="640" height="480"></svg>
             <div id="menu_result"></div>
         </td>
-        <td><div id="demo_alternatives"></div></td>
+        <td>
+            <div id="demo_alternatives"></div>
+            <table id="menu_prediction">
+                <tr>
+                    <th>item</th>
+                    <th>p(item|state)</th>
+                </tr>
+            </table>
+        </td>
     </tr>
 </table>
 
 <div id="demo_settings"></div>
+<script>
+    var MenuPredictionFeedback = Object.subClass({
+        className: "EventPredictionFeedback",
+        /**
+         * Predicts future menu events and shows feedbback accordingly
+         * @param julia
+         */
+        init: function(feedback, predictor) {
+            this.feedback = feedback;
+            this.predictor = predictor;
+        },
+        draw: function($el) {
+            var julia = this.feedback.julia;
+            var saved_alternatives = this.feedback.julia.alternatives;
+            // Hack to get around that feedback is way too closely tied to Julia :(
+            // We temporarily set the alternatives to be results of predictions to show feedback
+            this.feedback.julia.alternatives = [];
+            var predictions = this.predictor.getPredictions(this.feedback.julia.rootView);
+            for(var i = 0; i < predictions.length; i++) {
+                var viewClone = julia.rootView.clone();
+                viewClone.dispatchEvent(predictions[i]);
+                // TEMPORARY HACK
+                viewClone.children[0]._dirty = true;
+                this.feedback.julia.alternatives.push({view: viewClone, probability: predictions[i].probability});
+            }
+            this.feedback.draw($el);
+            this.feedback.julia.alternatives = saved_alternatives;
+        }
+    });
+    var MenuEventPredictor = Object.subClass({
+        className: "MenuEventPredictor",
+        init: function( menu_id) {
+            this.menu_id = menu_id;
+        },
+        getPredictions: function(rootView) {
+            var menu = rootView.findViewById(this.menu_id);
+            var result = [];
+            if(!menu.active_child) {
+                return result;
+            }
+            var descendants = menu.active_child.getDescendants();
+            var sum = descendants.reduce(function(prev, cur) {
+                if(!cur.frequency) {
+                    return prev;
+                }
+                return prev + cur.frequency;
+            }, 0);
+            if(sum === 0 ){
+                return result;
+            }
+            descendants.forEach(function(d) {
+                if(d.frequency){
+                    result.push({source: "virtual", type: "menu", item: d, probability: d.frequency / sum});
+                }
+            });
+            return result;
+        }
+    });
+
+</script>
 <script>
     // Globals
 
@@ -120,7 +187,7 @@
         var julia = new Julia({
             nSamplesPerEvent: 1
         });
-        var rootView = new ContainerView(julia);
+        var rootView = new ContainerView(julia, {"background_color" : "#33aaee"});
         julia.setRootView(rootView);
 
         setup(rootView);
@@ -130,24 +197,38 @@
         // Add an event source
         var mouseHook = new PMouseEventHook($mainInterface[0], mouse_variance, mouse_variance);
         julia.addEventSource(mouseHook);
+        julia.addEventSource(new PKeyEventHook(document));
 
         // Initialize feedback
-        julia.feedback = new OverlayFeedback(julia,
+        var opacityFeedback = new OverlayFeedback(julia,
                 {feedbackType:  OverlayOpacity,
                     renderThreshold: 0.01});
-
+        var nBestFeedback = new NBestUIFeedback(julia, {
+            dp: 1,
+            n_best_location: function(){
+                return {x: 100, y: 300};
+            }
+        });
+        var menuId = rootView.children[0].__julia_id;
+        var predictor = new MenuEventPredictor(menuId);
+//        julia.feedback = new MenuPredictionFeedback(nBestFeedback, predictor);
+        julia.feedback = new MenuPredictionFeedback(opacityFeedback, predictor);
+//        julia.feedback = nBestFeedback;
         julia.drawFeedback($mainInterface, julia.feedback);
 
         julia.dispatchCompleted = function(new_alternatives, uiUpdated) {
+            if(!uiUpdated) {
+                return;
+            }
             $mainInterface.empty();
             julia.drawFeedback($mainInterface, julia.feedback);
-            julia.dumpAlternativesAsSnap($alternatives, $mainInterface.width(), $mainInterface.height(), 0.25,
-                    function() {
-                        $mainInterface.empty();
-                        julia.rootView.draw($mainInterface);
-                        julia.dumpAlternativesAsSnap($alternatives, $mainInterface.width(), $mainInterface.height(), 0.25);
-                    }
-            );
+            var predictions = predictor.getPredictions(julia.rootView);
+            $("#menu_prediction .temp").remove();
+            predictions.forEach(function(prediction){
+                var td1 = $("<td></td>").html(prediction.item.stringIdentifier());
+                var td2 = $("<td></td>").html(""+ Math.roundWithSignificance(prediction.probability, 2));
+                $("#menu_prediction").append($("<tr></tr>").add(td1).add(td2).addClass("temp"));
+            });
         };
 
         setupOptions(julia);
