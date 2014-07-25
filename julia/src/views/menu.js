@@ -13,6 +13,7 @@ var MenuItem = Object.subClass({
     init: function(itemJSON, path, index_in_parent) {
         this.name = itemJSON.name;
         this.path = path;
+        this.frequency = itemJSON.frequency;
         this.children = [];
         // Index of this item in the parent list
         this.index_in_parent = index_in_parent;
@@ -62,6 +63,21 @@ var MenuItem = Object.subClass({
             }
         }
         return undefined;
+    },
+    getDescendants: function() {
+        var result = [];
+        var q = [];
+        for(var i = 0; this.children && i < this.children.length; i++) {
+            q.push(this.children[i]);
+        }
+        while(q.length > 0) {
+            var current = q.splice(0,1)[0];
+            result.push(current);
+            for(var i = 0; current.children &&  i < current.children.length; i++) {
+                q.push(current.children[i]);
+            }
+        }
+        return result;
     }
 });
 
@@ -126,12 +142,7 @@ var Menu = FSMView.subClass({
                     "start",
                     this.hitTestAndUpdate,
                     undefined,
-                    function(e, rootView) {
-                        if(this.onItemSelected) {
-                            this.onItemSelected(this.active_child);
-                        }
-                        this.closeMenu();
-                    },
+                    this.selectActiveChild,
                     true
                 ),
                 new MouseDownTransition(
@@ -139,6 +150,13 @@ var Menu = FSMView.subClass({
                     function(e){return !this.hitTestAndUpdate(e);},
                     undefined,
                     this.closeMenu,
+                    true
+                ),
+                new KeydownTransition(
+                    "start",
+                    function(e) { return e.keyCode === 13; }, // 13 is enter
+                    undefined,
+                    this.selectActiveChild,
                     true
                 )
             ]
@@ -165,6 +183,13 @@ var Menu = FSMView.subClass({
             return true;
         }
         return false;
+    },
+    selectActiveChild: function(e, rootView) {
+        console.log('here');
+        if(this.onItemSelected) {
+            this.onItemSelected(this.active_child);
+        }
+        this.closeMenu();
     },
     /**
      * Feedback Called when the menu initially gets clicked
@@ -236,6 +261,7 @@ var Menu = FSMView.subClass({
         }
         return result.reverse();
     },
+
     clone: function() {
         var result = this._super();
         var dfs = this.depthFirstTraversal();
