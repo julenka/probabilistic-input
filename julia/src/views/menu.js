@@ -25,8 +25,9 @@ var MenuItem = Object.subClass({
             this.children.push(new MenuItem(itemJSON.children[i], path_copy, i));
         }
     },
-    toString: function() {
+    stringIdentifier: function() {
         var names = this.path.map(function(x) { return x.name;});
+        names.push(this.name);
         return names.join('->');
     },
     /**
@@ -128,7 +129,25 @@ var Menu = FSMView.subClass({
                     this.onDown,
                     undefined,
                     true
-                )
+                ),
+                new Transition({
+                    to: "down",
+                    source: "virtual",
+                    type: "menu",
+                    predicate: function(predictionEvent) {
+                        var menuItems = this.depthFirstTraversal();
+                        var needle_id = predictionEvent.item.stringIdentifier();
+                        console.log("needle: ", needle_id);
+                        for(var i = 0; i < menuItems.length; i++) {
+                            if(menuItems[i].stringIdentifier() === needle_id) {
+                                this.setActiveChild(menuItems[i]);
+                                break;
+                            }
+                        }
+                    },
+                    feedback_action: this.onDown,
+                    handles_event: true
+                })
             ],
             down: [
                 new MouseMoveTransition(
