@@ -26,56 +26,32 @@
 <body>
 <h3>Menu Prediction</h3>
 
-<div id="demo_description"></div>
+<div id="demo_description">Demonstrates how probabilistic events can be used to generate feedback about
+    future events. Uses a frequency table to generate probabilistic prediction events which are then
+    sent through the input system. Opacity or an N-best list may then be used to generate appropriate feedback.</div>
+
+<div id="demo_settings">
+</div>
 <table>
     <tr>
         <td>
-            <svg id="demo_interface" width="640" height="480"></svg>
+            <svg id="demo_interface" width="655" height="480"></svg>
             <div id="menu_result"></div>
         </td>
         <td>
             <div id="demo_alternatives"></div>
-            <table id="menu_prediction">
+            <table id="menu_prediction" style="padding-left: 10px">
                 <tr>
                     <th>item</th>
-                    <th>p(item|state)</th>
+                    <th>p(item given state)</th>
                 </tr>
             </table>
         </td>
     </tr>
 </table>
 
-<div id="demo_settings"></div>
-<script>
-    var MenuPredictionFeedback = Object.subClass({
-        className: "EventPredictionFeedback",
-        /**
-         * Predicts future menu events and shows feedbback accordingly
-         * @param julia
-         */
-        init: function(feedback, predictor) {
-            this.feedback = feedback;
-            this.predictor = predictor;
-        },
-        draw: function($el) {
-            var julia = this.feedback.julia;
-            var saved_alternatives = this.feedback.julia.alternatives;
-            // Hack to get around that feedback is way too closely tied to Julia :(
-            // We temporarily set the alternatives to be results of predictions to show feedback
-            this.feedback.julia.alternatives = [];
-            var predictions = this.predictor.getPredictions(this.feedback.julia.rootView);
-            for(var i = 0; i < predictions.length; i++) {
-                var viewClone = julia.rootView.clone();
-                viewClone.dispatchEvent(predictions[i]);
-                // TEMPORARY HACK
-                viewClone.children[0]._dirty = true;
-                this.feedback.julia.alternatives.push({view: viewClone, probability: predictions[i].probability});
-            }
-            this.feedback.draw($el);
-            this.feedback.julia.alternatives = saved_alternatives;
-        }
-    });
 
+<script>
     var PredictionAfterMouseEventHook = DOMEventSource.subClass({
         className: "PredictionAfterMouseEventHook",
         init: function(el, predictor, julia) {
@@ -90,7 +66,6 @@
                 var fn2 = function(e) {
                     // Predict only from the last certain view, i.e. the root view
                     var predictionEvent = me.predictor.predict(me.julia.rootView);
-                    console.log("predict");
                     fn(predictionEvent);
                 };
                 me.event_listeners.push({type: type, fn: fn2});
@@ -185,7 +160,7 @@
             {name: "Recent", children: [
                 {name: "Bridges.txt", frequency: 4},
                 {name: "Cones.txt", frequency: 4},
-                {name: "Rods.txt", frequency: 4}
+                {name: "Rods.txt", frequency: 1}
             ]},
             {name: "Import...", frequency: 5},
             {name: "Save...", frequency: 13}
@@ -226,14 +201,34 @@
     }
 
     function setupOptions(julia) {
-//        var onOptionClicked = function(feedbackFn) {
-//            return function(e) {
-//                julia.feedback = feedbackFn();
-//            }
-//        };
-//        juliaDemoAddRadioOption({name: "feedback_options", id:"n_best_1", checked: true},
-//                "n best feedback, max 4",
-//                onOptionClicked(function() { return new NBestFeedback(julia, {n: 4})}) );
+        var onOptionClicked = function(feedbackFn) {
+            return function(e) {
+                julia.feedback = feedbackFn();
+            }
+        };
+        juliaDemoAddRadioOption($("#demo_settings"), {name: "feedback_options", id:"fb_1", checked: true},
+                "no feedback",
+                onOptionClicked(function() { return new RootViewFeedback(julia)}));
+        juliaDemoAddRadioOption($("#demo_settings"), {name: "feedback_options", id:"fb_2", checked: false},
+                "opacity overlay",
+                onOptionClicked(function() { return new OverlayFeedback(julia,
+                        {feedbackType:  OverlayOpacity,
+                            renderThreshold: 0.01});
+                }));
+        juliaDemoAddRadioOption($("#demo_settings"), {name: "feedback_options", id:"fb_3", checked: false},
+                "n best list",
+                onOptionClicked(function() { return new
+                        NBestUIFeedback(julia, {
+                    dp: 1,
+                    n: 5,
+                    dont_dispatch_when_visible: false,
+                    n_best_size: 100,
+                    show_root_instead_of_most_likely: true,
+                    n_best_location: function(){
+                        return {x: 0, y: 365};
+                    }
+                    })
+                }));
     }
 
     /**
@@ -258,26 +253,24 @@
 
 
         // Initialize feedback
-        var opacityFeedback = new OverlayFeedback(julia,
-                {feedbackType:  OverlayOpacity,
-                    renderThreshold: 0.01});
-        var nBestFeedback = new NBestUIFeedback(julia, {
-            dp: 1,
-            dont_dispatch_when_visible: false,
-            n_best_size: 100,
-            show_root_instead_of_most_likely: true,
-            n_best_location: function(){
-                return {x: 310, y: 0};
-            }
-        });
+//        var opacityFeedback = new OverlayFeedback(julia,
+//                {feedbackType:  OverlayOpacity,
+//                    renderThreshold: 0.01});
+//        var nBestFeedback = new NBestUIFeedback(julia, {
+//            dp: 1,
+//            dont_dispatch_when_visible: false,
+//            n_best_size: 100,
+//            show_root_instead_of_most_likely: true,
+//            n_best_location: function(){
+//                return {x: 310, y: 0};
+//            }
+//        });
         var menuId = rootView.children[0].__julia_id;
         var predictor = new MenuEventPredictor(menuId);
         // This needs to be added AFTER the mouse events!
         julia.addEventSource(new PredictionAfterMouseEventHook($mainInterface[0], predictor, julia));
 
-//        julia.feedback = new MenuPredictionFeedback(nBestFeedback, predictor);
-//        julia.feedback = opacityFeedback; // new MenuPredictionFeedback(opacityFeedback, predictor);
-        julia.feedback = nBestFeedback;
+        julia.feedback = new RootViewFeedback(julia);
         julia.drawFeedback($mainInterface, julia.feedback);
 
         julia.dispatchCompleted = function(new_alternatives, uiUpdated) {

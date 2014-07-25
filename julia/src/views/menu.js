@@ -158,7 +158,7 @@ var Menu = FSMView.subClass({
         });
         this.fsm_description = {
             start: [
-                new MouseDownTransition(
+                new MouseMoveTransition(
                     "down",
                     this.hitTestAndUpdate,
                     this.onDown,
