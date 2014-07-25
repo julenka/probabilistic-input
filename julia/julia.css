@@ -49,8 +49,12 @@
 /* The alternative interfaces often fall off the screen. Don't add scrollbars if they do */
 body.demo {
     overflow: hidden;
+
 }
 
+body {
+    font-family: Helvetica;
+}
 td {
     vertical-align: top;
 }
