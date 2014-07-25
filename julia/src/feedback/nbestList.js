@@ -25,6 +25,8 @@ NBestListBase = Object.subClass({
         this.dp = valueOrDefault(props.dp, 0.5);
         this.feedback_type = valueOrDefault(props.feedback_type, NBestContainer);
         this.probability_mode = valueOrDefault(props.probability_mode, "none");
+        this.dont_dispatch_when_visible = valueOrDefault(props.dont_dispatch_when_visible, true);
+        this.show_root_instead_of_most_likely = valueOrDefault(props.show_root_instead_of_most_likely, true);
 
         this.n_best_size = valueOrDefault(props.n_best_size, 80);
         this.n_best_location = valueOrDefault(props.n_best_location, function(){
@@ -50,12 +52,17 @@ NBestListBase = Object.subClass({
         var most_likely = this.julia.alternatives[0];
         var max_p = most_likely.probability;
 
-        var mergedRoot = most_likely.view.clone();
+        var mergedRoot = this.show_root_instead_of_most_likely ? this.julia.rootView.clone() : most_likely.view.clone();
         var root = this.julia.rootView;
         var nbestcontainer = new this.feedback_type(this.julia,
             $.extend(this.n_best_location(), {alternative_size: this.n_best_size, probability_mode: this.probability_mode})
         );
-        for(var i = 1; i < Math.min(this.nAlternatives + 1, this.julia.alternatives.length); i++) {
+        for(var i = this.show_root_instead_of_most_likely ? 0 : 1;
+            i < Math.min(this.nAlternatives + 1,
+                this.julia.alternatives.length); i++) {
+            if(i == 0 && this.julia.alternatives.length == 1) {
+                continue;
+            }
             var p = this.julia.alternatives[i].probability;
             var v = this.julia.alternatives[i].view;
             if(max_p - p > this.dp) {
@@ -66,7 +73,9 @@ NBestListBase = Object.subClass({
         if(nbestcontainer.alternatives.length > 0) {
             mergedRoot.addChildView(nbestcontainer);
             // HACKS
-            this.julia.__julia_dont_dispatch = true;
+            if(this.dont_dispatch_when_visible) {
+                this.julia.__julia_dont_dispatch = true;
+            }
             var julia = this.julia;
             $el.on("mousedown touchstart", function(e){
                 julia.setRootView(most_likely.view);
@@ -365,7 +374,6 @@ var NBestContainer = View.subClass({
         result.alternatives = deepClone(this.alternatives);
     }
 });
-
 
 var NBestGate = NBestContainer.subClass({
     className: "NBestGate",

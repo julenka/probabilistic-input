@@ -26,7 +26,7 @@
 <body>
 <h3>Menu Prediction</h3>
 
-<div id="demo_description">Describe your demo here</div>
+<div id="demo_description"></div>
 <table>
     <tr>
         <td>
@@ -75,18 +75,51 @@
             this.feedback.julia.alternatives = saved_alternatives;
         }
     });
+
+    var PredictionAfterMouseEventHook = DOMEventSource.subClass({
+        className: "PredictionAfterMouseEventHook",
+        init: function(el, predictor, julia) {
+            this._super(el);
+            this.predictor = predictor;
+            this.julia = julia;
+        },
+        addListener: function(fn) {
+            var me = this;
+
+            ['mousedown', 'mousemove', 'mouseup', 'click'].forEach(function(type) {
+                var fn2 = function(e) {
+                    // Predict only from the last certain view, i.e. the root view
+                    var predictionEvent = me.predictor.predict(me.julia.rootView);
+                    console.log("predict");
+                    fn(predictionEvent);
+                };
+                me.event_listeners.push({type: type, fn: fn2});
+                me.el.addEventListener(type, fn2);
+            });
+        }
+    });
+
     var MenuEventPredictor = Object.subClass({
         className: "MenuEventPredictor",
         init: function( menu_id) {
             this.menu_id = menu_id;
         },
-        getPredictions: function(rootView) {
+        /**
+         * Predicts the menu item a user wishes to select.
+         * @param rootView
+         * @returns MenuPredictionEvent, an event containing predictions for next step
+         */
+        predict: function(rootView) {
             var menu = rootView.findViewById(this.menu_id);
-            var result = [];
+            var result = new MenuPredictionEvent();
             if(!menu.active_child) {
                 return result;
             }
             var descendants = menu.active_child.getDescendants();
+            // If this item has no descendants, then predict siblings, not descendants
+            if(descendants.length == 0 && menu.active_child.getParent()) {
+                descendants = menu.active_child.getParent().getDescendants();
+            }
             var sum = descendants.reduce(function(prev, cur) {
                 if(!cur.frequency) {
                     return prev;
@@ -96,14 +129,38 @@
             if(sum === 0 ){
                 return result;
             }
+
             descendants.forEach(function(d) {
                 if(d.frequency){
-                    result.push({source: "virtual", type: "menu", item: d, probability: d.frequency / sum});
+                    result.addEventSample(new MenuPredictionEventSample(d, d.frequency / sum));
                 }
             });
             return result;
         }
     });
+
+    var MenuPredictionEvent = PEvent.subClass({
+        className: "MenuPredictionEvent",
+        init: function() {
+            this.samples = [];
+        },
+        addEventSample: function(sample) {
+            this.samples.push(sample);
+        },
+        getSamples: function(){
+            return this.samples;
+        }
+    });
+
+    var MenuPredictionEventSample = PEvent.subClass({
+        className: "MenuPredictionEventSample",
+        init: function(item, probability) {
+            this._super(probability, undefined);
+            this.source = "virtual";
+            this.type = "menu";
+            this.item  = item;
+        }
+    })
 
 </script>
 <script>
@@ -199,34 +256,42 @@
         julia.addEventSource(mouseHook);
         julia.addEventSource(new PKeyEventHook(document));
 
+
         // Initialize feedback
         var opacityFeedback = new OverlayFeedback(julia,
                 {feedbackType:  OverlayOpacity,
                     renderThreshold: 0.01});
         var nBestFeedback = new NBestUIFeedback(julia, {
             dp: 1,
+            dont_dispatch_when_visible: false,
+            n_best_size: 100,
+            show_root_instead_of_most_likely: true,
             n_best_location: function(){
-                return {x: 100, y: 300};
+                return {x: 310, y: 0};
             }
         });
         var menuId = rootView.children[0].__julia_id;
         var predictor = new MenuEventPredictor(menuId);
+        // This needs to be added AFTER the mouse events!
+        julia.addEventSource(new PredictionAfterMouseEventHook($mainInterface[0], predictor, julia));
+
 //        julia.feedback = new MenuPredictionFeedback(nBestFeedback, predictor);
-        julia.feedback = new MenuPredictionFeedback(opacityFeedback, predictor);
-//        julia.feedback = nBestFeedback;
+//        julia.feedback = opacityFeedback; // new MenuPredictionFeedback(opacityFeedback, predictor);
+        julia.feedback = nBestFeedback;
         julia.drawFeedback($mainInterface, julia.feedback);
 
         julia.dispatchCompleted = function(new_alternatives, uiUpdated) {
+
             if(!uiUpdated) {
                 return;
             }
             $mainInterface.empty();
             julia.drawFeedback($mainInterface, julia.feedback);
-            var predictions = predictor.getPredictions(julia.rootView);
+            var predictions = predictor.predict(julia.rootView).getSamples();
             $("#menu_prediction .temp").remove();
             predictions.forEach(function(prediction){
                 var td1 = $("<td></td>").html(prediction.item.stringIdentifier());
-                var td2 = $("<td></td>").html(""+ Math.roundWithSignificance(prediction.probability, 2));
+                var td2 = $("<td></td>").html(""+ Math.roundWithSignificance(prediction.identity_p, 2));
                 $("#menu_prediction").append($("<tr></tr>").add(td1).add(td2).addClass("temp"));
             });
         };

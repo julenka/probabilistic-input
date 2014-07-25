@@ -30,6 +30,12 @@ var MenuItem = Object.subClass({
         names.push(this.name);
         return names.join('->');
     },
+    getParent: function(){
+        if(this.path.length == 0) {
+            return undefined;
+        }
+        return this.path[this.path.length-1];
+    },
     /**
      * Performs hit test on menu item and all submenus
      * @param rx x relative to left of parent
@@ -125,18 +131,29 @@ var Menu = FSMView.subClass({
             to: "down",
             source: "virtual",
             type: "menu",
-            predicate: function(predictionEvent) {
+            predicate: function(e) {
                 var menuItems = this.depthFirstTraversal();
-                var needle_id = predictionEvent.item.stringIdentifier();
-                console.log("needle: ", needle_id);
+                var needle_id = e.item.stringIdentifier();
+                for(var i = 0; i < menuItems.length; i++) {
+                    if(menuItems[i].stringIdentifier() === needle_id) {
+                        return true;
+                    }
+                }
+                return false;
+            },
+            feedback_action: function(e) {
+                var menuItems = this.depthFirstTraversal();
+                var needle_id = e.item.stringIdentifier();
                 for(var i = 0; i < menuItems.length; i++) {
                     if(menuItems[i].stringIdentifier() === needle_id) {
                         this.setActiveChild(menuItems[i]);
-                        break;
                     }
                 }
+                // we need to make it look like the feedback action uses e in order for the
+                // action requests to look different. HACKS
+                // e
             },
-            feedback_action: this.onDown,
+            final_action: undefined,
             handles_event: true
         });
         this.fsm_description = {
@@ -243,6 +260,15 @@ var Menu = FSMView.subClass({
         }
         child.is_active = true;
         this.active_child = child;
+    },
+    equals: function(o) {
+        if(!o.active_child && !this.active_child) {
+            return true;
+        }
+        if(!o.active_child || !this.active_child) {
+            return false;
+        }
+        return this.active_child.stringIdentifier() === o.active_child.stringIdentifier();
     },
     /**
      * Performs a hit test on the menu, returning the menu item hit.
