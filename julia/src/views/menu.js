@@ -161,7 +161,7 @@ var Menu = FSMView.subClass({
                 new MouseMoveTransition(
                     "down",
                     this.hitTestAndUpdate,
-                    this.onDown,
+                    this.updateSelectedFromMouse,
                     undefined,
                     true
                 ),
@@ -171,7 +171,7 @@ var Menu = FSMView.subClass({
                 new MouseMoveTransition(
                     "down",
                     this.hitTestAndUpdate,
-                    this.onMenuItemUpdate,
+                    this.updateSelectedFromMouse,
                     undefined,
                     true
                 ),
@@ -217,7 +217,6 @@ var Menu = FSMView.subClass({
         var ry = e.element_y - this.properties.y;
         var result = this.hitTest(rx, ry);
         if(result) {
-            this.setActiveChild(result);
             return true;
         }
         return false;
@@ -229,22 +228,15 @@ var Menu = FSMView.subClass({
         }
         this.closeMenu();
     },
-    /**
-     * Feedback Called when the menu initially gets clicked
-     * @param e
-     * @param rootView
-     */
-    onDown: function(e, rootView) {
-
+    updateSelectedFromMouse: function(e) {
+        var rx = e.element_x - this.properties.x;
+        var ry = e.element_y - this.properties.y;
+        var result = this.hitTest(rx, ry);
+        if(result) {
+            this.setActiveChild(result);
+        }
     },
-    /**
-     * Feedback Called when the active menu item updates
-     * @param e
-     * @param rootView
-     */
-    onMenuItemUpdate: function(e, rootView) {
 
-    },
     /** Set the active menu item
      * Unsets the previous active menu item.
      */
