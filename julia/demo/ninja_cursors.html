@@ -265,8 +265,6 @@
         };
 
         julia.ambiguousRequests = function(deferred, pEvent) {
-            console.log('ambiguous');
-            console.log(deferred);
             $mainInterface.empty();
             // TODO: Feedback needs to take a list of alternatives!
             julia.drawFeedback($mainInterface, nBestList);
