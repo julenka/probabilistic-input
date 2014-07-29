@@ -200,23 +200,33 @@
             {name: "New...", frequency: 5},
             {name: "Open...", frequency: 8},
             {name: "Recent", children: [
-                {name: "Bridges.txt", frequency: 4},
-                {name: "Cones.txt", frequency: 4},
+                {name: "Bridges.txt", frequency: 10},
+                {name: "Cones.txt", frequency: 5},
                 {name: "Rods.txt", frequency: 1}
             ]},
             {name: "Import...", frequency: 5},
             {name: "Save...", frequency: 13}
         ]},
         {name:"Edit", children: [
-            {name: "Cut", frequency: 5},
-            {name: "Copy", frequency: 9},
-            {name: "Paste", frequency: 10},
-            {name: "Delete", frequency: 4},
             {name: "Find...", children: [
                 {name: "Find...", frequency: 5},
                 {name: "Replace...", frequency: 3},
                 {name: "Delete...", frequency: 1},
-            ]}
+            ]},
+            {name: "Cut", frequency: 5},
+            {name: "Copy", frequency: 9},
+            {name: "Paste", frequency: 10},
+            {name: "Delete", frequency: 4},
+            {name: "Transform", children: [
+                {name: "Blur", children: [
+                    {name: "Gaussian...", frequency: 5},
+                    {name: "Box...", frequency: 1},
+                    {name: "Motion..", frequency: 10},
+                ]},
+                {name: "Scale", frequency: 3},
+                {name: "Rotate", frequency: 3},
+                {name: "Free...", frequency: 10}
+            ]},
         ]},
         {name:"Help", children: [
             {name: "Tips", frequency: 1},
