@@ -384,12 +384,15 @@
             } else if (window.__predict === "mouse") {
                 var snap = Snap($mainInterface[0]);
                 if(pEvent) {
+                    var g = snap.group();
                     pEvent.getSamples(julia.nSamplesPerEvent).forEach(function(sample){
                         if(sample.element_x){
-                            snap.circle({cx: sample.element_x, cy: sample.element_y, r: 5, opacity: 0.5});
+                            g.circle({cx: sample.element_x, cy: sample.element_y, r: 70, opacity: 0.1});
+
                         }
 
                     });
+                    g.attr({filter: blurFilterForValue(10)});
                 }
             }
 
@@ -403,6 +406,19 @@
         };
 
         setupOptions(julia);
+        window.__julia_snap = Snap();
+        var blurFilterForValue = function(value) {
+            var valueToTenth = Math.roundWithSignificance(value, 2);
+            if(!window.__julia_snap_filter_blur){
+                window.__julia_snap_filter_blur = {};
+            }
+            if(!window.__julia_snap_filter_blur[valueToTenth]) {
+                window.__julia_snap_filter_blur[valueToTenth] = window.__julia_snap
+                        .filter(Snap.filter.blur(value))
+                        .attr({x:0, y:0, width: 1000, height: 1000});
+            }
+            return window.__julia_snap_filter_blur[valueToTenth];
+        };
 
     });
 </script>
