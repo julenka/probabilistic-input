@@ -343,9 +343,6 @@
 
         julia.dispatchCompleted = function(new_alternatives, uiUpdated, pEvent) {
 
-//            if(!uiUpdated) {
-//                return;
-//            }
             $mainInterface.empty();
             julia.drawFeedback($mainInterface, julia.feedback);
 
@@ -370,13 +367,13 @@
                 }
             }
 
-//            julia.dumpAlternativesAsSnap($alternatives, $mainInterface.width(), $mainInterface.height(), 0.25,
-//                    function() {
-//                        $mainInterface.empty();
-//                        julia.rootView.draw($mainInterface);
-//                        julia.dumpAlternativesAsSnap($alternatives, $mainInterface.width(), $mainInterface.height(), 0.25);
-//                    }
-//            );
+            julia.dumpAlternativesAsSnap($alternatives, $mainInterface.width(), $mainInterface.height(), 0.25,
+                    function() {
+                        $mainInterface.empty();
+                        julia.rootView.draw($mainInterface);
+                        julia.dumpAlternativesAsSnap($alternatives, $mainInterface.width(), $mainInterface.height(), 0.25);
+                    }
+            );
         };
 
         setupOptions(julia);

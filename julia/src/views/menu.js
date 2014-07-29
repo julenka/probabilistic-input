@@ -149,18 +149,16 @@ var Menu = FSMView.subClass({
                         this.setActiveChild(menuItems[i]);
                     }
                 }
-                // we need to make it look like the feedback action uses e in order for the
-                // action requests to look different. HACKS
-                // e
             },
             final_action: undefined,
             handles_event: true
         });
+    ///
         this.fsm_description = {
             start: [
-                new MouseMoveTransitionWithProbability(
+                new MouseDownTransition(
                     "down",
-                    this.hitTestAndUpdate,
+                    this.hitTestPredicate,
                     this.updateSelectedFromMouse,
                     undefined,
                     true
@@ -170,21 +168,24 @@ var Menu = FSMView.subClass({
             down: [
                 new MouseMoveTransitionWithProbability(
                     "down",
-                    this.hitTestAndUpdate,
+                    this.hitTestPredicate,
                     this.updateSelectedFromMouse,
                     undefined,
                     true
                 ),
                 new MouseDownTransition(
                     "start",
-                    RETURN_TRUE,
+                    this.hitTestPredicate,
                     undefined,
-                    this.selectActiveChild,
+                    function(e){
+                        this.updateSelectedFromMouse(e);
+                        this.selectActiveChild(e);
+                    },
                     true
                 ),
                 new MouseDownTransition(
                     "start",
-                    function(e){return !this.hitTestAndUpdate(e);},
+                    function(e){return !this.hitTestPredicate(e);},
                     undefined,
                     this.closeMenu,
                     true
@@ -212,13 +213,14 @@ var Menu = FSMView.subClass({
      * and update the currently active item
      * @param e mouse event
      */
-    hitTestAndUpdate: function(e, rootView){
+    hitTestPredicate: function(e, rootView){
         var rx = e.element_x - this.properties.x;
         var ry = e.element_y - this.properties.y;
         var result = this.hitTest(rx, ry);
         if(result) {
             if(window.__menu.predictor) {
-
+                // if the menu has a predictor that will predict probabilities, use this to
+                // adjust the likelihood of making a transition.
                 var samples = window.__menu.predictor.predictFromMenu(this).getSamples();
                 for(var i = 0; i < samples.length; i++) {
                     if(this.active_child && samples[i].item.stringIdentifier() == this.active_child.stringIdentifier()) {
@@ -234,7 +236,6 @@ var Menu = FSMView.subClass({
         return 0;
     },
     selectActiveChild: function(e, rootView) {
-        console.log('here');
         if(this.onItemSelected) {
             this.onItemSelected(this.active_child);
         }
