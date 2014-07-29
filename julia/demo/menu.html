@@ -208,7 +208,6 @@
         juliaDemoAddRadioOption($("#demo_settings3"),{name: "priors", id:"pr_2", checked: false},
                 "priors on",
                 function(e) {
-                    console.log("turning predictor on");
                     var menu = window.__julia.rootView.findViewById(window.__menu.__julia_id);
                     menu.predictor = window.__predictor;
                     window.__julia.setRootView(window.__julia.rootView);

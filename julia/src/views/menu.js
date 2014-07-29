@@ -220,7 +220,6 @@ var Menu = FSMView.subClass({
         var result = this.hitTest(rx, ry);
         if(result) {
             if(this.predictor) {
-                console.log("using priors");
                 // if the menu has a predictor that will predict probabilities, use this to
                 // adjust the likelihood of making a transition.
                 var samples = window.__menu.predictor.predictFromMenu(this).getSamples();
