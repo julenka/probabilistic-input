@@ -57,9 +57,11 @@ var Mediator = Object.subClass({
         var w = finalSorted[0].weight;
         var finalShouldBeAccepted = finalSorted.length === 1 || w - finalSorted[1].weight > this.mediationThreshold;
         if(this.mediationThreshold === 0) {
+
             finalShouldBeAccepted = true;
         }
         if(finalShouldBeAccepted) {
+
             return [new MediationReply(finalSorted[0], true, finalSorted[0].weight)];
         } else {
             // add deferred action items
