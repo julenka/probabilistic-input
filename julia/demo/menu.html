@@ -292,6 +292,15 @@
                 }
         );
 
+        juliaDemoAddRadioOption($("#demo_settings2"),{name: "predict_options", id:"p_3", checked: false},
+        "no prediction",
+                function(e) {
+                    window.__predict = "none";
+                    julia.removeEventSource(window.__menuSource);
+                    julia.removeEventSource(window.__mouseSource);
+                }
+        );
+
         juliaDemoAddRadioOption($("#demo_settings3"),{name: "priors", id:"pr_1", checked: true},
                 "priors off",
                 function(e) {
@@ -356,7 +365,7 @@
                     var td2 = $("<td></td>").html(""+ Math.roundWithSignificance(prediction.identity_p, 2));
                     $("#menu_prediction").append($("<tr></tr>").add(td1).add(td2).addClass("temp"));
                 });
-            } else {
+            } else if (window.__predict === "mouse") {
                 var snap = Snap($mainInterface[0]);
                 if(pEvent) {
                     pEvent.getSamples(julia.nSamplesPerEvent).forEach(function(sample){
