@@ -94,6 +94,23 @@ var ContainerView = View.subClass({
             this.children[i].draw($el);
         }
     },
+    drawAmbiguous: function($el) {
+        var i = 0;
+        if(typeof(this.properties.background_color) !== 'undefined') {
+            $el.css('background-color', this.properties.background_color);
+        }
+        if(typeof(this.properties.background_image) !== 'undefined') {
+            $el.css('background-image', this.properties.background_image);
+        }
+        for(i; i < this.children.length; i++) {
+            if(this.children[i].drawAmbiguous) {
+                this.children[i].drawAmbiguous($el);
+            } else {
+                this.children[i].draw($el);
+            }
+
+        }
+    },
     /**
      * Return true if this object equals the other object
      */

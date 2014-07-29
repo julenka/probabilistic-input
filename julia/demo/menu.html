@@ -273,6 +273,22 @@
                     }
                     })
                 }));
+        juliaDemoAddRadioOption($("#demo_settings"), {name: "feedback_options", id:"fb_4", checked: false},
+                "n best menu items only",
+                onOptionClicked(function() { return new
+                        NBestUIFeedback(julia, {
+                    feedback_type: NBestContainerVertical,
+                    draw_ambiguous: true,
+                    dp: 1,
+                    n: 5,
+                    dont_dispatch_when_visible: false,
+                    n_best_size: 200,
+                    show_root_instead_of_most_likely: true,
+                    n_best_location: function(){
+                        return {x: 440, y: 0};
+                    }
+                    })
+                }));
 
         juliaDemoAddRadioOption($("#demo_settings2"),{name: "predict_options", id:"p_1", checked: true},
                 "predict future menu items",

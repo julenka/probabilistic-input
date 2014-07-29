@@ -389,6 +389,24 @@ var Menu = FSMView.subClass({
         }
     },
     /**
+     * drawAmbiguous only draws the currently selected menu item
+     * @param $el
+     */
+    drawAmbiguous: function($el) {
+        var snap = Snap($el[0]);
+
+        var message = "no item selected";
+        if(this.active_child) {
+            message = this.active_child.stringIdentifier();
+        }
+        var width = 250;
+        snap.rect(0, 0, width, this.properties.bar_height).attr({fill: this.properties.highlight_color});
+        var props = this.properties;
+        var text_x = props.inner_padding;
+        var text_y = props.inner_padding + props.text_height;
+        snap.text(text_x, text_y, message).attr({fill: 'white'});
+    },
+    /**
      * Draws a single subMenu
      * Encapsulates this menu in a gropu which is applies a translation to
      * @param items array of items to draw (this method does not recurse)
