@@ -394,6 +394,19 @@
                     });
                     g.attr({filter: blurFilterForValue(10)});
                 }
+            } else {
+                var snap = Snap($mainInterface[0]);
+                if(pEvent) {
+                    var g = snap.group();
+                    pEvent.getSamples(julia.nSamplesPerEvent).forEach(function(sample){
+                        if(sample.element_x){
+                            g.circle({cx: sample.element_x, cy: sample.element_y, r: 30, opacity: 0.1});
+
+                        }
+
+                    });
+                    g.attr({filter: blurFilterForValue(10)});
+                }
             }
 
 //            julia.dumpAlternativesAsSnap($alternatives, $mainInterface.width(), $mainInterface.height(), 0.25,
