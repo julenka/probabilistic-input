@@ -115,6 +115,7 @@ var Menu = FSMView.subClass({
             bar_height: 30,
             text_height: 10,
             highlight_color: "#5776F1"
+//            highlight_color: "#000"
         };
 
         this._super(julia, properties, defaults);
