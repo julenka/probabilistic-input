@@ -441,18 +441,19 @@ var NBestGate = NBestContainer.subClass({
     },
 });
 
-var NBestGateZoomedIn = NBestGate.subClass({
-    className: "NBestGateZoomedIn",
+var NBestContainerZoomedIn = NBestContainer.subClass({
+    className: "NBestContainerZoomedIn",
     init: function(julia, props) {
         this._super(julia, props);
     },
     updateBBoxForAlternativeView: function(bbox) {
-        bbox.cx = julia.mouseX;
-        bbox.cy = julia.mouseY;
-        bbox.w = 500;
-        bbox.h = 500;
-        bbox.x = bbox.cx - bbox.w/2;
-        bbox.y = bbox.cy - bbox.h/2;
+        bbox.w = 300;
+        bbox.h = 300;
+
+        bbox.x = Math.max(this.julia.mouseX - bbox.w/2, 0);
+        bbox.y = Math.max(this.julia.mouseY - bbox.h/2, 0);
+        bbox.cx = bbox.x + bbox.w/2;
+        bbox.cy = bbox.y + bbox.h/2;
     }
 });
 

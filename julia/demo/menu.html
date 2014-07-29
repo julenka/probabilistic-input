@@ -262,6 +262,7 @@
                 "n best list",
                 onOptionClicked(function() { return new
                         NBestUIFeedback(julia, {
+                    feedback_type: NBestContainerZoomedIn,
                     dp: 1,
                     n: 5,
                     dont_dispatch_when_visible: false,
@@ -367,13 +368,13 @@
                 }
             }
 
-            julia.dumpAlternativesAsSnap($alternatives, $mainInterface.width(), $mainInterface.height(), 0.25,
-                    function() {
-                        $mainInterface.empty();
-                        julia.rootView.draw($mainInterface);
-                        julia.dumpAlternativesAsSnap($alternatives, $mainInterface.width(), $mainInterface.height(), 0.25);
-                    }
-            );
+//            julia.dumpAlternativesAsSnap($alternatives, $mainInterface.width(), $mainInterface.height(), 0.25,
+//                    function() {
+//                        $mainInterface.empty();
+//                        julia.rootView.draw($mainInterface);
+//                        julia.dumpAlternativesAsSnap($alternatives, $mainInterface.width(), $mainInterface.height(), 0.25);
+//                    }
+//            );
         };
 
         setupOptions(julia);
