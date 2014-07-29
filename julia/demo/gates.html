@@ -115,7 +115,7 @@
         // Add an event source
         var mouseHook = new PMouseEventHook($mainInterface[0], mouse_variance, mouse_variance);
         julia.addEventSource(mouseHook);
-        julia.feedback = new NBestFeedback(julia, {n: 4, feedback_type: NBestGate});
+        julia.feedback = new NBestFeedback(julia, {n: 4, feedback_type: NBestGate, show_root_instead_of_most_likely: false});
 
         julia.drawFeedback($mainInterface, julia.feedback);
 

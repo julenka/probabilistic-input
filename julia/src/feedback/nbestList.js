@@ -246,8 +246,11 @@ var NBestContainer = View.subClass({
      * x: x position
      * y: y position
      * s: snap
+     * viewCopy: view to draw
+     * p: probability
+     * i: index of item
      */
-    drawSmallAlternative: function(x, y, s, viewCopy, p) {
+    drawSmallAlternative: function(x, y, s, viewCopy, p, i) {
 
         var w = this.properties.alternative_size;
         var boundingRect = s.rect(x - 2, y- 2, w + 4, w + 4).attr({"stroke": "gray", "stroke-width": "1px",
@@ -276,18 +279,29 @@ var NBestContainer = View.subClass({
         var dy = bbox2.cy - bbox.cy;
 
 
-        g.rect(bbox.x, bbox.y, bbox.w, bbox.h)
-            .attr({"fill": "blue", "fill-opacity": 0.0});
+        g.rect(bbox.x, bbox.y, bbox.w, bbox.h).attr({"fill-opacity": 0});
 
         var scale = this.properties.alternative_size / Math.max(bbox.w, bbox.h);
         m.translate(dx, dy);
         m.scale(scale, scale, bbox.cx, bbox.cy);
 
+
 //        var alternative_opacity = this.properties.probability_mode === "opacity" ? p : 1;
         g.attr({transform: m.toString()});
         clippingGroup.attr({"clip-path": clippingRect});
+
+        var keyWidth = 20;
+        var keyHeight = 20;
+        var rectX = x - 1;
+        var rectY = y - 1;
+        var textSize = 20;
+        var textX = rectX + textSize * 0.25;
+        var textY = rectY + textSize * 0.75;
+        s.rect(rectX, rectY, keyWidth, keyHeight).attr({radius: 5, fill: "black", "fill-opacity": 0.5});
+        s.text(textX, textY, (i + 1).toString()).attr({fill: 'white'});
         return clippingGroup;
     },
+
     /**
      * In some cases, we may want to update an alternative (e.g. with a future event) before displaying it.
      * This method allows extending classes to do so.
@@ -327,7 +341,7 @@ var NBestContainer = View.subClass({
         for(var i = 0; i < this.alternatives.length; i++) {
             var x = this.properties.x + this.properties.padding + i * (this.properties.alternative_size + this.properties.padding);
             var y = this.properties.y + this.properties.padding;
-            var g = this.drawSmallAlternative(x, y, s, this.alternatives[i].view.clone(), this.alternatives[i].probability);
+            var g = this.drawSmallAlternative(x, y, s, this.alternatives[i].view.clone(), this.alternatives[i].probability, i);
             var altRoot = this.alternatives[i].root;
             // returns a function taht sets the root view for julia to be the input value
             // JavaScript closures are function level, not scope level.
@@ -396,7 +410,7 @@ var NBestGate = NBestContainer.subClass({
 
             var y = this.properties.y + this.properties.padding;
 
-            var g = this.drawSmallAlternative(x, y, s, this.alternatives[i].view, this.alternatives[i].probability);
+            var g = this.drawSmallAlternative(x, y, s, this.alternatives[i].view, this.alternatives[i].probability, i);
 
             var altRoot = this.alternatives[i].root;
             // returns a function taht sets the root view for julia to be the input value
