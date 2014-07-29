@@ -17,6 +17,7 @@ module.exports = function(grunt) {
         'src/fsm.js',
         'src/pEventSource.js',
         'src/pevents/*.js',
+        'src/prediction.js',
         'src/feedback/*.js',
         'src/views/*.js'];
     // All upfront config goes in a massive nested object.

@@ -219,7 +219,8 @@ var Menu = FSMView.subClass({
         var ry = e.element_y - this.properties.y;
         var result = this.hitTest(rx, ry);
         if(result) {
-            if(window.__menu.predictor) {
+            if(this.predictor) {
+                console.log("using priors");
                 // if the menu has a predictor that will predict probabilities, use this to
                 // adjust the likelihood of making a transition.
                 var samples = window.__menu.predictor.predictFromMenu(this).getSamples();
@@ -330,6 +331,7 @@ var Menu = FSMView.subClass({
             result.active_child = dfs[activeIndex];
         }
         result.onItemSelected = this.onItemSelected;
+        result.predictor = this.predictor;
         return result;
     },
     draw: function($el) {
