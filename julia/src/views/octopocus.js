@@ -12,9 +12,14 @@ var Octopocus = FSMView.subClass({
      * onGestureNotRecognized()
      * @param julia
      * @param properties
+     *  use_priors: if set to true, looks at last gesture and makes last gesture 2 times more likely;
      */
     init: function(julia, properties, onGestureCompleted) {
-        this._super(julia, properties);
+        var defaults = {
+            use_priors: false
+        };
+
+        this._super(julia, properties, defaults);
         this.path = [];
         this.fsm_description = {
             start: [],
@@ -65,7 +70,14 @@ var Octopocus = FSMView.subClass({
     },
     recognizeGesture: function(gestureName) {
         var recognizer = this.recognizer;
-
+        var prior = 1;
+        if(this.properties.use_priors && window.__julia_last_gesture ) {
+            if(window.__julia_last_gesture === gestureName) {
+                prior = 0.9;
+            } else {
+                prior = 0.8;
+            }
+        }
         for(var i = 0; i < recognizer.Unistrokes.length; i++) {
             if(recognizer.Unistrokes[i].Name === gestureName) {
                 var unistroke = recognizer.Unistrokes[i].Points;
@@ -95,7 +107,7 @@ var Octopocus = FSMView.subClass({
                         return {X: p.X + dp.x, Y: p.Y + dp.y};
                     }
                 );
-                return gesture_probability;
+                return gesture_probability * prior;
             }
         }
 

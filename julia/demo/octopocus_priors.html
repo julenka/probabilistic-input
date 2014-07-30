@@ -1,0 +1,145 @@
+<!-- Created on 5/26/2014 -->
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Octopocus</title>
+
+    <!-- Snap SVG library -->
+
+    <script type="text/javascript" src="../lib/dollar.js"></script>
+
+    <!-- Julia library -->
+    <script type="text/javascript" src="../dist/julia.js"></script>
+
+    <!-- Julia CSS -->
+    <link type="text/css" rel="stylesheet" href="../julia.css"/>
+
+    <style>
+        .gesture {
+            margin-top: -230px;
+            font-family: Helvetica Neue, Helvetica, Arial;
+            font-size: xx-large;
+            width: 100%;
+            height: 100%;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+<h4 class="centered" id="last_gesture">last gesture: none</h4>
+
+<table>
+    <tr>
+        <td>
+            <h3 class="centered"> Without Priors</h3>
+            <div id="ipad_container1" class="ipad_container">
+                <div id="ipad_screen1" class="ipad_screen">
+                    <svg id="demo_interface" width="546" height="407"></svg>
+                    <div id="gesture1" class="gesture"></div>
+                </div>
+            </div>
+
+        </td>
+        <td>
+            <h3 class="centered"> With Priors</h3>
+
+            <div id="ipad_container2" class="ipad_container">
+                <div id="ipad_screen2" class="ipad_screen">
+                    <svg id="demo_interface2" width="546" height="407"></svg>
+                    <div id="gesture2" class="gesture"></div>
+                </div>
+            </div>
+        </td>
+    </tr>
+</table>
+
+<script>
+
+    function fadeGesture($gestureDiv, gestureName) {
+        $gestureDiv.html(gestureName);
+        $gestureDiv.fadeIn(function(){
+            $gestureDiv.fadeOut();
+        });
+    }
+
+    /**
+     * Set up the interface here
+     * @param rootView
+     */
+    function setup1(rootView) {
+        rootView.addChildView(new Octopocus(rootView.julia, {}, function(gestureName) {
+            fadeGesture($("#gesture1"), gestureName);
+            window.__julia_last_gesture = gestureName;
+            $("#last_gesture").html("last gesture: " + gestureName);
+        }));
+    }
+
+    function setup2(rootView) {
+        rootView.addChildView(new Octopocus(rootView.julia, {use_priors: true}, function(gestureName) {
+            fadeGesture($("#gesture2"), gestureName);
+
+        }));
+    }
+
+    /**
+     * Executed when the document loads. Intended to be boilerplate, shouldn't have to replace much here (for now).
+     */
+    $(document).ready(function(){
+        var mouse_variance = 10;
+        var julia = new Julia();
+        var julia2 = new Julia();
+        var rootView = new ContainerView(julia);
+        var rootView2 = new ContainerView(julia2);
+
+        julia.setRootView(rootView);
+        julia2.setRootView(rootView2);
+
+        setup1(rootView);
+        setup2(rootView2);
+
+        var $mainInterface = $("#demo_interface");
+        var $mainInterface2 = $("#demo_interface2");
+
+        // Add an event source
+        var mouseHook = new PMouseEventHook($mainInterface[0], mouse_variance, mouse_variance);
+        var mouseHook2 = new PMouseEventHook($mainInterface[0], mouse_variance, mouse_variance);
+
+        julia.addEventSource(mouseHook);
+        julia2.addEventSource(mouseHook2);
+
+        julia.nSamplesPerEvent = 10;
+        julia2.nSamplesPerEvent = 10;
+
+        // Initialize feedback
+        julia.feedback = new OverlayFeedback(julia,
+                {feedbackType:  OverlayOpacity,
+                    renderThreshold: 0.01});
+
+        julia2.feedback = new OverlayFeedback(julia2,
+                {feedbackType:  OverlayOpacity,
+                    renderThreshold: 0.01});
+
+        julia.dispatchCompleted = function(new_alternatives, uiUpdated) {
+            if(!uiUpdated) {
+                return;
+            }
+            $mainInterface.empty();
+
+            julia.drawFeedback($mainInterface, julia.feedback);
+        };
+
+        julia2.dispatchCompleted = function(new_alternatives, uiUpdated) {
+            if(!uiUpdated) {
+                return;
+            }
+            $mainInterface2.empty();
+
+            julia2.drawFeedback($mainInterface2, julia2.feedback);
+        };
+
+        addTouchOverlay();
+
+    });
+</script>
+</body>
+</html>
