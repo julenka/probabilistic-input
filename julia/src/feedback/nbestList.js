@@ -559,7 +559,6 @@ var NBestGate = NBestContainer.subClass({
 
             // http://stackoverflow.com/questions/10868006/trying-to-get-numbers-from-keypress-document-javascript
             var key = e.keyCode || e.charCode;
-            console.log("pressed", key - 48);
             if(key >= 48 && key <=57) {
                 keypressHandlers[key - 48 - 1](e);
             }

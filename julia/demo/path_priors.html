@@ -1,0 +1,247 @@
+<!-- Created on 5/26/2014 -->
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Path Priors</title>
+
+    <!-- Julia library -->
+    <script type="text/javascript" src="../dist/julia.js"></script>
+
+    <!-- Julia CSS -->
+    <link type="text/css" rel="stylesheet" href="../julia.css"/>
+</head>
+<body>
+<h4 class="centered" id="last_path">last action: none</h4>
+
+<table>
+    <tr>
+        <td>
+            <h3 class="centered"> Without Priors</h3>
+            <div id="ipad_container1" class="ipad_container">
+                <div id="ipad_screen1" class="ipad_screen">
+                    <svg id="demo_interface" width="546" height="407"></svg>
+                    <div id="gesture1" class="gesture"></div>
+                </div>
+            </div>
+
+        </td>
+        <td>
+            <h3 class="centered"> With Priors</h3>
+
+            <div id="ipad_container2" class="ipad_container">
+                <div id="ipad_screen2" class="ipad_screen">
+                    <svg id="demo_interface2" width="546" height="407"></svg>
+                    <div id="gesture2" class="gesture"></div>
+                </div>
+            </div>
+        </td>
+    </tr>
+</table>
+
+<script>
+    // Custom feedback for demo that does not remove key presshandlers (as it shoudl).
+    // The only way I know of to have a single keypress update both interfaces
+    // If any old alternatives are present for old keypresses this WILL mess things up.
+    var NBestGateForPriors = NBestContainer.subClass({
+        className: "NBestGateForPriors",
+        init: function(julia, props) {
+            this._super(julia, props);
+        },
+        draw: function($el) {
+            $el.off("mousemove touchmove mouseup touchup");
+            // HACK: this will remove all handlers attached with on and needs to be improved
+//        $(window).off("keypress");
+            var s = Snap($el[0]);
+            var w = this.properties.padding + this.alternatives.length * (this.properties.alternative_size + this.properties.padding);
+            var h = 2 * this.properties.padding + this.properties.alternative_size;
+
+            var julia = this.julia;
+            var keypressHandlers = [];
+            for(var i = 0; i < this.alternatives.length; i++) {
+                var x = this.properties.x + this.properties.padding + i * (this.properties.alternative_size + this.properties.padding) - w / 2;
+
+
+                var y = this.properties.y + this.properties.padding;
+
+                var g = this.drawSmallAlternative(x, y, s, this.alternatives[i].view, this.alternatives[i].probability, i);
+
+                var altRoot = this.alternatives[i].root;
+                // returns a function taht sets the root view for julia to be the input value
+                // JavaScript closures are function level, not scope level.
+                // this means that the enclosign scope is assigned when the function is invoked.
+                // We need to therrefore create a custom event handler that sets the root view to altRoot
+                // by explicitly calling the function here.
+                // Otherwise altrot will always be the last element.
+                // Explanation at http://stackoverflow.com/questions/1451009/javascript-infamous-loop-issue
+                var onMoveHandlerForAlternative = function(alternative) {
+                    return function(e){
+                        julia.setRootView(alternative);
+                        delete julia.__julia_dont_dispatch;
+                        if(julia.dispatchCompleted) {
+                            julia.dispatchCompleted(julia.alternatives, true);
+                        }
+
+//                    e.stopPropagation();
+                        return true;
+                    };
+                };
+                $(g.node).on("mousemove touchmove", onMoveHandlerForAlternative(altRoot));
+
+                keypressHandlers.push(onMoveHandlerForAlternative(altRoot));
+            }
+//        $(window).off("keypress");
+            $(window).on("keypress", function(e) {
+
+                // http://stackoverflow.com/questions/10868006/trying-to-get-numbers-from-keypress-document-javascript
+                var key = e.keyCode || e.charCode;
+                console.log("pressed", key - 48);
+                if(key >= 48 && key <=57) {
+                    keypressHandlers[key - 48 - 1](e);
+                }
+            });
+            $el.on("mousemove touchmove mouseup touchup", function(e) {
+                delete julia.__julia_dont_dispatch;
+                julia.dispatchPEvent(new PMouseEvent(1, e, 0, 0, e.type, e.currentTarget));
+            });
+
+
+        },
+    });
+</script>
+<script>
+
+    /**
+     * Set up the interface here
+     * @param rootView
+     */
+    function setup1(rootView) {
+        var julia = rootView.julia;
+        function path2str(el) {
+            return el.x + ", " + el.y;
+        };
+        var lineColor = "#333";
+        var onLineCompleted = function(p1, p2, root) {
+            var new_line = new Path(julia, {radius: 3, color: lineColor,
+                path: [p1, p2].map(path2str)
+            });
+            root.addChildView(new_line);
+
+        };
+
+        var onPathCompleted = function(path, root) {
+            root.addChildView(new Path(julia, {radius: 3, color: lineColor,
+                path: path.map(path2str)
+            }));
+
+        };
+        var path_brush = new PathBrush(julia, {color: lineColor,
+            width: 3,
+
+            onPathCompleted: onPathCompleted, onLineCompleted: onLineCompleted});
+        rootView.addChildView(path_brush);
+
+    }
+
+    function updateLastAction(action) {
+        window.__julia_last_action = action;
+        $("#last_path").html("last action: " + action);
+    }
+
+    function setup2(rootView) {
+        var julia = rootView.julia;
+        function path2str(el) {
+            return el.x + ", " + el.y;
+        };
+        var lineColor = "#333";
+        var onLineCompleted = function(p1, p2, root) {
+            var new_line = new Path(julia, {radius: 3, color: lineColor,
+                path: [p1, p2].map(path2str)
+            });
+            root.addChildView(new_line);
+            if(p1.x === p2.x) {
+                updateLastAction("vertical line");
+            } else if (p1.y === p2.y) {
+                updateLastAction("horizontal line");
+            } else {
+                updateLastAction("line");
+            }
+        };
+
+        var onPathCompleted = function(path, root) {
+            root.addChildView(new Path(julia, {radius: 3, color: lineColor,
+                path: path.map(path2str)
+            }));
+            updateLastAction("path");
+        };
+        var path_brush = new PathBrush(julia, {color: lineColor,
+            width: 3,
+            use_priors: true,
+            onPathCompleted: onPathCompleted, onLineCompleted: onLineCompleted});
+        rootView.addChildView(path_brush);
+
+    }
+
+
+    function getDispatchCompleted($mainInterface, julia) {
+        return function(new_alternatives, uiUpdated) {
+            if(!uiUpdated) {
+                return;
+            }
+            $mainInterface.empty();
+
+            julia.drawFeedback($mainInterface, julia.feedback);
+        };
+    }
+
+    /**
+     * Executed when the document loads. Intended to be boilerplate, shouldn't have to replace much here (for now).
+     */
+    $(document).ready(function(){
+        var mouse_variance = 10;
+        var julia = new Julia();
+        var julia2 = new Julia();
+        var rootView = new ContainerView(julia);
+        var rootView2 = new ContainerView(julia2);
+
+        julia.setRootView(rootView);
+        julia2.setRootView(rootView2);
+
+        setup1(rootView);
+        setup2(rootView2);
+
+        var $mainInterface = $("#demo_interface");
+        var $mainInterface2 = $("#demo_interface2");
+
+        // Add an event source
+        var mouseHook = new PMouseEventHook($mainInterface[0], mouse_variance, mouse_variance);
+
+        julia.addEventSource(mouseHook);
+        julia2.addEventSource(mouseHook);
+
+        julia.nSamplesPerEvent = 10;
+        julia2.nSamplesPerEvent = 10;
+
+        // Initialize feedback
+        julia.feedback = new NBestFeedback(julia, {n: 4,
+            feedback_type: NBestGateForPriors,
+            dont_dispatch_when_visible: false,
+            show_root_instead_of_most_likely: false
+        });
+        julia2.feedback = new NBestFeedback(julia2, {n: 4,
+            feedback_type: NBestGateForPriors,
+            dont_dispatch_when_visible: false,
+            show_root_instead_of_most_likely: false
+        });
+
+        julia.__test_julia_id = "julia1";
+        julia2.__test_julia_id = "julia2";
+
+        julia.dispatchCompleted = getDispatchCompleted($mainInterface, julia);
+        julia2.dispatchCompleted = getDispatchCompleted($mainInterface2, julia2);
+
+        addTouchOverlay();
+        addKeyOverlay();
+    });
+</script>
+</body>
+</html>

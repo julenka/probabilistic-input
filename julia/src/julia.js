@@ -148,7 +148,6 @@ var Julia = Object.subClass({
     },
     dispatchPEvent: function(pEvent) {
         this.updateMouse(pEvent);
-
         // HACKS
         if(this.__julia_dont_dispatch) {
             return;

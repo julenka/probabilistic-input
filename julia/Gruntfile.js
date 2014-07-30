@@ -13,6 +13,7 @@ module.exports = function(grunt) {
         'src/julia.js',
         'src/mediator.js',
         'src/touchOverlay.js',
+        'src/keyOverlay.js',
         'src/view.js',
         'src/fsm.js',
         'src/pEventSource.js',

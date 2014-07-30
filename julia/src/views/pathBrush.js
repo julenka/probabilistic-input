@@ -17,31 +17,31 @@ var PathBrush = FSMView.subClass({
      */
     init: function(julia, properties) {
         this._super(julia, properties,
-            {color: "black", opacity: 1, width: 1});
+            {color: "black", opacity: 1, use_priors: false, width: 1});
         this.path = [];
         this.gesture_detector = new SimpleGestureDetector();
         this.fsm_description = {
             start: [
-                new MouseDownTransition("down_path",
-                    function() { return true; },
+                new MouseDownTransitionWithProbability("down_path",
+                    this.down_predicate.curry("path"),
                     this.gesture_start,
                     undefined,
                     true
                     ),
-                new MouseDownTransition("down_line",
-                    function() { return true; },
+                new MouseDownTransitionWithProbability("down_line",
+                    this.down_predicate.curry("line"),
                     this.gesture_start,
                     undefined,
                     true
                 ),
-                new MouseDownTransition("down_horiz",
-                    function() { return true; },
+                new MouseDownTransitionWithProbability("down_horiz",
+                    this.down_predicate.curry("horizontal line"),
                     this.gesture_start,
                     undefined,
                     true
                 ),
-                new MouseDownTransition("down_vert",
-                    function() { return true; },
+                new MouseDownTransitionWithProbability("down_vert",
+                    this.down_predicate.curry("vertical line"),
                     this.gesture_start,
                     undefined,
                     true
@@ -106,6 +106,17 @@ var PathBrush = FSMView.subClass({
 
         };
 
+    },
+    down_predicate: function(to_state) {
+        if(this.properties.use_priors && window.__julia_last_action) {
+            // For path_priors demo. Maintaint prior action in a global state for now
+            // TODO: if you release this code this needs to be cleaned up
+            if(to_state === window.__julia_last_action) {
+                return 0.9;
+            }
+            return 0.6;
+        }
+        return 1;
     },
     clone: function() {
         var result = this._super();
