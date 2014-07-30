@@ -16,11 +16,14 @@
 </head>
 <body>
 <h3 class="centered">Text Selection</h3>
-<div id="ipad_container">
-    <div id="ipad_screen">
+<div id="ipad_container" class="ipad_container">
+    <div id="ipad_screen" class="ipad_screen">
         <svg id="demo_interface" width="546" height="407"></svg>
     </div>
 </div>
+<p style="height: 10px"></p>
+
+<div id="alternatives" class="centered" style="width: 546px"></div>
 
 <script>
     // Global variables
@@ -47,6 +50,7 @@
         var julia = new Julia({nSamplesPerEvent: 100});
 
         var $sketch = $("#demo_interface");
+        var $alternatives = $("#alternatives");
         // set up Julia
         var mouseHook = new PMouseEventHook($sketch[0], 0, 0);
         julia.addEventSource(mouseHook);
@@ -57,16 +61,26 @@
         setup(rootView);
 
         // Do stuff when an event has been dispatched
-        julia.feedback = new NBestFeedback(julia,{feedbackType: });
+        julia.feedback = new NBestUIFeedback(julia,{feedback_type: NBestGateVertical,
+            draw_ambiguous: true,
+            n_best_size: 200,
+            n_best_location: function(){
+                return {x: 120, y: 0};
+            },
+            dp: 1, show_root_instead_of_most_likely: false});
         julia.dwellForFeedback = true;
         julia.drawFeedback($sketch, julia.feedback);
 
-        julia.dispatchCompleted = function(new_alternatives, uiUpdated) {
+        addTouchOverlay();
+        addKeyOverlay();
+
+        var update = function() {
             $sketch.empty();
             julia.drawFeedback($sketch, julia.feedback);
-        };
+            julia.dumpAlternativesAsSnap($alternatives, $sketch.width(), $sketch.height(), 0.3);
 
-        addTouchOverlay();
+        }
+        window.setInterval(update, 30);
     });
 
 </script>

@@ -65,14 +65,19 @@ h3 {
     margin-top: 10pt;
     margin-bottom: 10pt;
 }
-
-.centered {
+h3.centered {
     font-family: Helvetica, sans-serif;
     font-size: 24pt;
     text-align: center;
     width: 100%;
     margin-top: 20pt;
     margin-bottom: 40pt;
+}
+
+.centered {
+    margin-right: auto;
+    margin-left: auto;
+
 }
 
 /* Demo properties */

@@ -93,6 +93,19 @@ var HighlightTextView  = FSMView.subClass({
         var char_y = Math.floor(ry / this.char_height);
         return char_y * this.properties.chars_per_line + char_x;
     },
+    drawAmbiguous: function($el) {
+        var s = Snap($el[0]);
+        // This kludge was made to get the ipad text seletion demo to work.
+        // The scrollview shoudl actually handle rendering itself, and the scrollview
+        // shoudl be responsible for saying 'scroll text'
+        if(this.current_state === "down") {
+            s.rect(0,-5,90,20).attr({fill: "yellow"});
+            s.text(0, 10, "highlight text");
+        } else {
+            s.rect(0,0,50,10).attr({fill: "white"});
+            s.text(10, 10, "scroll text");
+        }
+    },
     draw: function($el) {
         var s = Snap($el[0]);
         if(typeof(this.properties.start_index) !== 'undefined') {

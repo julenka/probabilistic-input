@@ -132,6 +132,7 @@
             var s = Snap($sketch[0]);
 
             julia.drawFeedback($sketch, julia.feedback);
+            julia.dumpAlternativesAsSnap($alternatives, $sketch.width(), $sketch.height(), 0.25);
             s.circle(julia.mouseX, julia.mouseY, 30).attr({fill: "silver", opacity: 0.5});
         };
 

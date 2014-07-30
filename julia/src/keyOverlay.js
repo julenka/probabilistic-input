@@ -29,7 +29,7 @@ function addKeyOverlay() {
         if(key >= 48 && key <= 57) {
             t.attr({text: (key-48).toString()});
             g.attr({opacity: 1, transform: m_start});
-            g.animate({opacity: 0.0, transform: m_end}, 600, mina.easein);
+            g.animate({opacity: 0.0, transform: m_end}, 800, mina.easein);
         }
 
     });

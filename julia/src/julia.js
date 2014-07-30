@@ -198,9 +198,10 @@ var Julia = Object.subClass({
      * @param $el
      */
     drawFeedback: function($el, feedback) {
-        if(this.dwellForFeedback && this.speed > 0.5 && !this.dwellTriggered) {
+        if(this.dwellForFeedback && this.speed > 0.1 && !this.dwellTriggered) {
             return this.mostLikelyFeedback.draw($el);
         }
+
         this.dwellTriggered = true;
         return feedback.draw($el);
     },

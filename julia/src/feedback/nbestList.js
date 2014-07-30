@@ -76,6 +76,7 @@ NBestListBase = Object.subClass({
             this.addItemToNBestContainer(nbestcontainer, root, v, p);
         }
         if(nbestcontainer.alternatives.length > 0) {
+
             mergedRoot.addChildView(nbestcontainer);
             // HACKS
             if(this.dont_dispatch_when_visible) {
@@ -416,6 +417,7 @@ var NBestContainer = View.subClass({
     }
 });
 
+
 var NBestContainerVertical = NBestContainer.subClass({
     className: "NBestContainerVertical",
     init: function(julia, props) {
@@ -570,6 +572,99 @@ var NBestGate = NBestContainer.subClass({
 
 
     },
+});
+
+
+var NBestGateVertical = NBestGate.subClass({
+    className: "NBestGateVertical",
+    init: function(julia, props) {
+        this._super(julia, props);
+        this.properties.aspect_ratio = 0.25;
+    },
+    getHeight: function() {
+        return this.properties.padding + this.alternatives.length * (this.properties.alternative_size * this.properties.aspect_ratio + this.properties.padding);
+    },
+    getWidth: function() {
+        return 2 * this.properties.padding + this.properties.alternative_size;
+    },
+    /**
+     * Returns the position that an alternative at index i should have
+     * @param i
+     * @return {x: x position, y: y position }
+     */
+    positionForAlternative: function(i) {
+        var x = this.properties.x + this.properties.padding;
+        var y = this.properties.y + this.properties.padding + i * (this.properties.alternative_size * this.properties.aspect_ratio + this.properties.padding);
+        return {x: x, y: y};
+    },
+    /**
+     * Draws one alternative in a smaller region
+     * return the group that was drawn to
+     * x: x position
+     * y: y position
+     * s: snap
+     * viewCopy: view to draw
+     * p: probability
+     * i: index of item
+     */
+        // TODO: This code is REPEATED! Figure out how to factor it out
+    drawSmallAlternative: function(x, y, s, viewCopy, p, i) {
+
+        var w = this.properties.alternative_size;
+        var h = w * this.properties.aspect_ratio;
+        var boundingRect = s.rect(x - 2, y- 2, w + 4, h + 4).attr({"stroke": "gray", "stroke-width": "1px",
+            "fill-opacity": 0.9, fill: "#FFF"});
+        var clippingRect = boundingRect.clone();
+        var clippingGroup = s.group();
+        var g = clippingGroup.group();
+        var bbox2 = boundingRect.getBBox();
+
+        var m = new Snap.Matrix();
+
+        this.updateViewCopy(viewCopy, bbox2);
+        viewCopy.properties.x = 0;
+        viewCopy.properties.y = 0;
+        if(this.properties.probability_mode === "opacity") {
+            var overlayContainer = new OverlayOpacity(this.julia, viewCopy,p);
+            overlayContainer.draw($(g.node));
+        } else {
+            if(this.properties.draw_ambiguous) {
+                viewCopy.drawAmbiguous($(g.node));
+            } else {
+                viewCopy.draw($(g.node));
+            }
+
+        }
+
+        var bbox = g.getBBox();
+        this.updateBBoxForAlternativeView(bbox);
+
+        var dx = bbox2.cx - bbox.cx;
+        var dy = bbox2.cy - bbox.cy;
+
+
+        g.rect(bbox.x, bbox.y, bbox.w, bbox.h).attr({"fill-opacity": 0});
+
+        var scale = this.properties.alternative_size / Math.max(bbox.w, bbox.h);
+        m.translate(dx, dy);
+        m.scale(scale, scale, bbox.cx, bbox.cy);
+
+
+//        var alternative_opacity = this.properties.probability_mode === "opacity" ? p : 1;
+        g.attr({transform: m.toString()});
+        clippingGroup.attr({"clip-path": clippingRect});
+
+        var keyWidth = 20;
+        var keyHeight = 20;
+        var rectX = x - 1;
+        var rectY = y - 1;
+        var textSize = 20;
+        var textX = rectX + textSize * 0.25;
+        var textY = rectY + textSize * 0.75;
+        s.rect(rectX, rectY, keyWidth, keyHeight).attr({radius: 5, fill: "black", "fill-opacity": 0.5});
+        s.text(textX, textY, (i + 1).toString()).attr({fill: 'white'});
+        return clippingGroup;
+    }
 });
 
 var NBestContainerZoomedIn = NBestContainer.subClass({
