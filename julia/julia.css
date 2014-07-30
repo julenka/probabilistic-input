@@ -36,7 +36,8 @@
 }
 
 .float-left {
-    float: left
+    /*float: left;*/
+    display: inline-block;;
 }
 
 .float-clear {
@@ -77,6 +78,7 @@ h3.centered {
 .centered {
     margin-right: auto;
     margin-left: auto;
+    text-align: center;
 
 }
 

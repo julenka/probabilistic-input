@@ -23,7 +23,7 @@
 </div>
 <p style="height: 10px"></p>
 
-<div id="alternatives" class="centered" style="width: 546px"></div>
+<div id="alternatives" class="centered"></div>
 
 <script>
     // Global variables
@@ -77,7 +77,7 @@
         var update = function() {
             $sketch.empty();
             julia.drawFeedback($sketch, julia.feedback);
-            julia.dumpAlternativesAsSnap($alternatives, $sketch.width(), $sketch.height(), 0.3);
+            julia.dumpAlternativesAsSnap($alternatives, $sketch.width(), $sketch.height(), 0.4);
 
         }
         window.setInterval(update, 30);
