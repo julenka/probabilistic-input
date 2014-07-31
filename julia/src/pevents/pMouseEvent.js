@@ -114,7 +114,7 @@ var PNinjaCursorEvent = PEvent.subClass({
     },
     getSamples: function(n){
         var result = [];
-        var nRows = 5;
+        var nRows = Math.min(n, 5);
         var nCols = n / nRows;
 
         var cellWidth = this.uiWidth / nCols;

@@ -120,6 +120,25 @@ svg#key-overlay{
     top: 31px;
 }
 
+.macbook_container {
+    width: 1201px;
+    height: 703px;
+    margin-left: auto;
+    margin-right: auto;
+    background: url('imgs/macbookBackground.png');
+    position: relative;
+}
+
+.macbook_screen {
+    width: 883px;
+    height: 558px;
+    background-color: #ffffff;
+    position: absolute;
+    left: 159px;
+    top: 68px;
+}
+
+
 /* The main interface of the demo */
 /* TODO: user SASS or LESS to inherit these properties more elegantly */
 #demo_interface {

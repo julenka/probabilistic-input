@@ -13,16 +13,16 @@
 
 </head>
 <body>
-<h3>Ninja Cursors</h3>
+<h3 class="centered">Ninja Cursors</h3>
+<div id="macbook_container" class="macbook_container">
+    <div id="macbook_screen" class="macbook_screen">
+        <svg id="demo_interface" width="883" height="558"></svg>
+    </div>
+</div>
+<p style="height: 10px"></p>
 
-<table>
-    <tr>
-        <td><svg id="demo_interface" width="640" height="480"></svg></td>
-        <td><div id="demo_alternatives"></div></td>
-    </tr>
-</table>
+<div id="demo_alternatives" class="centered"></div>
 
-<div id="demo_settings"></div>
 
 <script>
     // Circular 'button' that changes color on hover and when pressed changes color
@@ -81,12 +81,18 @@
                 } else {
                     this.properties.background_color = this.properties.off_over_color;
                 }
+
             } else {
                 if(this.properties.is_on) {
                     this.properties.background_color = this.properties.on_color;
                 } else {
                     this.properties.background_color = this.properties.off_color;
                 }
+            }
+            if(this.properties.is_on) {
+                this.properties.foreground_color = this.properties.on_color;
+            } else {
+                this.properties.foreground_color = this.properties.off_color;
             }
         },
 
@@ -97,7 +103,14 @@
             var y = this.properties.y;
             var w = this.properties.w;
             var h = this.properties.h;
-            var rect = s.rect(x, y, w, h).attr({fill: this.properties.background_color});
+            if(this.properties.is_over) {
+//                x -= w/2;
+//                y -= h/2;
+//                w *= 2;
+//                h *= 2;
+                s.rect(x - w/2, y-h/2, w*2, h*2).attr({fill: this.properties.background_color});
+            }
+            var rect = s.rect(x, y, w, h).attr({fill: this.properties.foreground_color});
             if(this.properties.isTarget) {
                 rect.attr({stroke: '#5fd400', 'stroke-width':'3px'});
             }
@@ -238,6 +251,7 @@
         // Initialize feedback
         julia.feedback = new OverlayFeedback(julia,
                 {feedbackType:  OverlayOpacity,
+                    showOriginal: false,
                     renderThreshold: 0.01});
 
         julia.mediator.mediationThreshold = 0.2;
@@ -248,13 +262,13 @@
         julia.dispatchCompleted = function(new_alternatives, uiUpdated, pEvent) {
             $mainInterface.empty();
             julia.drawFeedback($mainInterface, julia.feedback);
-            julia.dumpAlternativesAsSnap($alternatives, $mainInterface.width(), $mainInterface.height(), 0.25,
-                    function() {
-                        $mainInterface.empty();
-                        julia.rootView.draw($mainInterface);
-                        julia.dumpAlternativesAsSnap($alternatives, $mainInterface.width(), $mainInterface.height(), 0.25);
-                    }
-            );
+//            julia.dumpAlternativesAsSnap($alternatives, $mainInterface.width(), $mainInterface.height(), 0.25,
+//                    function() {
+//                        $mainInterface.empty();
+//                        julia.rootView.draw($mainInterface);
+//                        julia.dumpAlternativesAsSnap($alternatives, $mainInterface.width(), $mainInterface.height(), 0.25);
+//                    }
+//            );
             var snap = Snap($mainInterface[0]);
             if(pEvent) {
                 pEvent.getSamples(julia.nSamplesPerEvent).forEach(function(sample){
@@ -275,6 +289,8 @@
         }
 
         setupOptions(julia);
+
+        addKeyOverlay();
 
     });
 </script>
