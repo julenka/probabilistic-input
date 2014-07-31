@@ -239,7 +239,9 @@ var NBestContainer = View.subClass({
      * @param props
      */
     init: function(julia, props ) {
-        var defaults = {x: 0, y:0, w: 0, h: 0, alternative_size: 50, padding: 8, probability_mode: "none", draw_ambiguous: false};
+        var defaults = {x: 0, y:0, w: 0, h: 0,
+            alternative_size: 50, padding: 8,
+            probability_mode: "none", draw_ambiguous: false};
         this._super(julia, props, defaults);
         // [ {root: xxx, view: xxx, probability}]
         this.alternatives = [];
@@ -310,6 +312,14 @@ var NBestContainer = View.subClass({
         var textY = rectY + textSize * 0.75;
         s.rect(rectX, rectY, keyWidth, keyHeight).attr({radius: 5, fill: "black", "fill-opacity": 0.5});
         s.text(textX, textY, (i + 1).toString()).attr({fill: 'white'});
+
+        if(this.properties.probability_mode === "text") {
+            rectX += keyWidth;
+            textX += keyWidth;
+            keyWidth *= 2;
+            s.rect(rectX, rectY, keyWidth, keyHeight).attr({radius: 5, fill: "black", "fill-opacity": 0.5});
+            s.text(textX, textY, "p="+(Math.roundWithSignificance(p,1)).toString().substring(1)).attr({fill: 'white'});
+        }
         return clippingGroup;
     },
 

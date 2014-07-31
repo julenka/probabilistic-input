@@ -257,7 +257,10 @@
         julia.mediator.mediationThreshold = 0.2;
         julia.drawFeedback($mainInterface, julia.feedback);
 
-        var nBestList = new NBestUIFeedback(julia, {n:4});
+        var nBestList = new NBestUIFeedback(julia, {
+            n:4,
+            probability_mode: "text"
+        });
 
         julia.dispatchCompleted = function(new_alternatives, uiUpdated, pEvent) {
             $mainInterface.empty();
