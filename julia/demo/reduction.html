@@ -7,55 +7,20 @@
 
 
     <script type="text/javascript" src="../dist/julia.js"></script>
-    <script type="text/javascript" src="../views/cursor.js"></script>
+
     <link type="text/css" rel="stylesheet" href="../julia.css"/>
 </head>
 <body>
-<h3> Reduction </h3>
-<div id="top_bar"></div>
-<div id="demo_description">
-    More of a paintbrush than a cursor. Try dragging to see for yourself.
+<div id="macbook_container" class="macbook_container">
+    <div id="macbook_screen" class="macbook_screen">
+        <svg id="demo_interface" width="883" height="558"></svg>
+    </div>
 </div>
-<div>
-    <div>
-        <label for="numSamples">number of event samples:</label>
-        <input type="text" id="numSamples" value="10"/>
-    </div>
-    <div>
-        <label for="numAlternatives">number of alternatives to keep:</label>
-        <input type="text" id="numAlternatives" value ="50"/>
-    </div>
-    <div>
-        <label for="sampleVarianceX">sample x variance:</label>
-        <input type="text" id="sampleVarianceX" value="10"/>
-    </div>
-    <div>
-        <label for="sampleVarianceY">sample y variance:</label>
-        <input type="text" id="sampleVarianceY" value="10"/>
-    </div>
-    <div>
-        <label for="circleRadius">circle radius:</label>
-        <input type="text" id="circleRadius" value="50"/>
-    </div>
-    <div>
-        <label for="draw_history">paintbrush mode</label>
-        <input type="checkbox" id="draw_history" checked="true">
-    </div>
-    <button onclick="update()">Update Settings</button>
+<p style="height: 10px"></p>
 
-</div>
-<div id="demo_settings"></div>
-<table>
-    <tr>
-        <td>
-            <svg class="border1px unselectable" id="sketch" width="500" height="300"></svg>
-        </td>
-        <td>
-            <div id="sketches"></div>
-        </td>
+<div id="demo_alternatives" class="centered"></div>
 
-    </tr>
-</table>
+
 
 <script type="text/javascript">
 
@@ -100,54 +65,8 @@
     rootView.addChildView(view);
     julia.setRootView(rootView);
 
-    var txtXVariance = $("#sampleVarianceX");
-    var txtYVariance = $("#sampleVarianceY");
-    var txtNumSamples = $("#numSamples");
-    var txtNumAlternatives = $("#numAlternatives");
-    var txtCursorRadius = $("#circleRadius");
-    var chkDrawHistory = $("#draw_history");
-    var $sketch = $("#sketch");
-    var $sketches = $("#sketches");
-
-
-    /**
-     *
-     * attributes: name, id, checked
-     * description: description of the option (user sees this)
-     * onClick: execute when clicked
-     */
-    function addOption(attributes, description, onClick) {
-        var option = $("<input/>")
-                .attr("type", "radio")
-                .attr(attributes)
-                .click(onClick);
-        var label = $("<label/>")
-                .attr("for", attributes.id)
-                .html(description);
-        $("#demo_settings").append(option, label);
-    }
-
-    var onOptionClicked = function(feedbackFn) {
-        return function(e) {
-            var $this = $(this);
-            julia.feedback = feedbackFn();
-        }
-    };
-
-    addOption({name: "feedback_options", id:"n_best_1", checked: true},
-            "overlay with opacity",
-            onOptionClicked(function() { return new OverlayFeedback(julia,
-                    {
-                        showOriginal: false,
-                        feedbackType: OpacityOverlay
-                    }
-            )})
-    );
-    addOption({name: "feedback_options", id:"n_best_2", checked: false},
-            "show mean interface",
-            onOptionClicked(function() { return new MeanFeedback (julia) })
-    );
-
+    var $sketch = $("#demo_interface");
+    var $sketches = $("#demo_alternatives");
     julia.dispatchCompleted = function(new_alternatives, uiUpdated) {
         if(!uiUpdated) {
             return;
@@ -161,16 +80,15 @@
     julia.addEventSource(mouseHook);
 
     function update() {
-        julia.nSamplesPerEvent = parseInt(txtNumSamples.val());
-        julia.nAlternativesToKeep = parseInt(txtNumAlternatives.val());
-        mouseHook.variance_x_px = parseInt(txtXVariance.val());
-        mouseHook.variance_y_px = parseInt(txtYVariance.val());
-        view.radius = parseInt(txtCursorRadius.val());
-        view.draw_history = chkDrawHistory.prop('checked');
+        julia.nSamplesPerEvent = 10;
+        julia.nAlternativesToKeep = 15;
+        mouseHook.variance_x_px = 10;
+        mouseHook.variance_y_px = 10;
+        view.radius = 30;
         julia.setRootView(rootView);
     }
     update();
-    julia.feedback = new OverlayFeedback(julia, {showOriginal: false});
+    julia.feedback = new MeanFeedback (julia);
 
 
 </script>
