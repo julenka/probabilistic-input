@@ -136,7 +136,12 @@
 
     addOption({name: "feedback_options", id:"n_best_1", checked: true},
             "overlay with opacity",
-            onOptionClicked(function() { return new OverlayFeedback(julia)})
+            onOptionClicked(function() { return new OverlayFeedback(julia,
+                    {
+                        showOriginal: false,
+                        feedbackType: OpacityOverlay
+                    }
+            )})
     );
     addOption({name: "feedback_options", id:"n_best_2", checked: false},
             "show mean interface",
@@ -148,7 +153,7 @@
             return;
         }
         $sketch.empty();
-        julia.drawFeedback($sketch, new OverlayFeedback(julia));
+        julia.drawFeedback($sketch, new OverlayFeedback(julia, {showOriginal: false}));
         julia.drawFeedback($sketch,julia.feedback);
         julia.dumpAlternativesAsSnap($sketches, $sketch.width(), $sketch.height(), 0.25);
     };
@@ -165,7 +170,7 @@
         julia.setRootView(rootView);
     }
     update();
-    julia.feedback = new OverlayFeedback(julia);
+    julia.feedback = new OverlayFeedback(julia, {showOriginal: false});
 
 
 </script>
