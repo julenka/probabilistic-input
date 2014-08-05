@@ -321,4 +321,23 @@ var DraggableResizeableEllipse = DraggableResizeableShape.subClass({
                 "stroke-width": this.properties["stroke-width"],
                 stroke: this.properties.stroke});
     }
+
+    hit_test: function(e, transition) {
+        var coords = this.get_relative(e);
+        var cx = this.properties.x + this.properties.w/2;
+        var cy = this.properties.y + this.properties.h / 2;
+        var dx = coords.x - cx;
+        switch(transition.to) {
+            case "dragging":
+                return (coords.rx > this.properties.resize_padding && coords.ry > this.properties.resize_padding && coords.rx < this.properties.w - this.properties.resize_padding && coords.ry < this.properties.h - this.properties.resize_padding);
+            case "resize_left":
+                return (coords.rx > -this.properties.resize_padding && coords.rx < this.properties.resize_padding && coords.ry > 0 && coords.ry < this.properties.h);
+            case "resize_right":
+                return (coords.rx > this.properties.w - this.properties.resize_padding && coords.rx < this.properties.w + this.properties.resize_padding && coords.ry > 0 && coords.ry < this.properties.h);
+            case "resize_top":
+                return (coords.ry > - this.properties.resize_padding && coords.ry < this.properties.resize_padding && coords.rx > 0 && coords.rx < this.properties.w);
+            case "resize_bottom":
+                return (coords.ry > this.properties.h - this.properties.resize_padding && coords.ry < this.properties.h + this.properties.resize_padding && coords.rx > 0 && coords.rx < this.properties.w);
+        }
+    },
 });

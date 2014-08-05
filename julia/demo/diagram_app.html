@@ -28,8 +28,108 @@
     var FILL_COLOR = "#fff";
 </script>
 <script>
+    // Views
+    /**
+     * Drag out a bounding box containing one of two shapes: circles or rectangles
+     */
+    var DragShapeView = FSMView.subClass({
+        className: "DragShapeView",
+        init: function(julia, props) {
+            var defaults = {
+                use_priors: false,
+                onShapeCompleted: function(shape, view) { console.log("shape", shape, "completed"); }
+            };
+            this._super(julia, props, defaults);
+            this.initFSM();
+        },
+        initFSM: function() {
+            this.fsm_description = { start: []};
+            var shapes = ["circle", "rectangle"];
+            var me = this;
+            shapes.forEach(function(shape) {
+                me.fsm_description.start.push(
+                        new MouseDownTransitionWithProbability(
+                                shape,
+                                function() {
+                                    if(this.properties.use_priors && window.__julia_last_action === ("drag " + shape)) {
+                                        return 0.9;
+                                    }
+                                    return 0.6
+                                },
+                                me.updateStart,
+                                undefined,
+                                true
+                        )
+                );
+                me.fsm_description[shape] = [];
+                me.fsm_description[shape].push(
+                    new MouseMoveTransition(
+                            shape,
+                            RETURN_TRUE,
+                            me.updateBounds,
+                            undefined,
+                            true
+                    )
+                );
+                me.fsm_description[shape].push(
+                    new MouseUpTransitionWithProbability(
+                            "start",
+                            function() { return 0.6},
+                            me.shapeDone.curry(shape),
+                            undefined,
+                            true
+                    )
+                )
+            });
 
-    var DragShapeView =
+        },
+        updateStart: function(e) {
+            this.properties.p1 = {x: e.base_event.element_x, y: e.base_event.element_y};
+        },
+        updateBounds: function(e) {
+            this.properties.p2 = {x: e.base_event.element_x, y: e.base_event.element_y};
+        },
+        draw: function($el) {
+            var s = Snap($el[0]);
+            var attrs = {
+                fill: FILL_COLOR,
+                opacity: 0.5,
+                stroke: LINE_COLOR
+            }
+            var p1 = this.properties.p1;
+            var p2 = this.properties.p2;
+            if(!p1 || !p2) {
+                return;
+            }
+            // top left
+            var tl = {x: Math.min(p1.x, p2.x), y: Math.min(p1.y, p2.y)};
+            // bottom right
+            var br = {x: Math.max(p1.x, p2.x), y: Math.max(p1.y, p2.y)};
+            var w = br.x - tl.x;
+            var h = br.y - tl.y;
+            if(this.current_state === "circle") {
+                s.ellipse(tl.x + w/2, tl.y + h/2, w/2, h/2).attr(attrs);
+            } else {
+                // current_state === "rect"
+                s.rect(tl.x, tl.y, w, h).attr(attrs);
+            }
+        },
+        shapeDone: function(shape, e, rootView) {
+            var p1 = this.properties.p1;
+            var p2 = this.properties.p2;
+            // top left
+            var tl = {x: Math.min(p1.x, p2.x), y: Math.min(p1.y, p2.y)};
+            // bottom right
+            var br = {x: Math.max(p1.x, p2.x), y: Math.max(p1.y, p2.y)};
+            this.properties.onShapeCompleted(shape, rootView, tl, br);
+            delete this.properties.p1;
+            delete this.properties.p2;
+        }
+    });
+</script>
+<script>
+
+
 
     /**
      * Set up the interface here
@@ -53,6 +153,12 @@
             use_priors: true
         });
         rootView.addChildView(gesture_recognizer);
+
+        var drag_shape = new DragShapeView(julia, {
+            onShapeCompleted: onDragShapeCompleted.curry(julia),
+            use_priors: true
+        });
+        rootView.addChildView(drag_shape);
     }
 
     function updateLastAction(action) {
@@ -68,6 +174,27 @@
         // set last action to be line, regardless of if it was horizontal or vertical
         updateLastAction("line");
     };
+
+    function onDragShapeCompleted(julia, shape, rootView, topLeft, bottomRight) {
+        var new_shape;
+        var w = bottomRight.x - topLeft.x;
+        var h = bottomRight.y - topLeft.y;
+        if(shape === "circle") {
+            new_shape = new DraggableResizeableEllipse(julia, {color: FILL_COLOR,
+                "stroke-width": "1px",
+                x: topLeft.x, y: topLeft.y , w: w, h: h});
+        } else {
+            // shape === 'rect'
+            new_shape = new DraggableResizeableBox(julia, { color: FILL_COLOR,
+            "stroke-width": "1px",
+            x: topLeft.x, y: topLeft.y, w: w, h: h});
+        }
+        if(new_shape) {
+            rootView.addChildView(new_shape);
+        }
+
+        updateLastAction("drag " + shape);
+    }
 
     function onGestureCompleted(julia, gesture_name, rootView,  gesture_recognizer) {
         var minx = Infinity, miny = Infinity, maxx = 0, maxy = 0, topMost, bottomMost, leftMost, rightMost;
