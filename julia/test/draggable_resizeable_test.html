@@ -42,36 +42,7 @@
 
     </tr>
 </table>
-<div class="test-description">This test contains a box that can be dragged (pink) and  a box that can be dragged and resized, however vertical motions when in the
-    horizontal resize state cause the interactor to move to the dragging state, and horizontal motions while in the vertical state
-    cause the interactor to go to dragging as well. In this way, users can 'snap out' or disambiguate between states.
-</div>
-<table>
-    <tr>
-        <td>
-            <svg id="draggable_resizeable2_svg" class="test-interface" width="400" height="400"></svg>
-        </td>
-        <td>
-            <div id="alternatives3" class=" unselectable"></div>
-        </td>
 
-    </tr>
-</table>
-
-<div class="test-description">
-    Resize probability changes based on how horizontal/vertical the interactor is.
-</div>
-<table>
-    <tr>
-        <td>
-            <svg id="draggable_resizeable3_svg" class="test-interface" width="400" height="400"></svg>
-        </td>
-        <td>
-            <div id="alternatives4" class=" unselectable"></div>
-        </td>
-
-    </tr>
-</table>
 <script>
 
 
@@ -125,24 +96,6 @@
                 [
                     new DraggableResizeableBox(julia, propsForColor("#ddffdd"))
                     ,new DraggableBox(julia, propsForColor("#ffdddd"))
-                ],
-                new OverlayFeedback(julia)
-        );
-
-        julia = new Julia();
-        buildTest(julia, $("#draggable_resizeable2_svg"), $("#alternatives3"),
-                [
-                    new DraggableResizeableBox2(julia, propsForColor("#ddffdd")),
-                    new DraggableBox(julia, propsForColor("#ffdddd")),
-                ],
-                new OverlayFeedback(julia)
-        );
-
-        julia = new Julia();
-        buildTest(julia, $("#draggable_resizeable3_svg"), $("#alternatives4"),
-                [
-                    new DraggableResizeableBox3(julia, propsForColor("#ddffdd")),
-                    new DraggableBox(julia, propsForColor("#ffdddd")),
                 ],
                 new OverlayFeedback(julia)
         );
