@@ -101,12 +101,12 @@ var DraggableShape = FSMView.subClass({
         // in this case $el will be an SVG element
         var s = Snap($el[0]);
         if(this.current_state === "dragging") {
-            var padding = 5;
-            s.rect(this.properties.x - padding, this.properties.y - padding, this.properties.w + 2 * padding, this.properties.h + 2 * padding)
-                .attr({fill: "white", "stroke-width": 1, stroke: "black"});
+            this.drawDragFeedback($el);
         }
 
         this.drawShape($el);
+    },
+    drawDragFeedback: function ($el) {
     },
     drawShape: function($el) {
 
@@ -136,6 +136,12 @@ var DraggableBox = DraggableShape.subClass({
     className: "DraggableBox",
     init: function(julia, properties) {
         this._super(julia, properties);
+    },
+    drawDragFeedback: function($el) {
+        var s = Snap($el[0]);
+        var padding = 5;
+        s.rect(this.properties.x - padding, this.properties.y - padding, this.properties.w + 2 * padding, this.properties.h + 2 * padding)
+            .attr({fill: "white", "stroke-width": 1, stroke: "black"});
     },
     drawShape: function($el) {
         var s = Snap($el[0]);
@@ -269,8 +275,7 @@ var DraggableResizeableShape = DraggableShape.subClass({
         var padding = 5;
         var border_attrs = {fill: "white", "stroke-width": 1, stroke: "black"};
         if(this.current_state === "dragging") {
-            s.rect(this.properties.x - padding, this.properties.y - padding, this.properties.w + 2 * padding, this.properties.h + 2 * padding)
-                .attr(border_attrs);
+            this.drawDragFeedback($el);
         } else if (this.current_state === "resize_left") {
             s.rect(this.properties.x - padding, this.properties.y - padding, 2 * padding, this.properties.h + 2 * padding)
                 .attr(border_attrs);
@@ -305,6 +310,12 @@ var DraggableResizeableBox = DraggableResizeableShape.subClass({
             {fill: this.properties.color,
                 "stroke-width": this.properties["stroke-width"],
                 stroke: this.properties.stroke});
+    },
+    drawDragFeedback: function($el) {
+        var s = Snap($el[0]);
+        var padding = 5;
+        s.rect(this.properties.x - padding, this.properties.y - padding, this.properties.w + 2 * padding, this.properties.h + 2 * padding)
+            .attr({fill: "white", "stroke-width": 1, stroke: "black"});
     }
 });
 var DraggableResizeableEllipse = DraggableResizeableShape.subClass({
@@ -320,24 +331,15 @@ var DraggableResizeableEllipse = DraggableResizeableShape.subClass({
             {fill: this.properties.color,
                 "stroke-width": this.properties["stroke-width"],
                 stroke: this.properties.stroke});
-    }
-
-    hit_test: function(e, transition) {
-        var coords = this.get_relative(e);
-        var cx = this.properties.x + this.properties.w/2;
-        var cy = this.properties.y + this.properties.h / 2;
-        var dx = coords.x - cx;
-        switch(transition.to) {
-            case "dragging":
-                return (coords.rx > this.properties.resize_padding && coords.ry > this.properties.resize_padding && coords.rx < this.properties.w - this.properties.resize_padding && coords.ry < this.properties.h - this.properties.resize_padding);
-            case "resize_left":
-                return (coords.rx > -this.properties.resize_padding && coords.rx < this.properties.resize_padding && coords.ry > 0 && coords.ry < this.properties.h);
-            case "resize_right":
-                return (coords.rx > this.properties.w - this.properties.resize_padding && coords.rx < this.properties.w + this.properties.resize_padding && coords.ry > 0 && coords.ry < this.properties.h);
-            case "resize_top":
-                return (coords.ry > - this.properties.resize_padding && coords.ry < this.properties.resize_padding && coords.rx > 0 && coords.rx < this.properties.w);
-            case "resize_bottom":
-                return (coords.ry > this.properties.h - this.properties.resize_padding && coords.ry < this.properties.h + this.properties.resize_padding && coords.rx > 0 && coords.rx < this.properties.w);
-        }
     },
+    drawDragFeedback: function($el) {
+        var padding = 5;
+        var s = Snap($el[0]);
+        var x = this.properties.x + this.properties.w / 2;
+        var y = this.properties.y + this.properties.h / 2;
+        s.ellipse(x, y, this.properties.w / 2 + padding, this.properties.h / 2 + padding).attr(
+            {fill: this.properties.color,
+                "stroke-width": this.properties["stroke-width"],
+                stroke: this.properties.stroke});
+    }
 });
