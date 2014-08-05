@@ -20,7 +20,7 @@ var PathBrush = FSMView.subClass({
             {color: "black", opacity: 1, use_priors: false,
                 width: 1,
                 pathProbability: function(e) {
-                    return 1 / this.container.children.length; }
+                    return 0.5; }
             });
         this.path = [];
         this.gesture_detector = new SimpleGestureDetector();
@@ -60,8 +60,8 @@ var PathBrush = FSMView.subClass({
                 ),
                 new MouseUpTransitionWithProbability("start",
                     this.properties.pathProbability,
-                    undefined,
                     this.line_completed,
+                    undefined,
                     true
                 )
             ],
@@ -74,22 +74,8 @@ var PathBrush = FSMView.subClass({
                 ),
                 new MouseUpTransitionWithProbability("start",
                     this.properties.pathProbability,
-                    undefined,
                     this.line_completed,
-                    true
-                )
-            ],
-            down_line: [
-                new MouseMoveTransition("down_line",
-                    function() { return true; },
-                    this.gesture_progress,
                     undefined,
-                    true
-                ),
-                new MouseUpTransitionWithProbability("start",
-                    this.properties.pathProbability,
-                    undefined,
-                    this.line_completed,
                     true
                 )
             ],
@@ -102,8 +88,22 @@ var PathBrush = FSMView.subClass({
                 ),
                 new MouseUpTransitionWithProbability("start",
                     this.properties.pathProbability,
-                    undefined,
                     this.path_completed,
+                    undefined,
+                    true
+                )
+            ],
+            down_line: [
+                new MouseMoveTransition("down_line",
+                    function() { return true; },
+                    this.gesture_progress,
+                    undefined,
+                    true
+                ),
+                new MouseUpTransitionWithProbability("start",
+                    this.properties.pathProbability,
+                    this.line_completed,
+                    undefined,
                     true
                 )
             ]

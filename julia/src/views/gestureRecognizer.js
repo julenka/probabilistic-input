@@ -24,7 +24,7 @@ var GestureRecognizer = FSMView.subClass({
                     "down",
                     function() {
                         if(this.properties.use_priors && window.__julia_last_action === "gesture") {
-                            return 0.9;
+                            return 0.6;
                         }
                         return 0.5;
                     },

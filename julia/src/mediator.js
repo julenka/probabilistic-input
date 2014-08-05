@@ -43,10 +43,6 @@ var Mediator = Object.subClass({
         var reversibleRequests = [];
         for(i = 0; i < actionRequestSequences.length; i++) {
             var seq = actionRequestSequences[i];
-            // Don't add action requests whose likelihood is below a minimum probability
-            if(seq.weight < this.minProbability) {
-                continue;
-            }
 
             if(!(seq.requests[seq.requests.length - 1].reversible)) {
                 finalRequests.push(seq);
