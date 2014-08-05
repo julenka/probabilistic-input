@@ -9,7 +9,7 @@
  * A rectangle that is draggable
   * @type {*}
  */
-var DraggableBox = FSMView.subClass({
+var DraggableShape = FSMView.subClass({
     className: "DraggableBox",
     /**
      * Represents an object that can be dragged
@@ -105,10 +105,11 @@ var DraggableBox = FSMView.subClass({
             s.rect(this.properties.x - padding, this.properties.y - padding, this.properties.w + 2 * padding, this.properties.h + 2 * padding)
                 .attr({fill: "white", "stroke-width": 1, stroke: "black"});
         }
-        s.rect(this.properties.x, this.properties.y, this.properties.w, this.properties.h).attr(
-            {fill: this.properties.color,
-                "stroke-width": this.properties["stroke-width"],
-            stroke: this.properties.stroke});
+
+        this.drawShape($el);
+    },
+    drawShape: function($el) {
+
     },
     drawAmbiguous: function($el) {
         this.draw($el);
@@ -131,11 +132,25 @@ var DraggableBox = FSMView.subClass({
     }
 });
 
+var DraggableBox = DraggableShape.subClass({
+    className: "DraggableBox",
+    init: function(julia, properties) {
+        this._super(julia, properties);
+    },
+    drawShape: function($el) {
+        var s = Snap($el[0]);
+        s.rect(this.properties.x, this.properties.y, this.properties.w, this.properties.h).attr(
+            {fill: this.properties.color,
+                "stroke-width": this.properties["stroke-width"],
+                stroke: this.properties.stroke});
+    }
+});
+
 /**
  * A rectangle that is draggable and resizeable
  * @type {*}
  */
-var DraggableResizeableBox = DraggableBox.subClass({
+var DraggableResizeableShape = DraggableShape.subClass({
     className: "DraggableResizeableBox",
     /**
      * A rectangle that can be dragged and resized
@@ -156,9 +171,14 @@ var DraggableResizeableBox = DraggableBox.subClass({
         for(var i = 0; i < new_states.length; i++) {
             var name = new_states[i];
             this.fsm_description.start.push(
-                new MouseDownTransition(
+                new MouseDownTransitionWithProbability(
                     name,
-                    this.hit_test,
+                    function(e, transition) {
+                        if(this.hit_test(e, transition)) {
+                            return 0.6;
+                        }
+                        return 0;
+                    },
                     this.drag_start,
                     undefined,
                     true)
@@ -181,6 +201,19 @@ var DraggableResizeableBox = DraggableBox.subClass({
 
         }
     },
+    drag_predicate: function(e) {
+        var dx = Math.abs(this.drag_start_info.mouse_x - e.element_x);
+        var dy = Math.abs(this.drag_start_info.mouse_y - e.element_y);
+        // TODO: this should be resolution independent, and should have to do with probabilities...
+        if(this.resizingHorizontally() && dy > 30) {
+            return 0.9;
+        } else if (this.resizingVertically() && dx > 30) {
+            return 0.9;
+        }
+        return 1;
+    },
+    resizingVertically: function() { return this.current_state === "resize_top" || this.current_state === "resize_bottom";},
+    resizingHorizontally: function() { return this.current_state === "resize_left" || this.current_state === "resize_right";},
     drag_progress: function(e) {
         var motion = this.get_relative_motion(e);
         var new_w = this.properties.w;
@@ -251,7 +284,7 @@ var DraggableResizeableBox = DraggableBox.subClass({
             s.rect(this.properties.x - padding, this.properties.y + this.properties.h - padding, this.properties.w + 2 * padding, 2 * padding)
                 .attr(border_attrs);
         }
-        s.rect(this.properties.x, this.properties.y, this.properties.w, this.properties.h).attr({fill: this.properties.color});
+        this.drawShape($el) ;
     },
     equals: function(other) {
         if(!this._super(other)) {
@@ -261,63 +294,31 @@ var DraggableResizeableBox = DraggableBox.subClass({
     }
 });
 
-/**
- * A rectangle that is draggable and resizeable, however it uses the motion at the beginning of the interaction
- * to disambiguate the user's intention.
- * If resizing horizontally, only horizontal motions are accepted
- * If resizing vertically, only vertical motions are accepted
- * If dragging, only diagonal motions are accepted
- * @type {*}
- */
-var DraggableResizeableBox2 = DraggableResizeableBox.subClass({
-    className: "DraggableResizeableBox2",
+var DraggableResizeableBox = DraggableResizeableShape.subClass({
+    className: "DraggableBox",
     init: function(julia, properties) {
         this._super(julia, properties);
     },
-    drag_progress: function(e) {
-        this._super(e);
-        var dx = Math.abs(this.drag_start_info.mouse_x - e.element_x);
-        var dy = Math.abs(this.drag_start_info.mouse_y - e.element_y);
-        // TODO: this should be resolution independent, and should have to do with probabilities...
-        if(this.resizingHorizontally() && dy > 30) {
-            this.current_state = "start";
-            this.properties.w = this.drag_start_info.my_w;
-            this.properties.h = this.drag_start_info.my_h;
-        } else if (this.resizingVertically() && dx > 30) {
-            this.current_state = "start";
-            this.properties.w = this.drag_start_info.my_w;
-            this.properties.h = this.drag_start_info.my_h;
-        }
-
-    },
-    resizingVertically: function() { return this.current_state === "resize_top" || this.current_state === "resize_bottom";},
-    resizingHorizontally: function() { return this.current_state === "resize_left" || this.current_state === "resize_right";},
+    drawShape: function($el) {
+        var s = Snap($el[0]);
+        s.rect(this.properties.x, this.properties.y, this.properties.w, this.properties.h).attr(
+            {fill: this.properties.color,
+                "stroke-width": this.properties["stroke-width"],
+                stroke: this.properties.stroke});
+    }
 });
-
-/**
- * A rectangle that is draggable and resizeable, however it uses the motion at the beginning of the interaction
- * to disambiguate the user's intention.
- * If resizing horizontally, only horizontal motions are accepted
- * If resizing vertically, only vertical motions are accepted
- * Adjusts probability accordingly
- * @type {*}
- */
-var DraggableResizeableBox3 = DraggableResizeableBox.subClass({
-    className: "DraggableResizeableBox2",
+var DraggableResizeableEllipse = DraggableResizeableShape.subClass({
+    className: "DraggableEllipse",
     init: function(julia, properties) {
         this._super(julia, properties);
     },
-    drag_predicate: function(e) {
-        var dx = Math.abs(this.drag_start_info.mouse_x - e.element_x);
-        var dy = Math.abs(this.drag_start_info.mouse_y - e.element_y);
-        // TODO: this should be resolution independent, and should have to do with probabilities...
-        if(this.resizingHorizontally() && dy > 30) {
-            return 0.9;
-        } else if (this.resizingVertically() && dx > 30) {
-            return 0.9;
-        }
-        return 1;
-    },
-    resizingVertically: function() { return this.current_state === "resize_top" || this.current_state === "resize_bottom";},
-    resizingHorizontally: function() { return this.current_state === "resize_left" || this.current_state === "resize_right";},
+    drawShape: function($el) {
+        var s = Snap($el[0]);
+        var x = this.properties.x + this.properties.w / 2;
+        var y = this.properties.y + this.properties.h / 2;
+        s.ellipse(x, y, this.properties.w / 2, this.properties.h / 2).attr(
+            {fill: this.properties.color,
+                "stroke-width": this.properties["stroke-width"],
+                stroke: this.properties.stroke});
+    }
 });

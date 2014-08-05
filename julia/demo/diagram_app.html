@@ -25,6 +25,7 @@
 <script>
     // Globals
     var LINE_COLOR = "#333";
+    var FILL_COLOR = "#fff";
 </script>
 <script>
 
@@ -37,7 +38,7 @@
 
         // The path brush draws lines (horizontal and vertical)
         var path_brush = new PathBrush(julia, {color: LINE_COLOR,
-            width: 3,
+            width: 1,
             use_priors: true,
             onLineCompleted: onLineCompleted.curry(julia, LINE_COLOR)});
         rootView.addChildView(path_brush);
@@ -58,7 +59,7 @@
     }
 
     function onLineCompleted (julia, lineColor, p1, p2, root) {
-        var new_line = new Path(julia, {radius: 3, color: lineColor,
+        var new_line = new Path(julia, {radius: 1, color: lineColor,
             path: [p1, p2].map(path2str)
         });
         root.addChildView(new_line);
@@ -90,12 +91,13 @@
         }
         var new_shape;
         if(gesture_name === "circle") {
-            new_shape = new Circle(julia, {cx: (minx + maxx) / 2, cy: (miny + maxy) / 2,
-                radius: Math.min((maxy - miny) / 2, (maxx - minx) / 2)});
+            new_shape = new DraggableResizeableEllipse(julia, {color: FILL_COLOR,
+                "stroke-width": "1px",
+                x: minx, y: miny, w: (maxx-minx), h: (maxy - miny)});
         } else if (gesture_name === "rectangle") {
-            new_shape = new DraggableBox(julia, {color: "#ffffff",
-                "stroke-width": "2px",
-                x: minx, y: miny, w: (maxx-minx), h: (maxy - miny)})
+            new_shape = new DraggableResizeableBox(julia, {color: FILL_COLOR,
+                "stroke-width": "1px",
+                x: minx, y: miny, w: (maxx-minx), h: (maxy - miny)});
         }
         if(new_shape) {
             rootView.addChildView(new_shape);
