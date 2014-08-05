@@ -210,7 +210,6 @@ var TransitionWithProbability = Transition.subClass({
     className: "TransitionWithProbability",
     init: function(to,source,type,probability_function,feedback_action,final_action,handles_event) {
         var probability_wrapper = function(e, rootView) {
-            console.log(e, rootView);
             // Set the context of the predicate to be 'this', which will be set as the interactor bound to the FSM
             var probability = probability_function.call(this, e, rootView);
             return Math.dieRoll(probability);

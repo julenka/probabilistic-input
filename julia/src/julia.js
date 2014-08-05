@@ -24,6 +24,8 @@ var Julia = Object.subClass({
         var defaults = {
             nSamplesPerEvent: 20,
             nAlternativesToKeep: 10,
+            // minimum probably to keep interface samples around for
+            minProbability: 0.01,
             mediator: new Mediator(),
             combiner: new ActionRequestCombiner()
         };
@@ -340,7 +342,10 @@ var Julia = Object.subClass({
         result.forEach(function(alternative){
             alternative.probability = alternative.probability / sum;
         });
-        return result;
+        var me = this;
+        return result.filter(function(x) {
+            return x.probability > me.minProbability;
+        });
     },
 
     /**

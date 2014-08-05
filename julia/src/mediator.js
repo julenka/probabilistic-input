@@ -4,10 +4,14 @@
 
 var Mediator = Object.subClass({
     className: "Mediator",
-    init: function(){
+    init: function(props){
+        var defaults = {
+            mediationThreshold: 0.0,
+        }
         // By default, we set the mediation threshold for 0, for now. Demos that want to show mediation
         // can increase this value, or create their own mediator.
-        this.mediationThreshold = 0.0;
+        $.extend(this, defaults);
+        $.extend(this, props);
     },
     /**
      * Mediator takes as input a list of action requests and returns a list of resulting actions to execute
@@ -39,7 +43,11 @@ var Mediator = Object.subClass({
         var reversibleRequests = [];
         for(i = 0; i < actionRequestSequences.length; i++) {
             var seq = actionRequestSequences[i];
-            seq.weight /= sum;
+            // Don't add action requests whose likelihood is below a minimum probability
+            if(seq.weight < this.minProbability) {
+                continue;
+            }
+
             if(!(seq.requests[seq.requests.length - 1].reversible)) {
                 finalRequests.push(seq);
             } else {

@@ -110,7 +110,7 @@
      */
     $(document).ready(function(){
 
-        var julia = new Julia({nSamplesPerEvent: 50});
+        var julia = new Julia({nSamplesPerEvent: 50, minProbability: 0.1});
         var rootView = new ContainerView(julia, {background_color: "#eee"});
         julia.setRootView(rootView);
         setup(rootView);
