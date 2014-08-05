@@ -198,3 +198,7 @@ function juliaDemoAddRadioOption($container, attributes, description, onClick) {
         .html(description);
     $container.append(option, label);
 }
+
+function path2str(el) {
+    return el.x + ", " + el.y;
+};

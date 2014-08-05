@@ -24,9 +24,10 @@ var Mediator = Object.subClass({
         if(actionRequestSequences.length === 1) {
             return [new MediationReply(actionRequestSequences[0], true, actionRequestSequences[0].weight)];
         }
+
+        // Normalize the weights of the action request sequences
         var i;
         var sum = 0;
-
         actionRequestSequences.forEach(function(seq){
             sum += seq.weight;
         });

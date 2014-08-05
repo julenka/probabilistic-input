@@ -14,14 +14,20 @@ var GestureRecognizer = FSMView.subClass({
      * @param properties
      */
     init: function(julia, properties) {
+        var gestures = ["circle", "rectangle", "triangle"];
         this._super(julia, properties,
-            {color: "green", radius: 5, opacity: 1});
+            {color: "green", radius: 5, opacity: 1, gestures: gestures});
         this.path = [];
         this.fsm_description = {
             start: [
-                new MouseDownTransition(
+                new MouseDownTransitionWithProbability(
                     "down",
-                    RETURN_TRUE,
+                    function() {
+                        if(this.properties.use_priors && window.__julia_last_action === "gesture") {
+                            return 0.9;
+                        }
+                        return 0.5;
+                    },
                     this.gesture_start,
                     undefined,
                     true
@@ -35,7 +41,15 @@ var GestureRecognizer = FSMView.subClass({
                     true
                 ),
                 new MouseUpTransitionWithProbability("start",
-                    function() { return 0.7; },
+                    function() {
+                        // If this object has a not recognized handler, we want to transition here.
+                        // Otherwise, never take this transition.
+                        if(this.properties.onGestureNotRecognized){
+                            return 0.7;
+                        }
+                        return 0;
+
+                    },
                     this.gesture_not_recognized,
                     undefined,
                     true
@@ -43,13 +57,15 @@ var GestureRecognizer = FSMView.subClass({
             ]
 
         };
-        var gestures = ["circle", "rectangle", "triangle"];
+
         var me = this;
+        gestures = this.properties.gestures;
         gestures.forEach(function(gesture) {
             // for now, let's just assume that we are returning true with probably 0.33
             me.fsm_description.down.push(new MouseUpTransitionWithProbability("start",
                 function(e, rootView) {
-                    return this.recognizeGesture(gesture);
+                    var result = this.recognizeGesture(gesture);
+                    return result;
                 },
                 function(e, rootView) {
                     this.gesture_recognized(gesture, e, rootView);
@@ -77,7 +93,7 @@ var GestureRecognizer = FSMView.subClass({
             if(results[i].Name === gestureName) {
                 var score = results[i].Score;
                 if(score < 0.8) {
-                    return false;
+                    return 0;
                 }
                 return results[i].Score;
             }
@@ -109,7 +125,7 @@ var GestureRecognizer = FSMView.subClass({
     },
     gesture_recognized: function(gesture_name, e, rootView) {
         if(typeof(this.properties.onGestureRecognized) !== 'undefined') {
-            this.properties.onGestureRecognized(gesture_name, rootView);
+            this.properties.onGestureRecognized(gesture_name, rootView, this);
         }
     },
     draw: function($el) {

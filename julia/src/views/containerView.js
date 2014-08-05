@@ -150,7 +150,7 @@ var ContainerView = View.subClass({
 
         // [{actionSequence, childIndex}]
 
-        // set tot true if any child handles this event
+        // set to true if any child handles this event
         var isEventHandled;
         var childIndex = this.focus_index >= 0 && (event instanceof PKeyEvent || event instanceof PVoiceEvent) ? this.focus_index : this.children.length - 1;
         var dispatchQueue = [{actionSequence: new ActionRequestSequence(this, []), childIndex: childIndex}];

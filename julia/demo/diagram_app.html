@@ -13,14 +13,18 @@
 </head>
 <body>
 <h3 class="centered">Diagramming App</h3>
-
-<div id="ipad_container">
-    <div id="ipad_screen">
+<h3 class="centered" id="last_action">last action: none</h3>
+<div id="ipad_container" class="ipad_container">
+    <div id="ipad_screen" class="ipad_screen">
         <svg id="demo_interface" width="546" height="407"></svg>
     </div>
 </div>
+<div id="debug"></div>
+<div id="demo_alternatives"></div>
+
 <script>
-    // Your custom views here
+    // Globals
+    var LINE_COLOR = "#333";
 </script>
 <script>
 
@@ -30,72 +34,109 @@
      */
     function setup(rootView) {
         var julia = rootView.julia;
-        function path2str(el) {
-            return el.x + ", " + el.y;
-        };
-        var lineColor = "#333";
-        var onLineCompleted = function(p1, p2, root) {
-            var new_line = new Path(julia, {radius: 3, color: lineColor,
-                path: [p1, p2].map(path2str)
-            });
-            root.addChildView(new_line);
-        };
 
-        var onPathCompleted = function(path, root) {
-            root.addChildView(new Path(julia, {radius: 3, color: lineColor,
-                path: path.map(path2str)
-            }));
-        };
-        var path_brush = new PathBrush(julia, {color: lineColor,
+        // The path brush draws lines (horizontal and vertical)
+        var path_brush = new PathBrush(julia, {color: LINE_COLOR,
             width: 3,
-            onPathCompleted: onPathCompleted, onLineCompleted: onLineCompleted});
+            use_priors: true,
+            onLineCompleted: onLineCompleted.curry(julia, LINE_COLOR)});
         rootView.addChildView(path_brush);
 
-        var itemSize = 50;
-        var propsForColor  = function(color){
-            return    {
-                x: Math.randint(0, 300),
-                y: Math.randint(0, 300),
-                w: itemSize,
-                h: itemSize,
-                color: color
-            };
+        // Use the gesture recognizer to add ellipses and rectangles
 
-        };
-
+        var gesture_recognizer = new GestureRecognizer(julia, {
+            onGestureRecognized: onGestureCompleted.curry(julia),
+            gestures: ["circle", "rectangle"],
+            use_priors: true
+        });
+        rootView.addChildView(gesture_recognizer);
     }
 
+    function updateLastAction(action) {
+        window.__julia_last_action = action;
+        $("#last_action").html("last action: " + action);
+    }
+
+    function onLineCompleted (julia, lineColor, p1, p2, root) {
+        var new_line = new Path(julia, {radius: 3, color: lineColor,
+            path: [p1, p2].map(path2str)
+        });
+        root.addChildView(new_line);
+        // set last action to be line, regardless of if it was horizontal or vertical
+        updateLastAction("line");
+    };
+
+    function onGestureCompleted(julia, gesture_name, rootView,  gesture_recognizer) {
+        var minx = Infinity, miny = Infinity, maxx = 0, maxy = 0, topMost, bottomMost, leftMost, rightMost;
+        var path = gesture_recognizer.path;
+        for(var i = 0; i < path.length; i++) {
+            var p = path[i];
+            if(p.x < minx) {
+                minx = p.x;
+                leftMost = p;
+            }
+            if(p.y < miny) {
+                miny = p.y;
+                topMost = p;
+            }
+            if(p.x > maxx) {
+                maxx = p.x;
+                rightMost = p;
+            }
+            if(p.y > maxy) {
+                maxy = p.y;
+                bottomMost = p;
+            }
+        }
+        var new_shape;
+        if(gesture_name === "circle") {
+            new_shape = new Circle(julia, {cx: (minx + maxx) / 2, cy: (miny + maxy) / 2,
+                radius: Math.min((maxy - miny) / 2, (maxx - minx) / 2)});
+        } else if (gesture_name === "rectangle") {
+            new_shape = new DraggableBox(julia, {color: "#ffffff",
+                "stroke-width": "2px",
+                x: minx, y: miny, w: (maxx-minx), h: (maxy - miny)})
+        }
+        if(new_shape) {
+            rootView.addChildView(new_shape);
+        }
+
+        updateLastAction("gesture");
+
+    }
 
     /**
      * Executed when the document loads. Intended to be boilerplate, shouldn't have to replace much here (for now).
      */
     $(document).ready(function(){
-        var mouse_variance = 10;
-        var julia = new Julia();
+
+        var julia = new Julia({nSamplesPerEvent: 50});
         var rootView = new ContainerView(julia, {background_color: "#eee"});
         julia.setRootView(rootView);
-        julia.nSamplesPerEvent = 10;
         setup(rootView);
 
         var $alternatives = $("#demo_alternatives");
         var $mainInterface = $("#demo_interface");
+
+
         // Add an event source
-        var mouseHook = new PMouseEventHook($mainInterface[0], mouse_variance, mouse_variance);
+        var mouseHook = new PMouseEventHook($mainInterface[0]);
         julia.addEventSource(mouseHook);
-        julia.feedback = new NBestFeedback(julia, {n: 4, feedback_type: NBestGate});
+        julia.feedback = new NBestFeedback(julia, {n: 4, feedback_type: NBestGateLeftAligned, show_root_instead_of_most_likely: false,
+            n_best_location: function(){return {x: 10, y:10}}});
+        julia.dwellForFeedback = true;
 
-        julia.drawFeedback($mainInterface, julia.feedback);
-
+        julia.dispatchCompleted = function() {};
+        // draw every 30 ms
         var update = function() {
             $mainInterface.empty();
-
             julia.drawFeedback($mainInterface, julia.feedback);
-            julia.dumpAlternativesAsSnap($alternatives, $mainInterface.width(), $mainInterface.height(), 0.25);
-
-
+            julia.dumpAlternativesAsSnap($alternatives, $mainInterface.width(), $mainInterface.height(), 0.5);
         }
         window.setInterval(update, 30);
 
+        addTouchOverlay();
+        addKeyOverlay();
     });
 </script>
 </body>

@@ -37,9 +37,6 @@
      */
     function setup(rootView) {
         var julia = rootView.julia;
-        function path2str(el) {
-            return el.x + ", " + el.y;
-        };
         var lineColor = "#333";
         var onLineCompleted = function(p1, p2, root) {
             var new_line = new Path(julia, {radius: 3, color: lineColor,

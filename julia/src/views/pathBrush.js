@@ -17,35 +17,39 @@ var PathBrush = FSMView.subClass({
      */
     init: function(julia, properties) {
         this._super(julia, properties,
-            {color: "black", opacity: 1, use_priors: false, width: 1});
+            {color: "black", opacity: 1, use_priors: false,
+                width: 1,
+                pathProbability: function(e) {
+                    return 1 / this.container.children.length; }
+            });
         this.path = [];
         this.gesture_detector = new SimpleGestureDetector();
         this.fsm_description = {
             start: [
                 new MouseDownTransitionWithProbability("down_path",
-                    this.down_predicate.curry("path"),
+                    this.down_predicate.curry("down_path"),
                     this.gesture_start,
                     undefined,
                     true
                     ),
                 new MouseDownTransitionWithProbability("down_line",
-                    this.down_predicate.curry("line"),
+                    this.down_predicate.curry("down_line"),
                     this.gesture_start,
                     undefined,
                     true
                 ),
                 new MouseDownTransitionWithProbability("down_horiz",
-                    this.down_predicate.curry("horizontal line"),
+                    this.down_predicate.curry("down_horiz"),
                     this.gesture_start,
                     undefined,
                     true
                 ),
                 new MouseDownTransitionWithProbability("down_vert",
-                    this.down_predicate.curry("vertical line"),
+                    this.down_predicate.curry("down_vert"),
                     this.gesture_start,
                     undefined,
                     true
-                ),
+                )
             ],
             down_horiz: [
                 new MouseMoveTransition("down_horiz",
@@ -54,8 +58,8 @@ var PathBrush = FSMView.subClass({
                     undefined,
                     true
                 ),
-                new MouseUpTransition("start",
-                    function() { return true; },
+                new MouseUpTransitionWithProbability("start",
+                    this.properties.pathProbability,
                     undefined,
                     this.line_completed,
                     true
@@ -68,8 +72,8 @@ var PathBrush = FSMView.subClass({
                     undefined,
                     true
                 ),
-                new MouseUpTransition("start",
-                    function() { return true; },
+                new MouseUpTransitionWithProbability("start",
+                    this.properties.pathProbability,
                     undefined,
                     this.line_completed,
                     true
@@ -82,8 +86,8 @@ var PathBrush = FSMView.subClass({
                     undefined,
                     true
                 ),
-                new MouseUpTransition("start",
-                    function() { return true; },
+                new MouseUpTransitionWithProbability("start",
+                    this.properties.pathProbability,
                     undefined,
                     this.line_completed,
                     true
@@ -96,8 +100,8 @@ var PathBrush = FSMView.subClass({
                     undefined,
                     true
                 ),
-                new MouseUpTransition("start",
-                    function() { return true; },
+                new MouseUpTransitionWithProbability("start",
+                    this.properties.pathProbability,
                     undefined,
                     this.path_completed,
                     true
@@ -107,12 +111,28 @@ var PathBrush = FSMView.subClass({
         };
 
     },
+    /**
+     * Maps actions (defined in path_priors.html) to destination states
+     * Used in down_predicate function
+     */
+    action_to_state: {
+        "line": "down_line",
+        "horizontal line": "down_horiz",
+        "vertical line": "down_vert"
+    },
     down_predicate: function(to_state) {
+        // TODO: the predicate to_state doesn't match actual state strings! Ugh! Fix up in priors demo.
+        var handlers = {down_path: this.properties.onPathCompleted, down_line: this.properties.onLineCompleted,
+        down_horiz: this.properties.onLineCompleted, down_vert: this.properties.onLineCompleted};
+        // If there is no handler for this state, then don't go to that state
+        if(!handlers[to_state]) {
+            return 0;
+        }
         if(this.properties.use_priors && window.__julia_last_action) {
             // For path_priors demo. Maintaint prior action in a global state for now
             // TODO: if you release this code this needs to be cleaned up
-            if(to_state === window.__julia_last_action) {
-                return 0.9;
+            if(to_state === this.action_to_state[window.__julia_last_action]) {
+                return 1;
             }
             return 0.6;
         }
@@ -192,6 +212,7 @@ var PathBrush = FSMView.subClass({
             var p2 = this.path[this.path.length -  1];
             s.line(p1.x, p1.y, p2.x, p2.y).attr(properties);
         }
+        s.text(30, 30, this.current_state);
     }
 });
 

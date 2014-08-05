@@ -519,10 +519,14 @@ var NBestContainerVertical = NBestContainer.subClass({
     }
 });
 
+
 var NBestGate = NBestContainer.subClass({
     className: "NBestGate",
     init: function(julia, props) {
         this._super(julia, props);
+    },
+    getLeft: function(w) {
+        return this.properties.x + this.properties.padding - w / 2;
     },
     draw: function($el) {
         $el.off("mousemove touchmove mouseup touchup");
@@ -534,9 +538,9 @@ var NBestGate = NBestContainer.subClass({
 
         var julia = this.julia;
         var keypressHandlers = [];
+        var left = this.getLeft(w);
         for(var i = 0; i < this.alternatives.length; i++) {
-            var x = this.properties.x + this.properties.padding + i * (this.properties.alternative_size + this.properties.padding) - w / 2;
-
+            var x = left + i * (this.properties.alternative_size + this.properties.padding);
 
             var y = this.properties.y + this.properties.padding;
 
@@ -584,6 +588,16 @@ var NBestGate = NBestContainer.subClass({
     },
 });
 
+
+var NBestGateLeftAligned = NBestGate.subClass({
+    className: "NBestGateLeftAligned",
+    init: function(julia, props) {
+        this._super(julia, props);
+    },
+    getLeft: function(w) {
+        return this.properties.x + this.properties.padding;
+    }
+});
 
 var NBestGateVertical = NBestGate.subClass({
     className: "NBestGateVertical",
