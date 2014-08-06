@@ -222,6 +222,10 @@ var DraggableResizeableShape = DraggableShape.subClass({
              me.properties.ctrl_pts[state] = {x: 0, y: 0};
         });
     },
+    hitTestControlPoint: function(state, x, y) {
+        var ctrl_pt = this.properties.ctrl_pts[state];
+        return Math.sqrt(Math.pow(ctrl_pt.x - x, 2) + Math.pow(ctrl_pt.y - y, 2)) < this.properties.ctrl_pt_radius;
+    },
     /**
      * Updates the control points based on the new position and size
      */
@@ -309,19 +313,15 @@ var DraggableResizeableShape = DraggableShape.subClass({
         this.properties.h = new_h;
         this.updateControlPoints();
     },
-    hit_test: function(e, transition) {
+    dragHitTest: function(e) {
         var coords = this.get_relative(e);
-        switch(transition.to) {
-            case "dragging":
-                return (coords.rx > this.properties.resize_padding && coords.ry > this.properties.resize_padding && coords.rx < this.properties.w - this.properties.resize_padding && coords.ry < this.properties.h - this.properties.resize_padding);
-            case "resize_left":
-                return (coords.rx > -this.properties.resize_padding && coords.rx < this.properties.resize_padding && coords.ry > 0 && coords.ry < this.properties.h);
-            case "resize_right":
-                return (coords.rx > this.properties.w - this.properties.resize_padding && coords.rx < this.properties.w + this.properties.resize_padding && coords.ry > 0 && coords.ry < this.properties.h);
-            case "resize_top":
-                return (coords.ry > - this.properties.resize_padding && coords.ry < this.properties.resize_padding && coords.rx > 0 && coords.rx < this.properties.w);
-            case "resize_bottom":
-                return (coords.ry > this.properties.h - this.properties.resize_padding && coords.ry < this.properties.h + this.properties.resize_padding && coords.rx > 0 && coords.rx < this.properties.w);
+        return (coords.rx > this.properties.resize_padding && coords.ry > this.properties.resize_padding && coords.rx < this.properties.w - this.properties.resize_padding && coords.ry < this.properties.h - this.properties.resize_padding);
+    },
+    hit_test: function(e, transition) {
+        if(transition.to === "dragging") {
+            return this.dragHitTest(e);
+        } else {
+            return this.hitTestControlPoint(transition.to, e.base_event.element_x, e.base_event.element_y);
         }
     },
     draw: function ($el) {
@@ -387,7 +387,7 @@ var DraggableResizeableEllipse = DraggableResizeableShape.subClass({
                 "stroke-width": this.properties["stroke-width"],
                 stroke: this.properties.stroke});
     },
-    hit_test: function(e) {
+    dragHitTest: function(e) {
         var coords = this.get_relative(e);
         var rx = this.properties.w / 2;
         var ry = this.properties.h / 2;
