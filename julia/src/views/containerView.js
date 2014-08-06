@@ -90,6 +90,7 @@ var ContainerView = View.subClass({
         if(typeof(this.properties.background_image) !== 'undefined') {
             $el.css('background-image', this.properties.background_image);
         }
+        console.log("draw, children length is ", this.children.length);
         for(i; i < this.children.length; i++) {
             this.children[i].draw($el);
         }
@@ -137,11 +138,17 @@ var ContainerView = View.subClass({
     },
 
     /**
-     * Dispatches an event to itself and potentially any children.
-     * Returns a list action request sequences, where each sequence is a list of action requests.
-     * These action requests should be performed one after another, if executed
-     * @return
+     * Set up the initial dispatch queue. The dispatch queue contains pairs of
+     * ActionRequestSequence, childIndex corresponding to a child and the accumulated actionrequest sequence
+     * that results of dispatching to this child should be appended to.
+     * @param event
+     * @returns {*[]}
      */
+    initDispatchQueue: function(event) {
+        var childIndex = this.focus_index >= 0 && (event instanceof PKeyEvent || event instanceof PVoiceEvent) ? this.focus_index : this.children.length - 1;
+        return [{actionSequence: new ActionRequestSequence(this, []), childIndex: childIndex}];
+    },
+
     dispatchEvent: function(event) {
         var i = this.children.length - 1, child;
 
@@ -149,11 +156,10 @@ var ContainerView = View.subClass({
         // sequence needs to have the index of the child we left off at
 
         // [{actionSequence, childIndex}]
-
+        var dispatchQueue = this.initDispatchQueue(event);
         // set to true if any child handles this event
         var isEventHandled;
-        var childIndex = this.focus_index >= 0 && (event instanceof PKeyEvent || event instanceof PVoiceEvent) ? this.focus_index : this.children.length - 1;
-        var dispatchQueue = [{actionSequence: new ActionRequestSequence(this, []), childIndex: childIndex}];
+
         // init: function(rootView, requests) {
         var result = [];
         while(dispatchQueue.length > 0) {
@@ -222,9 +228,62 @@ var ContainerView = View.subClass({
             if(numChildResponses === 0 && actionSequence.requests.length > 0) {
                 result.push(actionSequence);
             }
-
         }
         return result;
 
+    }
+});
+
+/**
+ * Dispatches an event to every immediate child in the container, regardless of whether the event is handled or not
+ * @type {*}
+ */
+var EveryChildContainerView = ContainerView.subClass({
+    className: "EveryChildContainerView",
+    init: function(julia, properties) {
+        this._super(julia, properties);
+    },
+    /**
+     * Initialize dispatch queue. This time, we want to dispatch to every child, so just initialize the queue with
+     * every child. Then dispatch once, don' continue dispatch (and don' accumulate events).
+     * @param event
+     * @returns {Array}
+     */
+    initDispatchQueue: function(event) {
+        var dispatchQueue = [];
+        for(var i = this.children.length - 1; i >= 0; i--){
+            dispatchQueue.push({actionSequence: new ActionRequestSequence(this, []), childIndex: i});
+        }
+        return dispatchQueue;
+    },
+    dispatchEvent: function(event) {
+        var child;
+        // Get the queue of items to dispatch to.
+        var dispatchQueue = this.initDispatchQueue(event);
+
+        // result contains the list of action requests sequences we are returning.
+        // every item in result represents an alternate representation.
+        var result = [];
+        while(dispatchQueue.length > 0) {
+            var cur = dispatchQueue.shift();
+            var actionSequence = cur.actionSequence;
+            child = this.children[cur.childIndex];
+            var childResponses = child.dispatchEvent(event);
+            var me = this;
+            childResponses.forEach(function(response) {
+                // Every child response represents an alternate interpretation, therefore for each response we want
+                // to clone the original action sequence and append the response to the existing sequence.
+                var actionSequence2 = actionSequence.clone();
+                if(response instanceof ActionRequest) {
+                    actionSequence2.requests.push(response);
+                } else if (response instanceof ActionRequestSequence) {
+                    actionSequence2.requests.extend(response.requests);
+                } else {
+                    throw "response not the right type!";
+                }
+                result.push(actionSequence2);
+            });
+        }
+        return result;
     }
 });

@@ -58,7 +58,7 @@
             var julia = this.julia;
             var keypressHandlers = [];
             for(var i = 0; i < this.alternatives.length; i++) {
-                var x = this.properties.x + this.properties.padding + i * (this.properties.alternative_size + this.properties.padding) - w / 2;
+                var x = this.properties.x + this.properties.padding + i * (this.properties.alternative_size + this.properties.padding);
 
 
                 var y = this.properties.y + this.properties.padding;
@@ -108,6 +108,7 @@
 </script>
 <script>
 
+    function nBestLocation() { return {x: 10, y: 10}; }
     /**
      * Set up the interface here
      * @param rootView
@@ -156,13 +157,7 @@
                 path: [p1, p2].map(path2str)
             });
             root.addChildView(new_line);
-            if(p1.x === p2.x) {
-                updateLastAction("vertical line");
-            } else if (p1.y === p2.y) {
-                updateLastAction("horizontal line");
-            } else {
-                updateLastAction("line");
-            }
+            updateLastAction("line");
         };
 
         var onPathCompleted = function(path, root) {
@@ -190,6 +185,15 @@
             julia.drawFeedback($mainInterface, julia.feedback);
         };
     }
+
+    function getAmbiguousRequests($mainInterface, julia) {
+        return function(deferred, pEvent) {
+            $mainInterface.empty();
+
+            julia.feedback.draw($mainInterface, julia.rootView, deferred);
+        };
+    }
+
 
     /**
      * Executed when the document loads. Intended to be boilerplate, shouldn't have to replace much here (for now).
@@ -223,11 +227,13 @@
         julia.feedback = new NBestFeedback(julia, {n: 4,
             feedback_type: NBestGateForPriors,
             dont_dispatch_when_visible: false,
+            n_best_location: nBestLocation,
             show_root_instead_of_most_likely: false
         });
         julia2.feedback = new NBestFeedback(julia2, {n: 4,
             feedback_type: NBestGateForPriors,
             dont_dispatch_when_visible: false,
+            n_best_location: nBestLocation,
             show_root_instead_of_most_likely: false
         });
 

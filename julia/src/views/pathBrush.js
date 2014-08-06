@@ -20,7 +20,7 @@ var PathBrush = FSMView.subClass({
             {color: "black", opacity: 1, use_priors: false,
                 width: 1,
                 pathProbability: function(e) {
-                    return 0.5; }
+                    return 1.0; }
             });
         this.path = [];
         this.gesture_detector = new SimpleGestureDetector();
@@ -81,7 +81,7 @@ var PathBrush = FSMView.subClass({
             ],
             down_path: [
                 new MouseMoveTransition("down_path",
-                    function() { return true; },
+                    RETURN_TRUE,
                     this.gesture_progress,
                     undefined,
                     true
@@ -95,7 +95,7 @@ var PathBrush = FSMView.subClass({
             ],
             down_line: [
                 new MouseMoveTransition("down_line",
-                    function() { return true; },
+                    RETURN_TRUE,
                     this.gesture_progress,
                     undefined,
                     true
@@ -134,7 +134,7 @@ var PathBrush = FSMView.subClass({
             if(to_state === this.action_to_state[window.__julia_last_action]) {
                 return 1;
             }
-            return 0.6;
+            return 0.9;
         }
         return 1;
     },
@@ -212,7 +212,6 @@ var PathBrush = FSMView.subClass({
             var p2 = this.path[this.path.length -  1];
             s.line(p1.x, p1.y, p2.x, p2.y).attr(properties);
         }
-        s.text(30, 30, this.current_state);
     }
 });
 

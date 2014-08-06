@@ -183,7 +183,13 @@ var DraggableResizeableShape = DraggableShape.subClass({
                     this.boundingBoxHitTest,
                     function(){},
                     undefined,
-                    false)
+                    false),
+                new MouseDownTransition(
+                    "dragging",
+                    this.hit_test,
+                    this.drag_start,
+                    undefined,
+                    true),
             ],
             over : [
                 new MouseDownTransition(
@@ -220,14 +226,17 @@ var DraggableResizeableShape = DraggableShape.subClass({
         for(var i = 0; i < new_states.length; i++) {
             var name = new_states[i];
             this.fsm_description.over.push(
-                new MouseDownTransitionWithProbability(
+                new MouseDownTransition(
                     name,
-                    function(e, transition) {
-                        if(this.hit_test(e, transition)) {
-                            return 0.6;
-                        }
-                        return 0;
-                    },
+                    this.hit_test,
+                    this.drag_start,
+                    undefined,
+                    true)
+            );
+            this.fsm_description.start.push(
+                new MouseDownTransition(
+                    name,
+                    this.hit_test,
                     this.drag_start,
                     undefined,
                     true)
@@ -402,8 +411,6 @@ var DraggableResizeableShape = DraggableShape.subClass({
         if(this.current_state !== "start" && this.current_state !== "dragging") {
             this.drawControlPoints($el);
         }
-
-
     },
     equals: function(other) {
         if(!this._super(other)) {

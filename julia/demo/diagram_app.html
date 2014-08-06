@@ -52,9 +52,9 @@
                                 shape,
                                 function() {
                                     if(this.properties.use_priors && window.__julia_last_action === ("drag " + shape)) {
-                                        return 0.9;
+                                        return 1;
                                     }
-                                    return 0.6
+                                    return 0.9;
                                 },
                                 me.updateStart,
                                 undefined,
@@ -72,9 +72,9 @@
                     )
                 );
                 me.fsm_description[shape].push(
-                    new MouseUpTransitionWithProbability(
+                    new MouseUpTransition(
                             "start",
-                            function() { return 0.6},
+                            function() { return this.properties.p1 && this.properties.p2; },
                             undefined,
                             me.shapeDone.curry(shape),
                             true
@@ -143,7 +143,7 @@
             width: 1,
             use_priors: true,
             onLineCompleted: onLineCompleted.curry(julia, LINE_COLOR)});
-        rootView.addChildView(path_brush);
+
 
         // Use the gesture recognizer to add ellipses and rectangles
 
@@ -152,13 +152,15 @@
             gestures: ["circle", "rectangle"],
             use_priors: true
         });
-        rootView.addChildView(gesture_recognizer);
+
 
         var drag_shape = new DragShapeView(julia, {
             onShapeCompleted: onDragShapeCompleted.curry(julia),
             use_priors: true
         });
         rootView.addChildView(drag_shape);
+        rootView.addChildView(gesture_recognizer);
+        rootView.addChildView(path_brush);
     }
 
     function updateLastAction(action) {
@@ -242,7 +244,7 @@
     $(document).ready(function(){
 
         var julia = new Julia({nSamplesPerEvent: 20, minProbability: 0.01});
-        var rootView = new ContainerView(julia, {background_color: "#eee"});
+        var rootView = new EveryChildContainerView(julia, {background_color: "#eee"});
         julia.setRootView(rootView);
         setup(rootView);
 

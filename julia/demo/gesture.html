@@ -136,7 +136,7 @@
         julia.addEventSource(mouseHook);
 
         // Initialize feedback
-        julia.feedback = new NBestUIFeedback(julia, {n: 4});
+        julia.feedback = new NBestUIFeedback(julia, {n: 4, show_root_instead_of_most_likely: false});
 
         julia.drawFeedback($mainInterface, julia.feedback);
 
@@ -150,14 +150,19 @@
         addOption({name: "feedback_options", id:"n_best_1", checked: true},
                 "n best list",
                 onOptionClicked(function() { return new NBestUIFeedback(julia, {n: 4,
+                    show_root_instead_of_most_likely: false,
                 n_best_size: 100
                 })}) );
         addOption({name: "feedback_options", id:"n_best_2", checked: false},
                 "n best list, highlight changes",
-                onOptionClicked(function() { return new NBestHighlightFeedback (julia, {n: 4, n_best_size: 100})}) );
+                onOptionClicked(function() { return new NBestHighlightFeedback (julia, {n: 4,
+                    show_root_instead_of_most_likely: false,
+                    n_best_size: 100})}) );
         addOption({name: "feedback_options", id:"n_best_3", checked: false},
                 "n best list, show only changed views",
-                onOptionClicked(function() { return new NBestFeedback(julia, {n: 4})}) );
+                onOptionClicked(function() { return new NBestFeedback(julia, {n: 4,
+                    show_root_instead_of_most_likely: false
+                })}) );
 
         julia.dispatchCompleted = function(new_alternatives, uiUpdated) {
             if(!uiUpdated) {
