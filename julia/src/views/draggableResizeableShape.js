@@ -226,17 +226,28 @@ var DraggableResizeableShape = DraggableShape.subClass({
         for(var i = 0; i < new_states.length; i++) {
             var name = new_states[i];
             this.fsm_description.over.push(
-                new MouseDownTransition(
+                new MouseDownTransitionWithProbability(
                     name,
-                    this.hit_test,
+                    function(e, transition) {
+                        if(this.hit_test(e, transition)) {
+                            return 0.7;
+                        }
+                        return 0;
+                    },
                     this.drag_start,
                     undefined,
-                    true)
+                    true
+                    )
             );
             this.fsm_description.start.push(
-                new MouseDownTransition(
+                new MouseDownTransitionWithProbability(
                     name,
-                    this.hit_test,
+                    function(e, transition) {
+                        if(this.hit_test(e, transition)) {
+                            return 0.7;
+                        }
+                        return 0;
+                    },
                     this.drag_start,
                     undefined,
                     true)
