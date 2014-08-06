@@ -171,7 +171,7 @@ var DraggableResizeableShape = DraggableShape.subClass({
      * @param properties
      */
     init: function (julia, properties) {
-        this._super(julia, properties, {"resize_padding": 30, "min_w": 10, "min_h": 10});
+        this._super(julia, properties, {"resize_padding": 15, "min_w": 10, "min_h": 10});
 
         var new_states = ["resize_left", 'resize_top', "resize_right", "resize_bottom",
         "resize_nw", "resize_ne", "resize_sw", "resize_se"];
@@ -429,7 +429,7 @@ var DraggableResizeableBox = DraggableResizeableShape.subClass({
         var s = Snap($el[0]);
         var padding = 5;
         s.rect(this.properties.x - padding, this.properties.y - padding, this.properties.w + 2 * padding, this.properties.h + 2 * padding)
-            .attr({fill: "white", "stroke-width": 1, stroke: "black"});
+            .attr({fill: "white", "stroke-width": 1, stroke: "black", opacity: 0.7});
     }
 });
 var DraggableResizeableEllipse = DraggableResizeableShape.subClass({
@@ -454,7 +454,7 @@ var DraggableResizeableEllipse = DraggableResizeableShape.subClass({
         s.ellipse(x, y, this.properties.w / 2 + padding, this.properties.h / 2 + padding).attr(
             {fill: this.properties.color,
                 "stroke-width": this.properties["stroke-width"],
-                stroke: this.properties.stroke});
+                stroke: this.properties.stroke, opacity: 0.7});
     },
     dragHitTest: function(e) {
         var coords = this.get_relative(e);
