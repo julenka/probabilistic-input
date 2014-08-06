@@ -138,7 +138,7 @@ var valueOrDefault = function(value, default_value) {
  * Returns true if equal, false otherwise.
  */
 var shallowEquals = function(a, b) {
-    return shallowEqualsHelper(a, b, 0, 2);
+    return shallowEqualsHelper(a, b, 0, 3);
 };
 var shallowEqualsHelper = function(a, b, curDepth, maxDepth) {
     if(curDepth > maxDepth) {
@@ -150,11 +150,14 @@ var shallowEqualsHelper = function(a, b, curDepth, maxDepth) {
         return false;
     }
     var examined = {};
+    if(typeof(a) !== typeof(b)) {
+        return false;
+    }
+    if(a instanceof Function) {
+        return a.toString() === b.toString();
+    }
     for(var prop in a) {
         examined[prop] = true;
-        if(typeof(a) !== typeof(b)) {
-            return false;
-        }
         if (a[prop] instanceof Object) {
             return shallowEqualsHelper(a[prop], b[prop], curDepth + 1, maxDepth);
         }

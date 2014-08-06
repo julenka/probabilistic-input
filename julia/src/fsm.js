@@ -87,9 +87,6 @@ var FSMView = View.subClass({
         return response;
     },
     equals: function(other) {
-        if(this.className !== other.className) {
-            return false;
-        }
         return this.current_state === other.current_state && this.className === other.className;
 
     }

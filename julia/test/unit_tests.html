@@ -87,6 +87,34 @@
         ok(!shallowEquals(a, c));
         ok(!shallowEquals(f, a));
         ok(shallowEquals(f, f));
+
+        // test array equivalence
+        var a = ["a", "b", "c"];
+        var b = ["a", "b", "c"];
+        ok(shallowEquals(a, a));
+        ok(shallowEquals(a, b));
+
+        // test array equivalence with objects
+        a = [{x:0, y:0}, {x:1, y:1}, {x:2, y:2}];
+        b = [{x:0, y:0}, {x:1, y:1}, {x:2, y:2}];
+        ok(shallowEquals(a, a));
+        ok(shallowEquals(a, b));
+
+        // test empty array
+        ok(shallowEquals([],[]));
+
+        // test arrays with functions
+        a = [{x:0, y:0}, {x:1, y:1}, {x:2, y:2}, {f: function() {}}];
+        b = [{x:0, y:0}, {x:1, y:1}, {x:2, y:2}, {f: function() {}}];
+        ok(shallowEquals(a, a));
+        ok(shallowEquals(a, b));
+
+        // test a map of objects
+        a = {a: {foo: {x: 0, y: 0}, bar: {x: 0, y: 0}}};
+        b = {a: {foo: {x: 0, y: 0}, bar: {x: 0, y: 0}}};
+        ok(shallowEquals(a, a));
+        ok(shallowEquals(a, b));
+
     });
 
     test("String.repeat", function() {

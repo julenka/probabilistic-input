@@ -90,7 +90,6 @@ var ContainerView = View.subClass({
         if(typeof(this.properties.background_image) !== 'undefined') {
             $el.css('background-image', this.properties.background_image);
         }
-        console.log("draw, children length is ", this.children.length);
         for(i; i < this.children.length; i++) {
             this.children[i].draw($el);
         }

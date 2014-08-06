@@ -158,9 +158,11 @@
             onShapeCompleted: onDragShapeCompleted.curry(julia),
             use_priors: true
         });
-        rootView.addChildView(drag_shape);
-        rootView.addChildView(gesture_recognizer);
-        rootView.addChildView(path_brush);
+        var everyChildView = new EveryChildContainerView(julia, {background_color: "#eee"});
+        everyChildView.addChildView(drag_shape);
+        everyChildView.addChildView(gesture_recognizer);
+        everyChildView.addChildView(path_brush);
+        rootView.addChildView(everyChildView);
     }
 
     function updateLastAction(action) {
@@ -243,8 +245,8 @@
      */
     $(document).ready(function(){
 
-        var julia = new Julia({nSamplesPerEvent: 20, minProbability: 0.01});
-        var rootView = new EveryChildContainerView(julia, {background_color: "#eee"});
+        var julia = new Julia({nSamplesPerEvent: 20, minProbability: 0.01, nAlternativesToKeep: 6});
+        var rootView = new ContainerView(julia, {background_color: "#eee"});
         julia.setRootView(rootView);
         setup(rootView);
 
@@ -273,6 +275,7 @@
         window.setInterval(update, 30);
 
         julia.mediator.mediationThreshold = 0.5;
+
         julia.dispatchCompleted = function() {};
         julia.ambiguousRequests = function(deferred, pEvent) {
             $mainInterface.empty();

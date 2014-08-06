@@ -411,12 +411,28 @@ var DraggableResizeableShape = DraggableShape.subClass({
         if(this.current_state !== "start" && this.current_state !== "dragging") {
             this.drawControlPoints($el);
         }
+
     },
-    equals: function(other) {
-        if(!this._super(other)) {
-            return false;
+    drawDebugInfo: function(s) {
+        var p_strs = [];
+        function helper(o) {
+            for(var p in o) {
+                var v = o[p];
+                if(v instanceof Object) {
+                    helper(v);
+                } else {
+                    p_strs.push(p + ":" + v);
+                }
+            }
         }
-        return true;
+        helper(this.properties);
+
+        var cur_y = 10;
+        s.text(50, cur_y, this.current_state);
+        p_strs.forEach(function(str) {
+            cur_y += 15;
+            s.text(50, cur_y, str);
+        });
     }
 });
 
