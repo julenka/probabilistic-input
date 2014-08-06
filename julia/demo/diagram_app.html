@@ -75,8 +75,8 @@
                     new MouseUpTransitionWithProbability(
                             "start",
                             function() { return 0.6},
-                            me.shapeDone.curry(shape),
                             undefined,
+                            me.shapeDone.curry(shape),
                             true
                     )
                 )
@@ -253,18 +253,29 @@
         // Add an event source
         var mouseHook = new PMouseEventHook($mainInterface[0]);
         julia.addEventSource(mouseHook);
-        julia.feedback = new NBestFeedback(julia, {n: 4, feedback_type: NBestGateLeftAligned, show_root_instead_of_most_likely: false,
+        julia.feedback = new NBestUIFeedback(julia, {n: 4, feedback_type: NBestGateLeftAligned, show_root_instead_of_most_likely: false,
             n_best_location: function(){return {x: 10, y:10}}});
         julia.dwellForFeedback = true;
 
-        julia.dispatchCompleted = function() {};
+
         // draw every 30 ms
         var update = function() {
+            // HACK: if the requests are ambiguous, dont'draw the regular feedback
+            if(julia.__julia_ambiguous) {
+                return;
+            }
             $mainInterface.empty();
             julia.drawFeedback($mainInterface, julia.feedback);
             julia.dumpAlternativesAsSnap($alternatives, $mainInterface.width(), $mainInterface.height(), 0.5);
         }
         window.setInterval(update, 30);
+
+        julia.mediator.mediationThreshold = 0.5;
+        julia.dispatchCompleted = function() {};
+        julia.ambiguousRequests = function(deferred, pEvent) {
+            $mainInterface.empty();
+            julia.feedback.draw($mainInterface, julia.rootView, deferred);
+        }
 
         addTouchOverlay();
         addKeyOverlay();

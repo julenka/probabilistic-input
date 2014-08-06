@@ -96,6 +96,7 @@ var Julia = Object.subClass({
         this.rootView = view;
         this.rootView.resetDirtyBit();
         this.alternatives = [{view: view, probability: 1}];
+        this.__julia_ambiguous = false;
     },
     /**
      * Remove given view from list of alternatives
@@ -201,11 +202,11 @@ var Julia = Object.subClass({
      */
     drawFeedback: function($el, feedback) {
         if(this.dwellForFeedback && this.speed > 0.1 && !this.dwellTriggered) {
-            return this.mostLikelyFeedback.draw($el);
+            return this.mostLikelyFeedback.draw($el, this.rootView, this.alternatives);
         }
 
         this.dwellTriggered = true;
-        return feedback.draw($el);
+        return feedback.draw($el, this.rootView, this.alternatives);
     },
     /**
      * Updates the interface alternatives given a list of mediation results (from the mediator)
@@ -277,7 +278,13 @@ var Julia = Object.subClass({
         // TODO: show N best list
         if(deferred.length > 0) {
             var logLevel = LOG_LEVEL_DEBUG;
-            this.ambiguousRequests(deferred, pEvent);
+
+            var combinedAlternatives = this.combineInterfaceAlternatives(deferred);
+            var downsampledAlternatives = this.downSampleInterfaceAlternatives(
+                combinedAlternatives,
+                this.nAlternativesToKeep);
+            this.__julia_ambiguous = true;
+            this.ambiguousRequests(downsampledAlternatives, pEvent);
             return false;
         }
 

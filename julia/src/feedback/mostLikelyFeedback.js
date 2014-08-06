@@ -12,8 +12,8 @@ var MostLikelyFeedback = Object.subClass({
     init: function(julia) {
         this.julia = julia;
     },
-    draw: function($el) {
-        var result = this.julia.alternatives.length > 0 ? this.julia.alternatives[0].view : this.julia.rootView;
+    draw: function($el, rootView, alternatives) {
+        var result = alternatives.length > 0 ? alternatives[0].view : rootView;
         result.draw($el);
         return result;
     }

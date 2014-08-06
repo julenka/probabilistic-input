@@ -37,24 +37,24 @@ NBestListBase = Object.subClass({
     addItemToNBestContainer: function(nbestcontainer, originalRoot, alternativeRoot, probability) {
         throw "addItemToNBestContainer is not implemented in NBestListBase. Needs to be filled in by extending class.";
     },
-    draw: function ($el) {
+    draw: function ($el, rootView, alternatives) {
         // TODO: I think we can refactor this
         $el.off("mousedown touchstart");
         delete this.julia.__julia_dont_dispatch;
-        if(this.julia.alternatives.length === 0) {
-            this.julia.rootView.draw($el);
-            return this.julia.rootView;
+        if(alternatives.length === 0) {
+            rootView.draw($el);
+            return rootView;
         }
         // for now, this will only work for one container, at the root.
         // TODO: make this work at multiple levels
 
         // we are only going to be showing the top 3 interfaces
         // and only if they are withing dp of the most likely
-        var most_likely = this.julia.alternatives[0];
+        var most_likely = alternatives[0];
         var max_p = most_likely.probability;
 
-        var mergedRoot = this.show_root_instead_of_most_likely ? this.julia.rootView.clone() : most_likely.view.clone();
-        var root = this.julia.rootView;
+        var mergedRoot = this.show_root_instead_of_most_likely ? rootView.clone() : most_likely.view.clone();
+        var root = rootView;
         var nbestcontainer = new this.feedback_type(this.julia,
             $.extend(this.n_best_location(), {
                 alternative_size: this.n_best_size,
@@ -64,12 +64,12 @@ NBestListBase = Object.subClass({
         );
         for(var i = this.show_root_instead_of_most_likely ? 0 : 1;
             i < Math.min(this.nAlternatives + 1,
-                this.julia.alternatives.length); i++) {
-            if(i == 0 && this.julia.alternatives.length == 1) {
+                alternatives.length); i++) {
+            if(i == 0 && alternatives.length === 1) {
                 continue;
             }
-            var p = this.julia.alternatives[i].probability;
-            var v = this.julia.alternatives[i].view;
+            var p = alternatives[i].probability;
+            var v = alternatives[i].view;
             if(max_p - p > this.dp) {
                 break;
             }
@@ -87,7 +87,7 @@ NBestListBase = Object.subClass({
                 julia.setRootView(most_likely.view);
                 delete julia.__julia_dont_dispatch;
                 julia.dispatchPEvent(new PMouseEvent(1, e, 10, 10, 'mousedown', e.currentTarget));
-                julia.dispatchCompleted(julia.alternatives, true);
+                julia.dispatchCompleted(alternatives, true);
                 $el.off("mousedown touchstart");
             });
         }

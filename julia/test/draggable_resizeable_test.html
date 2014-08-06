@@ -54,11 +54,8 @@
             rootView.addChildView(child);
         });
 
-        var mouseHook = new PMouseEventHook($sketch[0], 10, 10);
-        var touchHook = new PTouchEventHook($sketch[0], 10, 10);
-
+        var mouseHook = new PMouseEventHook($sketch[0], 5, 5);
         julia.addEventSource(mouseHook);
-        julia.addEventSource(touchHook);
         julia.drawFeedback($sketch, feedback);
 
         julia.dispatchCompleted = function(new_alternatives, uiUpdated) {

@@ -15,8 +15,8 @@ var RootViewFeedback = Object.subClass({
     init: function(julia) {
         this.julia = julia;
     },
-    draw: function($el) {
-        this.julia.rootView.draw($el);
-        return this.julia.rootView;
+    draw: function($el, rootView, alternatives) {
+        rootView.draw($el);
+        return rootView;
     }
 });

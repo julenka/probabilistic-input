@@ -9,7 +9,7 @@ var MeanFeedback = View.subClass({
     init: function(julia) {
         this.julia = julia;
     },
-    draw: function($el) {
+    draw: function($el, rootView, alternatives) {
 
 
         // loop over all alternatives
@@ -57,9 +57,9 @@ var MeanFeedback = View.subClass({
             }
             return acc;
         };
-        for(var i = 0; i < this.julia.alternatives.length; i++) {
+        for(var i = 0; i < alternatives.length; i++) {
             // TODO: concatenate with probabilities here
-            concatenatedRoot = concatenate(concatenatedRoot, this.julia.alternatives[i].view);
+            concatenatedRoot = concatenate(concatenatedRoot, alternatives[i].view);
         }
 
         var reduce = function(root) {

@@ -190,19 +190,20 @@
         juliaDemoAddRadioOption($options, {name: "feedback_options", id:"n_best_2", checked: false},
                 "n best gate, show only changed views",
                 onOptionClicked(function() {
-                    return new NBestFeedback(julia, {n: 4, feedback_type: NBestGate});
+                    return new NBestFeedback(julia, {n: 4, feedback_type: NBestGate, show_root_instead_of_most_likely: false});
                 }) );
         juliaDemoAddRadioOption($options, {name: "feedback_options", id:"n_best_3", checked: false},
                 "n best gate, show entire UI",
                 onOptionClicked(function() {
-                    return new NBestUIFeedback(julia, {n: 4, n_best_size: 100, feedback_type: NBestGate});
+                    return new NBestUIFeedback(julia, {n: 4, n_best_size: 100, feedback_type: NBestGate, show_root_instead_of_most_likely: false});
                 }) );
         juliaDemoAddRadioOption($options, {name: "feedback_options", id:"n_best_4", checked: false},
                 "n best gate, highlight changes",
-                onOptionClicked(function() { return new NBestHighlightFeedback (julia, {n: 4, n_best_size: 100, feedback_type: NBestGate})}) );
+                onOptionClicked(function() { return new NBestHighlightFeedback (julia, {n: 4, n_best_size: 100, feedback_type: NBestGate
+                    , show_root_instead_of_most_likely: false})}) );
         juliaDemoAddRadioOption($options, {name: "feedback_options", id:"n_best_5", checked: false},
                 "n best list, show only changed views",
-                onOptionClicked(function() { return new NBestFeedback(julia, {n: 4})}) );
+                onOptionClicked(function() { return new NBestFeedback(julia, {n: 4, show_root_instead_of_most_likely: false})}) );
     });
 </script>
 </body>

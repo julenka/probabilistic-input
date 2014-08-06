@@ -50,8 +50,8 @@ var GestureRecognizer = FSMView.subClass({
                         return 0;
 
                     },
-                    this.gesture_not_recognized,
                     undefined,
+                    this.gesture_not_recognized,
                     true
                 )
             ]
@@ -67,11 +67,11 @@ var GestureRecognizer = FSMView.subClass({
                     var result = this.recognizeGesture(gesture);
                     return result;
                 },
+                undefined,
                 function(e, rootView) {
                     this.gesture_recognized(gesture, e, rootView);
                     this.path = [];
                 },
-                undefined,
                 true
             ));
         });

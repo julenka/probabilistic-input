@@ -60,8 +60,8 @@ var PathBrush = FSMView.subClass({
                 ),
                 new MouseUpTransitionWithProbability("start",
                     this.properties.pathProbability,
-                    this.line_completed,
                     undefined,
+                    this.line_completed,
                     true
                 )
             ],
@@ -74,8 +74,8 @@ var PathBrush = FSMView.subClass({
                 ),
                 new MouseUpTransitionWithProbability("start",
                     this.properties.pathProbability,
-                    this.line_completed,
                     undefined,
+                    this.line_completed,
                     true
                 )
             ],
@@ -88,8 +88,8 @@ var PathBrush = FSMView.subClass({
                 ),
                 new MouseUpTransitionWithProbability("start",
                     this.properties.pathProbability,
-                    this.path_completed,
                     undefined,
+                    this.path_completed,
                     true
                 )
             ],
@@ -102,8 +102,8 @@ var PathBrush = FSMView.subClass({
                 ),
                 new MouseUpTransitionWithProbability("start",
                     this.properties.pathProbability,
-                    this.line_completed,
                     undefined,
+                    this.line_completed,
                     true
                 )
             ]

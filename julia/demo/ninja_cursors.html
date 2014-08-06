@@ -37,6 +37,7 @@
                 'is_on': false,
                 'is_over': false
             };
+
             this._super(julia, properties, defaults);
             this.updateBackground();
         },
@@ -104,17 +105,23 @@
             var w = this.properties.w;
             var h = this.properties.h;
             if(this.properties.is_over) {
-//                x -= w/2;
-//                y -= h/2;
-//                w *= 2;
-//                h *= 2;
                 s.rect(x - w/2, y-h/2, w*2, h*2).attr({fill: this.properties.background_color});
             }
             var rect = s.rect(x, y, w, h).attr({fill: this.properties.foreground_color});
             if(this.properties.isTarget) {
                 rect.attr({stroke: '#5fd400', 'stroke-width':'10px'});
             }
+        },
+        equals: function(other) {
+            if(!this._super(other)) {
+                return false;
+            }
+            if(other.properties.is_on !== this.properties.is_on) {
+                return false;
+            }
+            return true;
         }
+
     })
     // Your custom views here
 </script>
@@ -259,6 +266,7 @@
 
         var nBestList = new NBestUIFeedback(julia, {
             n:4,
+            show_root_instead_of_most_likely: false,
             probability_mode: "text"
         });
 
@@ -283,8 +291,7 @@
 
         julia.ambiguousRequests = function(deferred, pEvent) {
             $mainInterface.empty();
-            // TODO: Feedback needs to take a list of alternatives!
-            julia.drawFeedback($mainInterface, nBestList);
+            nBestList.draw($mainInterface, julia.rootView, deferred);
             var snap = Snap($mainInterface[0]);
             pEvent.getSamples(julia.nSamplesPerEvent).forEach(function(sample){
                 snap.circle({cx: sample.element_x, cy: sample.element_y, r: 5, opacity: 0.2});

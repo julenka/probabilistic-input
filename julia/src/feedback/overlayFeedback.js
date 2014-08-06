@@ -33,7 +33,7 @@ var OverlayFeedback = Object.subClass({
             this[option] = props[option];
         }
     },
-    draw: function($el) {
+    draw: function($el,rootView, alternatives) {
 
         var me = this;
         // creates a merged UI combining the interface alternatives
@@ -80,7 +80,7 @@ var OverlayFeedback = Object.subClass({
 
         }
         // merge the interface
-        var mergedRoot = mergeHelper(this.julia.rootView.clone(), this.julia.alternatives);
+        var mergedRoot = mergeHelper(rootView.clone(), alternatives);
         mergedRoot.draw($el);
         return mergedRoot;
     }
