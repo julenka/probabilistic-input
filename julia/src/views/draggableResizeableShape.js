@@ -173,7 +173,8 @@ var DraggableResizeableShape = DraggableShape.subClass({
     init: function (julia, properties) {
         this._super(julia, properties, {"resize_padding": 10, "min_w": 10, "min_h": 10});
 
-        var new_states = ["resize_left", 'resize_top', "resize_right", "resize_bottom"];
+        var new_states = ["resize_left", 'resize_top', "resize_right", "resize_bottom",
+        "resize_nw", "resize_ne", "resize_sw", "resize_se"];
         for(var i = 0; i < new_states.length; i++) {
             var name = new_states[i];
             this.fsm_description.start.push(
@@ -247,6 +248,18 @@ var DraggableResizeableShape = DraggableShape.subClass({
         // bottom
         ctrl_pts.resize_bottom.x = x + w / 2;
         ctrl_pts.resize_bottom.y = y + h;
+        // ne
+        ctrl_pts.resize_ne.x = x + w;
+        ctrl_pts.resize_ne.y = y;
+        // nw
+        ctrl_pts.resize_nw.x = x;
+        ctrl_pts.resize_nw.y = y;
+        // se
+        ctrl_pts.resize_se.x = x + w;
+        ctrl_pts.resize_se.y = y + h;
+        // sw
+        ctrl_pts.resize_sw.x = x;
+        ctrl_pts.resize_sw.y = y + h;
     },
     drawControlPoints: function($el) {
         var s = Snap($el[0]);
@@ -284,26 +297,24 @@ var DraggableResizeableShape = DraggableShape.subClass({
         var new_h = this.properties.h;
         var new_x = this.properties.x;
         var new_y = this.properties.y;
-        switch(this.current_state) {
-            case "dragging":
-                new_x = this.drag_start_info.my_x + motion.dx;
-                new_y = this.drag_start_info.my_y + motion.dy;
-                break;
-            case "resize_left":
-                new_w = this.properties.w = this.drag_start_info.my_w - motion.dx;
-                new_x = this.drag_start_info.my_x + motion.dx;
-                break;
-            case "resize_right":
-                new_w = this.drag_start_info.my_w + motion.dx;
-                break;
-            case "resize_top":
-                new_h = this.drag_start_info.my_h - motion.dy;
-                new_y = this.drag_start_info.my_y + motion.dy;
-                break;
-            case "resize_bottom":
-                new_h = this.drag_start_info.my_h + motion.dy;;
-                break;
+        if(this.current_state === "dragging") {
+            new_x = this.drag_start_info.my_x + motion.dx;
+            new_y = this.drag_start_info.my_y + motion.dy;
+        }
+        if(this.current_state === "resize_left" || this.current_state === "resize_nw" || this.current_state === "resize_sw") {
+            new_w = this.properties.w = this.drag_start_info.my_w - motion.dx;
+            new_x = this.drag_start_info.my_x + motion.dx;
+        }
+        if(this.current_state === "resize_right" || this.current_state === "resize_ne" || this.current_state === "resize_se") {
+            new_w = this.drag_start_info.my_w + motion.dx;
+        }
 
+        if(this.current_state === "resize_top" || this.current_state === "resize_ne" || this.current_state === "resize_nw") {
+            new_h = this.drag_start_info.my_h - motion.dy;
+            new_y = this.drag_start_info.my_y + motion.dy;
+        }
+        if(this.current_state === "resize_bottom" || this.current_state === "resize_se" || this.current_state === "resize_sw") {
+            new_h = this.drag_start_info.my_h + motion.dy;
         }
         if(new_h < this.properties.min_h) { return; }
         if(new_w < this.properties.min_w) { return; }
