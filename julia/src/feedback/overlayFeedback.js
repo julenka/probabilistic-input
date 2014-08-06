@@ -129,6 +129,23 @@ var OverlayFeedbackBase = View.subClass({
         }
         return window.__julia_snap_filter_blur[valueToTenth];
     },
+    /**
+     * Returns a filter that has a given contrast value, rounded to tenth.
+     * Values are cached.
+     * @param value
+     */
+    contrastFilterForValue: function(value) {
+        var valueToTenth = Math.roundWithSignificance(value, 2);
+        if(!window.__julia_snap_filter_contrast){
+            window.__julia_snap_filter_contrast = {};
+        }
+        if(!window.__julia_snap_filter_contrast[valueToTenth]) {
+            window.__julia_snap_filter_contrast[valueToTenth] = window.__julia_snap
+                .filter(Snap.filter.contrast(value))
+                .attr({x:0, y:0, width: 1000, height: 1000});
+        }
+        return window.__julia_snap_filter_contrast[valueToTenth];
+    },
     draw: function($el) {
         throw "OverlayFeedbackBase should be subclassed! Draw() not implemented";
     }
@@ -246,9 +263,8 @@ var OverlayContrast = OverlayFeedbackBase.subClass({
     draw: function($el) {
         var s = Snap($el[0]);
         var group = s.group();
-        this.julia.snap_filter_contrast = this.julia.snap.filter(Snap.filter.contrast(this.probability));
         group.attr({
-            filter: this.julia.snap_filter_contrast
+            filter: this.contrastFilterForValue(1 - this.probability)
         });
         this.view.draw($(group.node));
     }
