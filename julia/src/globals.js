@@ -138,6 +138,12 @@ var valueOrDefault = function(value, default_value) {
  * Returns true if equal, false otherwise.
  */
 var shallowEquals = function(a, b) {
+    return shallowEqualsHelper(a, b, 0, 2);
+};
+var shallowEqualsHelper = function(a, b, curDepth, maxDepth) {
+    if(curDepth > maxDepth) {
+        return false;
+    }
     var a_keys = Object.keys(a);
     var b_keys = Object.keys(b);
     if(a_keys.length !== b_keys.length) {
@@ -146,6 +152,12 @@ var shallowEquals = function(a, b) {
     var examined = {};
     for(var prop in a) {
         examined[prop] = true;
+        if(typeof(a) !== typeof(b)) {
+            return false;
+        }
+        if (a[prop] instanceof Object) {
+            return shallowEqualsHelper(a[prop], b[prop], curDepth + 1, maxDepth);
+        }
         if(a[prop] !== b[prop]) {
             return false;
         }

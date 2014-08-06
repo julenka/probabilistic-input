@@ -72,7 +72,7 @@
         });
         var btn2 = new Button(julia, {x: 200, y: 20, w: 150, h: 50, text:"add dragresizeable"});
         btn2.addClickHandler(function(rootView) {
-            rootView.addChildView(new DraggableResizeableBox3(julia, propsForColor("#393")));
+            rootView.addChildView(new DraggableResizeableBox(julia, propsForColor("#393")));
         });
 //        rootView.addChildView(new DraggableResizeableBox(julia, propsForColor("#99bb99")));
 //        rootView.addChildView(new DraggableBox(julia, propsForColor("#bb9999")));

@@ -204,7 +204,61 @@ var DraggableResizeableShape = DraggableShape.subClass({
                     true
                 )
             ];
-
+        }
+        this.initControlPoints(new_states);
+        this.updateControlPoints();
+    },
+    /**
+     * Initialize the control points that are used to resize this element
+     */
+    initControlPoints: function(new_states) {
+        // control point has position
+        // control point radius is fixed
+        this.properties.ctrl_pt_radius = 10;
+        this.properties.ctrl_pts = {};
+        var me = this;
+        // to_state, {x, y}
+        new_states.forEach(function(state) {
+             me.properties.ctrl_pts[state] = {x: 0, y: 0};
+        });
+    },
+    /**
+     * Updates the control points based on the new position and size
+     */
+    updateControlPoints: function() {
+        var ctrl_pts = this.properties.ctrl_pts;
+        var x = this.properties.x;
+        var y = this.properties.y;
+        var w = this.properties.w;
+        var h = this.properties.h;
+        // left
+        ctrl_pts.resize_left.x = x;
+        ctrl_pts.resize_left.y = y + h / 2;
+        // right
+        ctrl_pts.resize_right.x = x + w ;
+        ctrl_pts.resize_right.y = y + h / 2;
+        // top
+        ctrl_pts.resize_top.x = x + w / 2;
+        ctrl_pts.resize_top.y = y;
+        // bottom
+        ctrl_pts.resize_bottom.x = x + w / 2;
+        ctrl_pts.resize_bottom.y = y + h;
+    },
+    drawControlPoints: function($el) {
+        var s = Snap($el[0]);
+        for (var state in this.properties.ctrl_pts) {
+            var opacity = 0.5;
+            var color = 'white';
+            if(this.current_state === state) {
+                opacity = 1;
+                color = 'red';
+            }
+            var pt = this.properties.ctrl_pts[state];
+            s.circle(pt.x, pt.y, this.properties.ctrl_pt_radius).attr({
+                fill: color,
+                stroke: 'black',
+                opacity: opacity
+            });
         }
     },
     drag_predicate: function(e) {
@@ -253,6 +307,7 @@ var DraggableResizeableShape = DraggableShape.subClass({
         this.properties.y = new_y;
         this.properties.w = new_w;
         this.properties.h = new_h;
+        this.updateControlPoints();
     },
     hit_test: function(e, transition) {
         var coords = this.get_relative(e);
@@ -276,20 +331,10 @@ var DraggableResizeableShape = DraggableShape.subClass({
         var border_attrs = {fill: "white", "stroke-width": 1, stroke: "black"};
         if(this.current_state === "dragging") {
             this.drawDragFeedback($el);
-        } else if (this.current_state === "resize_left") {
-            s.rect(this.properties.x - padding, this.properties.y - padding, 2 * padding, this.properties.h + 2 * padding)
-                .attr(border_attrs);
-        } else if (this.current_state === "resize_right") {
-            s.rect(this.properties.x + this.properties.w - padding, this.properties.y - padding, 2 * padding, this.properties.h + 2 * padding)
-                .attr(border_attrs);
-        } else if (this.current_state === "resize_top") {
-            s.rect(this.properties.x - padding, this.properties.y - padding, this.properties.w + 2 * padding, 2 * padding)
-                .attr(border_attrs);
-        } else if (this.current_state === "resize_bottom") {
-            s.rect(this.properties.x - padding, this.properties.y + this.properties.h - padding, this.properties.w + 2 * padding, 2 * padding)
-                .attr(border_attrs);
         }
         this.drawShape($el) ;
+        this.drawControlPoints($el);
+
     },
     equals: function(other) {
         if(!this._super(other)) {
@@ -341,5 +386,17 @@ var DraggableResizeableEllipse = DraggableResizeableShape.subClass({
             {fill: this.properties.color,
                 "stroke-width": this.properties["stroke-width"],
                 stroke: this.properties.stroke});
+    },
+    hit_test: function(e) {
+        var coords = this.get_relative(e);
+        var rx = this.properties.w / 2;
+        var ry = this.properties.h / 2;
+        var cx = coords.rx - rx;
+        var cy = coords.ry - ry;
+        // http://math.stackexchange.com/questions/76457/check-if-a-point-is-within-an-ellipse
+        var dx = Math.pow(cx, 2) / Math.pow(rx, 2);
+        var dy = Math.pow(cy, 2) / Math.pow(ry, 2);
+        return dx + dy <= 1;
+
     }
 });
