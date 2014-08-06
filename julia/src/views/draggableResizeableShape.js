@@ -171,13 +171,55 @@ var DraggableResizeableShape = DraggableShape.subClass({
      * @param properties
      */
     init: function (julia, properties) {
-        this._super(julia, properties, {"resize_padding": 10, "min_w": 10, "min_h": 10});
+        this._super(julia, properties, {"resize_padding": 30, "min_w": 10, "min_h": 10});
 
         var new_states = ["resize_left", 'resize_top', "resize_right", "resize_bottom",
         "resize_nw", "resize_ne", "resize_sw", "resize_se"];
+        this.fsm_description = {
+            start: [
+                //   init: function(to, drag_predicate, feedback_action, final_action, handles_event) {
+                new MouseMoveTransition(
+                    "over",
+                    this.boundingBoxHitTest,
+                    function(){},
+                    undefined,
+                    false)
+            ],
+            over : [
+                new MouseDownTransition(
+                    "dragging",
+                    this.hit_test,
+                    this.drag_start,
+                    undefined,
+                    true),
+                new MouseMoveTransition(
+                    "start",
+                    function(e){ return !this.boundingBoxHitTest(e); },
+                    function(){},
+                    undefined,
+                    false)
+            ],
+            dragging: [
+                new MouseMoveTransitionWithProbability(
+                    "dragging",
+                    this.drag_predicate,
+                    this.drag_progress,
+                    undefined,
+                    true
+                ),
+                new MouseUpTransitionWithProbability(
+                    "start",
+                    this.drag_predicate,
+                    undefined,
+                    this.drag_end,
+                    true
+                )
+            ]
+        };
+
         for(var i = 0; i < new_states.length; i++) {
             var name = new_states[i];
-            this.fsm_description.start.push(
+            this.fsm_description.over.push(
                 new MouseDownTransitionWithProbability(
                     name,
                     function(e, transition) {
@@ -209,6 +251,9 @@ var DraggableResizeableShape = DraggableShape.subClass({
         this.initControlPoints(new_states);
         this.updateControlPoints();
     },
+
+
+
     /**
      * Initialize the control points that are used to resize this element
      */
@@ -324,9 +369,19 @@ var DraggableResizeableShape = DraggableShape.subClass({
         this.properties.h = new_h;
         this.updateControlPoints();
     },
+    boundingBoxHitTest: function(e) {
+        var coords = this.get_relative(e);
+        return (coords.rx > -this.properties.resize_padding
+            && coords.ry > -this.properties.resize_padding
+            && coords.rx < this.properties.w + this.properties.resize_padding
+            && coords.ry < this.properties.h + this.properties.resize_padding);
+    },
     dragHitTest: function(e) {
         var coords = this.get_relative(e);
-        return (coords.rx > this.properties.resize_padding && coords.ry > this.properties.resize_padding && coords.rx < this.properties.w - this.properties.resize_padding && coords.ry < this.properties.h - this.properties.resize_padding);
+        return (coords.rx > this.properties.resize_padding
+            && coords.ry > this.properties.resize_padding
+            && coords.rx < this.properties.w - this.properties.resize_padding
+            && coords.ry < this.properties.h - this.properties.resize_padding);
     },
     hit_test: function(e, transition) {
         if(transition.to === "dragging") {
@@ -343,8 +398,11 @@ var DraggableResizeableShape = DraggableShape.subClass({
         if(this.current_state === "dragging") {
             this.drawDragFeedback($el);
         }
-        this.drawShape($el) ;
-        this.drawControlPoints($el);
+        this.drawShape($el);
+        if(this.current_state !== "start" && this.current_state !== "dragging") {
+            this.drawControlPoints($el);
+        }
+
 
     },
     equals: function(other) {
