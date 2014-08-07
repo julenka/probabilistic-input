@@ -171,9 +171,8 @@
     }
 
     function onLineCompleted (julia, lineColor, p1, p2, root) {
-        var new_line = new Path(julia, {radius: 1, color: lineColor,
-            path: [p1, p2].map(path2str)
-        });
+        var new_line = new EditableLine(julia, p1, p2,
+                {radius: 1, color: lineColor});
         root.addChildView(new_line);
         // set last action to be line, regardless of if it was horizontal or vertical
         updateLastAction("line");
