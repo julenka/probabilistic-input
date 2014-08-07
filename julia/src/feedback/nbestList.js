@@ -40,6 +40,7 @@ NBestListBase = Object.subClass({
     draw: function ($el, rootView, alternatives) {
         // TODO: I think we can refactor this
         $el.off("mousedown touchstart");
+        $(window).off("keypress");
         delete this.julia.__julia_dont_dispatch;
         if(alternatives.length === 0) {
             rootView.draw($el);
@@ -90,10 +91,18 @@ NBestListBase = Object.subClass({
                 julia.dispatchCompleted(alternatives, true);
                 $el.off("mousedown touchstart");
             });
+
         }
 
         mergedRoot.draw($el);
 
+        $(window).on("keypress", function(e) {
+            if(String.fromCharCode(e.keyCode) === '0') {
+                julia.setRootView(most_likely.view);
+                delete julia.__julia_dont_dispatch;
+                $(window).off("keypress");
+            }
+        });
         return mergedRoot;
     }
 });
@@ -392,7 +401,7 @@ var NBestContainer = View.subClass({
             // http://stackoverflow.com/questions/10868006/trying-to-get-numbers-from-keypress-document-javascript
             var key = e.keyCode || e.charCode;
             console.log("pressed", key - 48);
-            if(key >= 48 && key <=57) {
+            if(key > 48 && key <=57) {
                 keypressHandlers[key - 48 - 1](e);
             }
         });
@@ -575,7 +584,7 @@ var NBestGate = NBestContainer.subClass({
 
             // http://stackoverflow.com/questions/10868006/trying-to-get-numbers-from-keypress-document-javascript
             var key = e.keyCode || e.charCode;
-            if(key >= 48 && key <=57) {
+            if(key > 48 && key <=57) {
                 keypressHandlers[key - 48 - 1](e);
             }
         });
