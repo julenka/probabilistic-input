@@ -4,6 +4,37 @@
 
 // TODO: This depends on Julia. Figure out how to specify this.
 
+var DragStartEvent = PEvent.subClass({
+    className: "DragStartEvent",
+    /**
+     * Initialize Drag Start Event
+     * @param identify_p 1
+     * @param e undefined
+     * @param view view that began dragging
+     */
+    init: function(identity_p, e, view) {
+        this._super(identity_p, e);
+        this.source = "virtual";
+        this.type = "dragstart";
+        this.view = view;
+    },
+    /**
+     * Super naive getSamples implementation that just returns itself. If in future we
+     * need to send more samples, should do this
+     * @param n
+     * @returns {DragStartEvent}
+     */
+    getSamples: function(n) {
+        return [this];
+    }
+});
+var DragEndEvent = DragStartEvent.subClass({
+    className: "DragEndEvent",
+    init: function(identity_p, e, view) {
+        this._super(identity_p, e, view);
+        this.type = "dragend";
+    }
+});
 
 /**
  * A rectangle that is draggable
@@ -32,7 +63,7 @@ var DraggableShape = FSMView.subClass({
                 //   init: function(to, drag_predicate, feedback_action, final_action, handles_event) {
                 new MouseDownTransition(
                     "dragging",
-                    this.hit_test,
+                    this.predicate_drag_start,
                     this.drag_start,
                     undefined,
                     true)
@@ -47,7 +78,7 @@ var DraggableShape = FSMView.subClass({
                 ),
                 new MouseUpTransitionWithProbability(
                     "start",
-                    this.drag_predicate,
+                    this.drag_end_predicate,
                     undefined,
                     this.drag_end,
                     true
@@ -66,12 +97,28 @@ var DraggableShape = FSMView.subClass({
             dy:e.base_event.element_y - this.drag_start_info.mouse_y
         };
     },
+    predicate_drag_start: function(e, transition) {
+        return this.hit_test(e, transition);
+    },
     hit_test: function(e) {
         var coords = this.get_relative(e);
         return (coords.rx > 0 && coords.ry > 0 && coords.rx < this.properties.w && coords.ry < this.properties.h);
     },
+    send_drag_start: function() {
+        this.julia.addToDispatchQueue({view: this.getRootView(), probability: 1},new DragStartEvent(1, undefined, this));
+    },
+    /**
+     * When the drag is starting, we need to also add a drag event to the current dispatch queue
+     * @param e
+     */
+    drag_end_predicate: function(e) {
+        return 1;
+    },
     drag_predicate: function(e) {
         return 1;
+    },
+    send_drag_end: function() {
+        this.julia.addToDispatchQueue({view: this.getRootView(), probability: 1},new DragEndEvent(1, undefined, this));
     },
     /**
      * Called when a gesture (e.g. the drag, in this case) starts.
@@ -89,13 +136,15 @@ var DraggableShape = FSMView.subClass({
     drag_start: function(e, rootView) {
         // the index of the event sample that we received when a drag was initiated
         this.gesture_start(e);
+        this.send_drag_start(e);
     },
     drag_progress: function(e, rootView) {
         var motion = this.get_relative_motion(e);
         this.properties.x = this.drag_start_info.my_x + motion.dx;
         this.properties.y = this.drag_start_info.my_y + motion.dy;
     },
-    drag_end: function(e, rootView) {
+    drag_end: function() {
+        this.send_drag_end();
     },
     draw: function ($el) {
         // in this case $el will be an SVG element
@@ -186,7 +235,7 @@ var DraggableResizeableShape = DraggableShape.subClass({
                     false),
                 new MouseDownTransition(
                     "dragging",
-                    this.hit_test,
+                    this.predicate_drag_start,
                     this.drag_start,
                     undefined,
                     true),
@@ -194,7 +243,7 @@ var DraggableResizeableShape = DraggableShape.subClass({
             over : [
                 new MouseDownTransition(
                     "dragging",
-                    this.hit_test,
+                    this.predicate_drag_start,
                     this.drag_start,
                     undefined,
                     true),
@@ -407,7 +456,7 @@ var DraggableResizeableShape = DraggableShape.subClass({
         if(transition.to === "dragging") {
             return this.dragHitTest(e);
         } else {
-            return this.hitTestControlPoint(transition.to, e.base_event.element_x, e.base_event.element_y);
+            return this.hitTestControlPoint(transition.to, e.element_x, e.element_y);
         }
     },
     draw: function ($el) {

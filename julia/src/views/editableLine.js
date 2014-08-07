@@ -21,7 +21,7 @@ var EditableLine = DraggableShape.subClass({
         this.fsm_description.start.push(
             new MouseMoveTransition(
                 "over",
-                this.hitTestRegion,
+                this.overPredicate,
                 function(){},
                 undefined,
                 false
@@ -30,14 +30,14 @@ var EditableLine = DraggableShape.subClass({
         this.fsm_description.over = [
                 new MouseMoveTransition(
                     "start",
-                    function(e) { return !this.hitTestRegion(e); },
+                    function(e) { return !this.overPredicate(e);},
                     function(){},
                     undefined,
                     true
                 ),
             new MouseDownTransition(
                 "dragging",
-                this.hit_test,
+                this.predicate_drag_start,
                 this.drag_start,
                 undefined,
                 true)
@@ -79,8 +79,8 @@ var EditableLine = DraggableShape.subClass({
                 new MouseUpTransition(
                     "start",
                     RETURN_TRUE,
-                    function() {},
                     undefined,
+                    function() {},
                     true
                 )
             );
@@ -91,7 +91,7 @@ var EditableLine = DraggableShape.subClass({
      * need to record our own information
      * @param e
      */
-    drag_start: function(e){
+    gesture_start: function(e){
 
         this.drag_start_info.mouse_x = e.base_event.element_x;
         this.drag_start_info.mouse_y = e.base_event.element_y;
@@ -117,6 +117,18 @@ var EditableLine = DraggableShape.subClass({
      * @returns {boolean}
      */
     hit_test: function(e) {
+        return this.hitTestDrag(e);
+    },
+    overPredicate: function(e) {
+        return this.hitTestControlPoint(e, {to: "move_p1"}) > 0 || this.hitTestControlPoint(e, {to: "move_p2"}) > 0 || this.hitTestRegion(e);
+    },
+    hitTestDrag: function(e) {
+        if(this.hitTestControlPoint(e, {to: "move_p1"}) > 0) {
+            return false;
+        }
+        if(this.hitTestControlPoint(e, {to: "move_p2"}) > 0) {
+            return false;
+        }
         return this.hitTestRegion(e);
     },
     /**
@@ -125,12 +137,6 @@ var EditableLine = DraggableShape.subClass({
      * @returns {boolean}
      */
     hitTestRegion: function(e) {
-        if(this.hitTestControlPoint(e, {to: "move_p1"}) > 0) {
-            return false;
-        }
-        if(this.hitTestControlPoint(e, {to: "move_p2"}) > 0) {
-            return false;
-        }
         // This uses the sylvester library, see: http://sylvester.jcoglan.com/api/vector.html
         var v1 = $V([this.properties.p1.x, this.properties.p1.y]);
         var v2 = $V([this.properties.p2.x, this.properties.p2.y]);

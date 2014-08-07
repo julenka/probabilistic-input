@@ -149,15 +149,7 @@ var Julia = Object.subClass({
         }
 
     },
-    dispatchPEvent: function(pEvent) {
-        this.updateMouse(pEvent);
-        // HACKS
-        if(this.__julia_dont_dispatch) {
-            return;
-        }
-
-        this.initDispatchQueue(pEvent);
-
+    dispatchEventsInQueue: function(){
         var actionRequests = [];
         while(this.dispatchQueue.length !== 0) {
             var viewAndEvent = this.dispatchQueue.shift();
@@ -168,11 +160,8 @@ var Julia = Object.subClass({
             actionRequests.extend(requestsFromView);
         }
         actionRequests = this.combiner.combine(actionRequests);
-        actionRequests.forEach(function(seq) {
-            log(LOG_LEVEL_VERBOSE, pEvent.type, seq.requests[seq.requests.length-1].toString().replace(/\s+/g," "), Math.roundWithSignificance(seq.weight,2));
-        });
         var mediationResults = this.mediator.mediate(actionRequests);
-        var newAlternatives = this.updateInterfaceAlternatives(mediationResults, pEvent);
+        var newAlternatives = this.updateInterfaceAlternatives(mediationResults);
         if(!newAlternatives) {
             // The mediation includded some deferred results, dispatch has been deferred
             return;
@@ -190,9 +179,25 @@ var Julia = Object.subClass({
             }
 
         }
+
+    },
+    dispatchPEvent: function(pEvent) {
+
+        this.updateMouse(pEvent);
+        // HACKS
+        if(this.__julia_dont_dispatch) {
+            return;
+        }
+
+        this.initDispatchQueue(pEvent);
+
+        while(this.dispatchQueue.length > 0) {
+            this.dispatchEventsInQueue();
+        }
+
         // The mediator automatically resamples the views
         if(typeof this.dispatchCompleted !== "undefined") {
-            this.dispatchCompleted(this.alternatives, downsampledAlternatives.length > 0, pEvent);
+            this.dispatchCompleted(this.alternatives, this.alternatives.length > 0, pEvent);
         }
     },
     /**

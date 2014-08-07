@@ -65,6 +65,18 @@ var View = Object.subClass({
         return result;
     },
     /**
+     * Return the root view of the interface for this interactor
+     * Assumes that 'container' property is set of all elements except root view
+     */
+    getRootView: function() {
+        var root = this.container;
+        // Find the root view for this view
+        while(root.container) {
+            root = root.container;
+        }
+        return root;
+    },
+    /**
      * Draws the view
      */
     draw: function() {

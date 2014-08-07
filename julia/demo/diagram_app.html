@@ -126,6 +126,73 @@
             delete this.properties.p2;
         }
     });
+
+    var TrashView = FSMView.subClass({
+        className: "TrashView",
+        init: function(julia, props) {
+            var defaults = {
+                width: 546,
+                height: 30,
+                x: 0,
+                y: 377
+            };
+            this._super(julia, props, defaults);
+            this.fsm_description = {
+                start: [
+                /**
+                 * attrs: to (required), source (required), type (required), predicate (required), feedback_action (default: undefined)
+                 * final_action (default: undefined), handles_event (default: false)
+                 * @param attrs
+                 */
+                    new Transition({
+                        to: "trash",
+                        source: "virtual",
+                        type: "dragstart",
+                        predicate: this.log,
+                        "feedback_action": function(){},
+                        handles_event: false
+                    })
+                ],
+                trash: [
+                    new Transition({
+                        to: "start",
+                        source: "virtual",
+                        type: "dragend",
+                        predicate: this.log,
+                        final_action: this.onDragEnd,
+                        handles_event: false
+                    })
+                ]
+            }
+        },
+        log: function(e) {
+            return true;
+        },
+        onDragEnd: function(e, rootView) {
+            console.log("onDragEnd");
+            rootView.removeChild(e.view);
+        },
+        draw: function($el) {
+            var s = Snap($el[0]);
+            s.text(50, 100, this.current_state);
+            if(this.current_state === "start") {
+                return;
+            }
+
+            var x = this.properties.x;
+            var y = this.properties.y;
+            var w = this.properties.width;
+            var h = this.properties.height;
+            var cx = x + w / 2;
+            var cy = y + h / 2 + 5;
+            s.rect(x,y,w,h).attr({
+                fill: "red",
+                opacity: 0.4
+            });
+
+            s.text(cx, cy, "remove").attr({"text-anchor": "middle", fill: "white"});
+        }
+    })
 </script>
 <script>
 
@@ -163,6 +230,7 @@
         everyChildView.addChildView(gesture_recognizer);
         everyChildView.addChildView(path_brush);
         rootView.addChildView(everyChildView);
+        rootView.addChildView(new TrashView(julia));
     }
 
     function updateLastAction(action) {
@@ -257,7 +325,7 @@
      */
     $(document).ready(function(){
 
-        var julia = new Julia({nSamplesPerEvent: 1, minProbability: 0.01, nAlternativesToKeep: 6});
+        var julia = new Julia({nSamplesPerEvent: 5, minProbability: 0.01, nAlternativesToKeep: 6});
         var rootView = new ContainerView(julia, {background_color: "#eee"});
         julia.setRootView(rootView);
         setup(rootView);
