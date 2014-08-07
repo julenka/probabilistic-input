@@ -47,10 +47,10 @@ var ContainerView = View.subClass({
         this.children.push(view);
         this.id_to_child[view.__julia_id] = view;
     },
-    removeChild: function(child) {
+    removeChildView: function(child) {
         for(var i = 0; i < this.children.length; i++) {
-            if(this.children[i] === child) {
-                this.splice(i, 1);
+            if(this.children[i].__julia_id === child.__julia_id) {
+                this.children.splice(i, 1);
                 return;
             }
         }

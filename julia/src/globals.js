@@ -7,7 +7,7 @@
 // Useful functions
 // TODO: Come up with a better naming scheme for this
 var RETURN_TRUE = function() { return true; };
-
+var DO_NOTHING = function() {};
 // Makes a shallow copy of the input object.
 // Assumption: input is an object of the form {key1: value1, key2: value2,...}
 // copies only the immediate properties of an object
@@ -127,6 +127,31 @@ var deepCopy = function(o) {
     }
 
     return newObj;
+};
+
+/**
+ * Returns true if one rectangle intersects another
+ * From http://www.geeksforgeeks.org/find-two-rectangles-overlap/
+ * Following is a simpler approach. Two rectangles do not overlap if one of the following conditions is true.
+ * 1) One rectangle is above top edge of other rectangle.
+ * 2) One rectangle is on left side of left edge of other rectangle.
+ * @param r1 {x, y, w, h}
+ * @param r2 {x, y, w, h}
+ */
+var rectanglesIntersect = function(r1, r2) {
+    function miss(a, b) {
+        var l1 = a.x;
+        var r1 = a.x + a.w;
+        var l2 = b.x;
+        var r2 = b.x + b.w;
+        var t1 = a.y;
+        var t2 = b.y;
+        var b1 = a.y + a.h;
+        var b2 = b.y + b.h;
+        return r1 < l2 || b1 < t2;
+    }
+    var missed = miss(r2, r1) || miss(r1, r2);
+    return !missed;
 };
 
 var valueOrDefault = function(value, default_value) {

@@ -110,6 +110,13 @@ var EditableLine = DraggableShape.subClass({
         this.properties.p1.y = this.drag_start_info.p1.y + dy;
         this.properties.p2.x = this.drag_start_info.p2.x + dx;
         this.properties.p2.y = this.drag_start_info.p2.y + dy;
+        this.send_drag_progress();
+    },
+    getBoundingBox: function() {
+        var p1 = this.properties.p1;
+        var p2 = this.properties.p2;
+        return {x: Math.min(p1.x, p2.x), y: Math.min(p1.y, p2.y),
+            w: Math.abs(p2.x - p1.x), h: Math.abs(p2.y - p1.y)};
     },
     /**
      * Override the draggable hit test function

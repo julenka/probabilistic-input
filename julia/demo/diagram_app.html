@@ -145,32 +145,67 @@
                  * @param attrs
                  */
                     new Transition({
-                        to: "trash",
+                        to: "active",
                         source: "virtual",
                         type: "dragstart",
-                        predicate: this.log,
-                        "feedback_action": function(){},
+                        predicate: RETURN_TRUE,
+                        feedback_action: DO_NOTHING,
                         handles_event: false
                     })
                 ],
-                trash: [
+                active: [
                     new Transition({
                         to: "start",
                         source: "virtual",
                         type: "dragend",
-                        predicate: this.log,
+                        predicate: RETURN_TRUE,
+                        feedback_action: DO_NOTHING,
+                        handles_event: false
+                    }),
+                    new Transition({
+                        to: "over",
+                        source: "virtual",
+                        type: "dragprogress",
+                        predicate: this.hitTest,
+                        feedback_action: DO_NOTHING,
+                        handles_event: false
+                    }),
+                ],
+                over: [
+                    new Transition({
+                        to: "active",
+                        source: "virtual",
+                        type: "dragprogress",
+                        predicate: this.missTest,
+                        feedback_action: DO_NOTHING,
+                        handles_event: false
+                    }),
+                    new Transition({
+                        to: "start",
+                        source: "virtual",
+                        type: "dragend",
+                        predicate: RETURN_TRUE,
                         final_action: this.onDragEnd,
                         handles_event: false
                     })
                 ]
             }
         },
+        missTest: function(e) {
+            return !this.hitTest(e);
+        },
+        hitTest: function(e){
+
+            var r1 = e.view.getBoundingBox();
+            var r2 = this.getBoundingBox();
+            return rectanglesIntersect(r1, r2);
+        },
         log: function(e) {
             return true;
         },
         onDragEnd: function(e, rootView) {
             console.log("onDragEnd");
-            rootView.removeChild(e.view);
+            rootView.removeChildView(e.view);
         },
         draw: function($el) {
             var s = Snap($el[0]);
@@ -186,8 +221,8 @@
             var cx = x + w / 2;
             var cy = y + h / 2 + 5;
             s.rect(x,y,w,h).attr({
-                fill: "red",
-                opacity: 0.4
+                fill:  "red",
+                opacity: this.current_state === "over" ? 1 :0.4
             });
 
             s.text(cx, cy, "remove").attr({"text-anchor": "middle", fill: "white"});

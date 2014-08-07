@@ -92,6 +92,9 @@ var View = Object.subClass({
         return shallowEquals(this.properties, other.properties);
 
     },
+    getBoundingBox: function() {
+        return {x: this.properties.x, y: this.properties.y, w: this.properties.width || this.properties.w, h: this.properties.height || this.properties.h};
+    },
     /**
      * TODO: do we also want to make this a getter? Probably.
      * Updates properties of the object (in .properties) using the given map

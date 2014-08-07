@@ -35,6 +35,13 @@ var DragEndEvent = DragStartEvent.subClass({
         this.type = "dragend";
     }
 });
+var DragProgressEvent = DragStartEvent.subClass({
+    className: "DragProgressEvent",
+    init: function(identity_p, e, view) {
+        this._super(identity_p, e, view);
+        this.type = "dragprogress";
+    }
+});
 
 /**
  * A rectangle that is draggable
@@ -120,6 +127,9 @@ var DraggableShape = FSMView.subClass({
     send_drag_end: function() {
         this.julia.addToDispatchQueue({view: this.getRootView(), probability: 1},new DragEndEvent(1, undefined, this));
     },
+    send_drag_progress: function() {
+        this.julia.addToDispatchQueue({view: this.getRootView(), probability: 1},new DragProgressEvent(1, undefined, this));
+    },
     /**
      * Called when a gesture (e.g. the drag, in this case) starts.
      * Store information about the start of the gesture here.
@@ -142,6 +152,7 @@ var DraggableShape = FSMView.subClass({
         var motion = this.get_relative_motion(e);
         this.properties.x = this.drag_start_info.my_x + motion.dx;
         this.properties.y = this.drag_start_info.my_y + motion.dy;
+        this.send_drag_progress();
     },
     drag_end: function() {
         this.send_drag_end();
@@ -437,6 +448,7 @@ var DraggableResizeableShape = DraggableShape.subClass({
         this.properties.w = new_w;
         this.properties.h = new_h;
         this.updateControlPoints();
+        this.send_drag_progress();
     },
     boundingBoxHitTest: function(e) {
         var coords = this.get_relative(e);

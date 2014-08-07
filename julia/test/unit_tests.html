@@ -117,6 +117,21 @@
 
     });
 
+    test("rectanglesIntersect", function() {
+        var r1 = {x: 0, y: 0, w: 10, h: 10};
+        var r2 = {x: 0, y: 0, w: 5, h: 5};
+        ok(rectanglesIntersect(r1, r2));
+        ok(rectanglesIntersect(r2, r1));
+        r1 = {x: 6, y: 6, w: 5, h: 5};
+        r2 = {x: 0, y: 0, w: 5, h: 5};
+        ok(!rectanglesIntersect(r1, r2));
+        ok(!rectanglesIntersect(r2, r1));
+        r1 = {x: -1, y: 1, w: 5, h: 5};
+        r2 = {x: 0, y: 0, w: 5, h: 5};
+        ok(rectanglesIntersect(r1, r2));
+        ok(rectanglesIntersect(r2, r1));
+    });
+
     test("String.repeat", function() {
         equal("s".repeat(0), "");
         equal("s".repeat(5), "sssss");
