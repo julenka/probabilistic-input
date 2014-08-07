@@ -222,7 +222,7 @@
             var cy = y + h / 2 + 5;
             s.rect(x,y,w,h).attr({
                 fill:  "red",
-                opacity: this.current_state === "over" ? 1 :0.4
+                opacity: this.current_state === "over" ? 0.8 :0.4
             });
 
             s.text(cx, cy, "remove").attr({"text-anchor": "middle", fill: "white"});
@@ -265,7 +265,9 @@
         everyChildView.addChildView(gesture_recognizer);
         everyChildView.addChildView(path_brush);
         rootView.addChildView(everyChildView);
-        rootView.addChildView(new TrashView(julia));
+        var trashView = new TrashView(julia);
+        trashView.properties.drawZ = 1000;
+        rootView.addChildView(trashView);
     }
 
     function updateLastAction(action) {

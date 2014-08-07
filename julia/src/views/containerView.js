@@ -104,8 +104,17 @@ var ContainerView = View.subClass({
         if(typeof(this.properties.background_image) !== 'undefined') {
             $el.css('background-image', this.properties.background_image);
         }
+        var z_order_views = [];
         for(i; i < this.children.length; i++) {
-            this.children[i].draw($el);
+            if(this.children[i].properties.drawZ) {
+                z_order_views.push(this.children[i]);
+            } else {
+                this.children[i].draw($el);
+            }
+        }
+        z_order_views.sort(function(x,y) { return x.drawZ - y.drawZ; } );
+        for(i=0; i < z_order_views.length; i++){
+            z_order_views[i].draw($el);
         }
     },
     drawAmbiguous: function($el) {
