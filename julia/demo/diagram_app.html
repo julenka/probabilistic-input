@@ -239,12 +239,25 @@
 
     }
 
+    function onKeyPress(julia, e) {
+        var c = String.fromCharCode(e.keyCode);
+        if(c === 'd') {
+            // remove the last child unless the size of the children is 1 (in which case it's just the gestures);
+            var toProcess = [julia.rootView];
+            toProcess.forEach(function(alt) {
+                if(alt.children.length > 1) {
+                    alt.removeLastChild();
+                }
+            });
+        }
+
+    }
     /**
      * Executed when the document loads. Intended to be boilerplate, shouldn't have to replace much here (for now).
      */
     $(document).ready(function(){
 
-        var julia = new Julia({nSamplesPerEvent: 20, minProbability: 0.01, nAlternativesToKeep: 6});
+        var julia = new Julia({nSamplesPerEvent: 1, minProbability: 0.01, nAlternativesToKeep: 6});
         var rootView = new ContainerView(julia, {background_color: "#eee"});
         julia.setRootView(rootView);
         setup(rootView);
@@ -283,6 +296,7 @@
 
         addTouchOverlay();
         addKeyOverlay();
+        $(document).keypress(onKeyPress.curry(julia));
     });
 </script>
 </body>

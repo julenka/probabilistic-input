@@ -47,6 +47,12 @@ var ContainerView = View.subClass({
         this.children.push(view);
         this.id_to_child[view.__julia_id] = view;
     },
+    removeChildAtIndex: function(index) {
+        this.children.splice(index, 1);
+    },
+    removeLastChild: function() {
+        this.removeChildAtIndex(this.children.length - 1);
+    },
     findViewById: function(id) {
         if(this.__julia_id === id) { return this;}
         if(id in this.id_to_child) {

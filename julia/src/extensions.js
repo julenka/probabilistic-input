@@ -111,6 +111,7 @@ Array.prototype.min = function() {
 
 Array.prototype.extend = function(ar2) {
     this.push.apply(this, ar2);
+    return this;
 };
 
 Array.prototype.mean = function() {
