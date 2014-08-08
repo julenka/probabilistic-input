@@ -65,7 +65,7 @@ var DraggableShape = FSMView.subClass({
             stroke: "black",
             x: 0, y: 0, w: 0, h: 0,
             default_predicate_probability: 0.6,
-            default_predicate_probability_with_prior: 0.9
+            default_predicate_probability_with_prior: 1.0
         }
 
             ;
@@ -255,7 +255,7 @@ var DraggableResizeableShape = DraggableShape.subClass({
                     this.boundingBoxHitTest,
                     function(){},
                     undefined,
-                    false),
+                    true),
                 new MouseDownTransition(
                     "dragging",
                     this.predicate_drag_start,
@@ -301,7 +301,7 @@ var DraggableResizeableShape = DraggableShape.subClass({
                 new MouseDownTransitionWithProbability(
                     name,
                     this.resize_predicate,
-                    this.drag_start,
+                    this.resize_start,
                     undefined,
                     true
                     )
@@ -311,11 +311,11 @@ var DraggableResizeableShape = DraggableShape.subClass({
                     name,
                     function(e, transition) {
                         if(this.hit_test(e, transition)) {
-                            return 0.5;
+                            return this.properties.default_predicate_probability;
                         }
                         return 0;
                     },
-                    this.drag_start,
+                    this.resize_start,
                     undefined,
                     true)
             );
@@ -337,6 +337,9 @@ var DraggableResizeableShape = DraggableShape.subClass({
         }
         this.initControlPoints(new_states);
         this.updateControlPoints();
+    },
+    resize_start: function(e) {
+        this.gesture_start(e);
     },
     resize_predicate: function(e, transition) {
         if(this.hit_test(e, transition)) {
@@ -495,7 +498,7 @@ var DraggableResizeableShape = DraggableShape.subClass({
     },
     hit_test: function(e, transition) {
         if(transition.to === "dragging") {
-            return this.dragHitTest(e);
+            return this.boundingBoxHitTest(e);
         } else {
             return this.hitTestControlPoint(transition.to, e.element_x, e.element_y);
         }

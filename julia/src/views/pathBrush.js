@@ -19,6 +19,8 @@ var PathBrush = FSMView.subClass({
         this._super(julia, properties,
             {color: "black", opacity: 1, use_priors: false,
                 width: 1,
+                default_predicate_probability: 0.6,
+                default_predicate_probability_with_prior: 1.0,
                 pathProbability: function(e) {
                     return 1.0; }
             });
@@ -132,9 +134,9 @@ var PathBrush = FSMView.subClass({
             // For path_priors demo. Maintaint prior action in a global state for now
             // TODO: if you release this code this needs to be cleaned up
             if(to_state === this.action_to_state[window.__julia_last_action]) {
-                return 1;
+                return this.properties.default_predicate_probability_with_prior;
             }
-            return 0.9;
+            return this.properties.default_predicate_probability;
         }
         return 1;
     },

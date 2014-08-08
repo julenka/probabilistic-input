@@ -22,7 +22,7 @@ var EditableLine = DraggableShape.subClass({
             new MouseMoveTransition(
                 "over",
                 this.overPredicate,
-                function(){},
+                this.removeSnapFeedback,
                 undefined,
                 false
             )
@@ -31,7 +31,7 @@ var EditableLine = DraggableShape.subClass({
                 new MouseMoveTransition(
                     "start",
                     function(e) { return !this.overPredicate(e);},
-                    function(){},
+                    this.removeSnapFeedback,
                     undefined,
                     true
                 ),
@@ -177,6 +177,10 @@ var EditableLine = DraggableShape.subClass({
             return 0;
         }
     },
+    removeSnapFeedback: function(){
+        delete this.properties.p1.snapped;
+        delete this.properties.p2.snapped;
+    },
     updatePoints: function(e) {
         var x = e.base_event.element_x;
         var y = e.base_event.element_y;
@@ -185,6 +189,7 @@ var EditableLine = DraggableShape.subClass({
         } else {
             this.properties.p2 = {x: x, y: y};
         }
+        this.removeSnapFeedback();
     },
     equals: function(other) {
         if(!this._super(other)) {

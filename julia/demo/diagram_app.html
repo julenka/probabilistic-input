@@ -13,7 +13,7 @@
 </head>
 <body>
 <!--<h3 class="centered">Diagramming App</h3>-->
-<!--<h3 class="centered" id="last_action">last action: none</h3>-->
+<h3 class="centered" id="last_action">last action: none</h3>
 <div id="ipad_container" class="ipad_container">
     <div id="ipad_screen" class="ipad_screen">
         <svg id="demo_interface" width="546" height="407"></svg>
@@ -36,6 +36,8 @@
         className: "DragShapeView",
         init: function(julia, props) {
             var defaults = {
+                default_predicate_probability: 0.6,
+                default_predicate_probability_with_prior: 1.0,
                 use_priors: false,
                 onShapeCompleted: function(shape, view) { console.log("shape", shape, "completed"); }
             };
@@ -52,9 +54,9 @@
                                 shape,
                                 function() {
                                     if(this.properties.use_priors && window.__julia_last_action === ("drag " + shape)) {
-                                        return 1;
+                                        return this.properties.default_predicate_probability_with_prior;
                                     }
-                                    return 0.9;
+                                    return this.properties.default_predicate_probability;
                                 },
                                 me.updateStart,
                                 undefined,
@@ -370,7 +372,12 @@
         // Add an event source
         var mouseHook = new PMouseEventHook($mainInterface[0]);
         julia.addEventSource(mouseHook);
-        julia.feedback = new NBestUIFeedback(julia, {n: 6, feedback_type: NBestGateLeftAligned, show_root_instead_of_most_likely: false,
+        julia.feedback = new NBestUIFeedback(julia, {
+            n: 6,
+            probability_mode: "text",
+            dp: 1,
+            feedback_type: NBestGateLeftAligned,
+            show_root_instead_of_most_likely: false,
             n_best_location: function(){return {x: 0, y:0}}});
         julia.dwellForFeedback = true;
 
@@ -383,7 +390,7 @@
             }
             $mainInterface.empty();
             julia.drawFeedback($mainInterface, julia.feedback);
-            julia.dumpAlternativesAsSnap($alternatives, $mainInterface.width(), $mainInterface.height(), 0.5);
+            //julia.dumpAlternativesAsSnap($alternatives, $mainInterface.width(), $mainInterface.height(), 0.5);
         }
         window.setInterval(update, 30);
 
