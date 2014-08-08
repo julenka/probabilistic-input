@@ -199,10 +199,14 @@ var EditableLine = DraggableShape.subClass({
         var control_states = {"move_p1": this.properties.p1, "move_p2": this.properties.p2};
         for(var state in control_states) {
             var p = control_states[state];
-            s.circle(p.x, p.y, r).attr({
+
+            var c = s.circle(p.x, p.y, r).attr({
                 fill: current_state === "dragging" ? "green" : state === current_state ? "red": "white",
                 opacity: 0.5
             });
+            if(p.snapped) {
+                c.attr({"stroke-width": 5, fill: "white", stroke: "red"});
+            }
         }
     },
     /**
@@ -228,10 +232,11 @@ var EditableLine = DraggableShape.subClass({
     snapToPoint: function(pt) {
         if(this.current_state === "move_p1") {
             this.properties.p1 = shallowCopy(pt);
+            this.properties.p1.snapped = true;
         } else {
             this.properties.p2 = shallowCopy(pt);
+            this.properties.p2.snapped = true;
         }
-
     },
     dispatchEvent: function(e) {
         var snap_radius = 40;
