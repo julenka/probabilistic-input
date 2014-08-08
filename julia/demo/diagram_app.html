@@ -172,6 +172,22 @@
                         feedback_action: DO_NOTHING,
                         handles_event: false
                     }),
+                    new Transition({
+                        to: "start",
+                        source: "virtual",
+                        type: "dragprogress",
+                        predicate: this.hitTest,
+                        feedback_action: DO_NOTHING,
+                        handles_event: false
+                    }),
+                    new Transition({
+                        to: "start",
+                        source: "virtual",
+                        type: "dragend",
+                        predicate: RETURN_TRUE,
+                        feedback_action: DO_NOTHING,
+                        handles_event: false
+                    })
                 ],
                 over: [
                     new Transition({
@@ -187,7 +203,7 @@
                         source: "virtual",
                         type: "dragend",
                         predicate: RETURN_TRUE,
-                        final_action: this.onDragEnd,
+                        feedback_action: this.onDragEnd,
                         handles_event: false
                     })
                 ]
