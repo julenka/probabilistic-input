@@ -165,7 +165,7 @@
                 })}) );
 
         julia.dispatchCompleted = function(new_alternatives, uiUpdated) {
-            if(!uiUpdated) {
+            if(!uiUpdated || julia.__julia_ambiguous) {
                 return;
             }
             $mainInterface.empty();
