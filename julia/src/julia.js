@@ -150,7 +150,9 @@ var Julia = Object.subClass({
 
     },
     dispatchEventsInQueue: function(){
+        var i;
         var actionRequests = [];
+        var alternativesDispatchedTo = [];
         while(this.dispatchQueue.length !== 0) {
             var viewAndEvent = this.dispatchQueue.shift();
             var requestsFromView = viewAndEvent.viewAndProbability.view.dispatchEvent(viewAndEvent.eventSample);
@@ -158,6 +160,11 @@ var Julia = Object.subClass({
                 seq.weight *= viewAndEvent.viewAndProbability.probability * viewAndEvent.eventSample.identity_p;
             });
             actionRequests.extend(requestsFromView);
+
+            // TODO: make a set class
+            if($.inArray(viewAndEvent.viewAndProbability.view, alternativesDispatchedTo) === -1) {
+                alternativesDispatchedTo.push(viewAndEvent.viewAndProbability.view);
+            }
         }
         actionRequests = this.combiner.combine(actionRequests);
         var mediationResults = this.mediator.mediate(actionRequests);
@@ -167,6 +174,23 @@ var Julia = Object.subClass({
             return;
         }
         var combinedAlternatives = this.combineInterfaceAlternatives(newAlternatives);
+
+        if(combinedAlternatives.length > 0) {
+            // If we have any new updated interfaces, we want to make sure that any interfaces
+            // that were not actually dispatched to are still around.
+            // Therefore, append all alternatives that were not in the queue to the combined list
+            // This is a special case for when the dispatch queue does not actually contain all alternative interfaces,
+            // such as when a particular interface, after receiving an event, raises a new event which it adds to the dispatch queue
+            // They will then be combined and downsampled
+
+            for(i = 0; i < this.alternatives.length; i++) {
+                if($.inArray(this.alternatives[i].view, alternativesDispatchedTo) === -1) {
+                    combinedAlternatives.push(this.alternatives[i]);
+                }
+            }
+        }
+
+
         var downsampledAlternatives = this.downSampleInterfaceAlternatives(
             combinedAlternatives,
             this.nAlternativesToKeep);

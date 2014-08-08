@@ -158,7 +158,7 @@ var DraggableShape = FSMView.subClass({
     drag_start: function(e, rootView) {
         // the index of the event sample that we received when a drag was initiated
         this.gesture_start(e);
-//        this.send_drag_start(e);
+        this.send_drag_start(e);
     },
     drag_progress: function(e, rootView) {
         var motion = this.get_relative_motion(e);

@@ -183,7 +183,6 @@ var EditableLine = DraggableShape.subClass({
         if(this.current_state === "move_p1") {
             this.properties.p1 = {x: x, y: y};
         } else {
-            console.log(this.properties.p2, x, y);
             this.properties.p2 = {x: x, y: y};
         }
     },
@@ -231,7 +230,6 @@ var EditableLine = DraggableShape.subClass({
             this.properties.p1 = shallowCopy(pt);
         } else {
             this.properties.p2 = shallowCopy(pt);
-            console.log("snap2",this.properties.p2);
         }
 
     },
