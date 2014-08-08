@@ -206,6 +206,26 @@ var EditableLine = DraggableShape.subClass({
             });
         }
     },
+    /**
+     * Looks for snap points within radius of the given point.
+     * Returns a list of all valid snap points.
+     * Currently, snap points are just control points.
+     */
+    snapPointsNear: function(point, radius) {
+        var result = [], i=0;
+        // Using sylvester
+        var ctrl_pts = [this.properties.p1, this.properties.p2];
+        var ptV = $V([point.x, point.y]);
+        for(i; i < ctrl_pts.length; i++) {
+            var pt = ctrl_pts[i];
+            // control point Vector
+            var cV = $V([pt.x, pt.y]);
+            if(cV.distanceFrom(ptV) < radius) {
+                result.push({x: pt.x, y: pt.y});
+            }
+        }
+        return result;
+    },
     snapToPoint: function(pt) {
         if(this.current_state === "move_p1") {
             this.properties.p1 = shallowCopy(pt);
