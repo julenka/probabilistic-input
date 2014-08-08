@@ -59,7 +59,16 @@ var DraggableShape = FSMView.subClass({
      * @param properties
      */
     init: function (julia, properties, defaults) {
-        var this_defaults = {color:"#444444", "stroke-width": 0, stroke: "black", x: 0, y: 0, w: 0, h: 0};
+        var this_defaults = {
+            color:"#444444",
+            "stroke-width": 0,
+            stroke: "black",
+            x: 0, y: 0, w: 0, h: 0,
+            default_predicate_probability: 0.6,
+            default_predicate_probability_with_prior: 0.9
+        }
+
+            ;
         $.extend(this_defaults, defaults);
         this._super(julia, properties, this_defaults);
         // {mouse_x, mouse_y, my_x, my_y}
@@ -68,7 +77,7 @@ var DraggableShape = FSMView.subClass({
         this.fsm_description = {
             start: [
                 //   init: function(to, drag_predicate, feedback_action, final_action, handles_event) {
-                new MouseDownTransition(
+                new MouseDownTransitionWithProbability(
                     "dragging",
                     this.predicate_drag_start,
                     this.drag_start,
@@ -105,7 +114,10 @@ var DraggableShape = FSMView.subClass({
         };
     },
     predicate_drag_start: function(e, transition) {
-        return this.hit_test(e, transition);
+        if(this.hit_test(e, transition)) {
+            return this.properties.default_predicate_probability;
+        }
+        return 0;
     },
     hit_test: function(e) {
         var coords = this.get_relative(e);
@@ -146,7 +158,7 @@ var DraggableShape = FSMView.subClass({
     drag_start: function(e, rootView) {
         // the index of the event sample that we received when a drag was initiated
         this.gesture_start(e);
-        this.send_drag_start(e);
+//        this.send_drag_start(e);
     },
     drag_progress: function(e, rootView) {
         var motion = this.get_relative_motion(e);
@@ -288,12 +300,7 @@ var DraggableResizeableShape = DraggableShape.subClass({
             this.fsm_description.over.push(
                 new MouseDownTransitionWithProbability(
                     name,
-                    function(e, transition) {
-                        if(this.hit_test(e, transition)) {
-                            return 0.7;
-                        }
-                        return 0;
-                    },
+                    this.resize_predicate,
                     this.drag_start,
                     undefined,
                     true
@@ -304,7 +311,7 @@ var DraggableResizeableShape = DraggableShape.subClass({
                     name,
                     function(e, transition) {
                         if(this.hit_test(e, transition)) {
-                            return 0.7;
+                            return 0.5;
                         }
                         return 0;
                     },
@@ -331,7 +338,12 @@ var DraggableResizeableShape = DraggableShape.subClass({
         this.initControlPoints(new_states);
         this.updateControlPoints();
     },
-
+    resize_predicate: function(e, transition) {
+        if(this.hit_test(e, transition)) {
+            return this.properties.default_predicate_probability;
+        }
+        return 0;
+    },
     /**
      * Looks for snap points within radius of the given point.
      * Returns a list of all valid snap points.
@@ -357,7 +369,7 @@ var DraggableResizeableShape = DraggableShape.subClass({
     initControlPoints: function(new_states) {
         // control point has position
         // control point radius is fixed
-        this.properties.ctrl_pt_radius = 10;
+        this.properties.ctrl_pt_radius = 15;
         this.properties.ctrl_pts = {};
         var me = this;
         // to_state, {x, y}

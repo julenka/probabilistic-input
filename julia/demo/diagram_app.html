@@ -258,7 +258,7 @@
         });
         var everyChildView = new EveryChildContainerView(julia, {background_color: "#eee"});
         everyChildView.addChildView(drag_shape);
-        everyChildView.addChildView(gesture_recognizer);
+//        everyChildView.addChildView(gesture_recognizer);
         everyChildView.addChildView(path_brush);
         rootView.addChildView(everyChildView);
         var trashView = new TrashView(julia);
@@ -358,7 +358,7 @@
      */
     $(document).ready(function(){
 
-        var julia = new Julia({nSamplesPerEvent: 5, minProbability: 0.01, nAlternativesToKeep: 6});
+        var julia = new Julia({nSamplesPerEvent: 10, minProbability: 0.01, nAlternativesToKeep: 10});
         var rootView = new ContainerView(julia, {background_color: "#eee"});
         julia.setRootView(rootView);
         setup(rootView);
@@ -370,8 +370,8 @@
         // Add an event source
         var mouseHook = new PMouseEventHook($mainInterface[0]);
         julia.addEventSource(mouseHook);
-        julia.feedback = new NBestUIFeedback(julia, {n: 4, feedback_type: NBestGateLeftAligned, show_root_instead_of_most_likely: false,
-            n_best_location: function(){return {x: 10, y:10}}});
+        julia.feedback = new NBestUIFeedback(julia, {n: 6, feedback_type: NBestGateLeftAligned, show_root_instead_of_most_likely: false,
+            n_best_location: function(){return {x: 0, y:0}}});
         julia.dwellForFeedback = true;
 
 
@@ -387,7 +387,7 @@
         }
         window.setInterval(update, 30);
 
-        julia.mediator.mediationThreshold = 0.5;
+        julia.mediator.mediationThreshold = 0.0;
 
         julia.dispatchCompleted = function() {};
         julia.ambiguousRequests = function(deferred, pEvent) {

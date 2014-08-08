@@ -9,7 +9,7 @@ var EditableLine = DraggableShape.subClass({
             props = {};
         }
         var defaults = {
-            ctrl_pt_radius: 20
+            ctrl_pt_radius: 20,
         };
         props.p1 = p1;
         props.p2 = p2;
@@ -35,7 +35,7 @@ var EditableLine = DraggableShape.subClass({
                     undefined,
                     true
                 ),
-            new MouseDownTransition(
+            new MouseDownTransitionWithProbability(
                 "dragging",
                 this.predicate_drag_start,
                 this.drag_start,
@@ -172,7 +172,7 @@ var EditableLine = DraggableShape.subClass({
         var y = e.base_event.element_y;
         var r = Math.sqrt(Math.pow(pt.x - x, 2) + Math.pow(pt.y - y, 2));
         if( r < this.properties.ctrl_pt_radius) {
-            return 0.8;
+            return this.properties.default_predicate_probability;
         } else {
             return 0;
         }
@@ -236,6 +236,7 @@ var EditableLine = DraggableShape.subClass({
 
     },
     dispatchEvent: function(e) {
+        var snap_radius = 40;
         var result = this._super(e);
         // If we are currently moving points, check if we shoudl snap to the points
         if(this.current_state === "move_p1" || this.current_state === "move_p2") {
@@ -248,7 +249,7 @@ var EditableLine = DraggableShape.subClass({
                 }
 
                 if(child.snapPointsNear) {
-                    var nearby = child.snapPointsNear(pt, 20);
+                    var nearby = child.snapPointsNear(pt, snap_radius);
                     for(var j = 0; j < nearby.length; j++) {
                         var snapPoint = shallowCopy(nearby[j]);
                         result.push(
