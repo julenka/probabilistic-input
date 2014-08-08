@@ -332,8 +332,25 @@ var DraggableResizeableShape = DraggableShape.subClass({
         this.updateControlPoints();
     },
 
-
-
+    /**
+     * Looks for snap points within radius of the given point.
+     * Returns a list of all valid snap points.
+     * Currently, snap points are just control points.
+     */
+    snapPointsNear: function(point, radius) {
+        var result = [];
+        // Using sylvester
+        var ptV = $V([point.x, point.y]);
+        for(var state in this.properties.ctrl_pts) {
+            var pt = this.properties.ctrl_pts[state];
+            // control point Vector
+            var cV = $V([pt.x, pt.y]);
+            if(cV.distanceFrom(ptV) < radius) {
+                result.push({x: pt.x, y: pt.y});
+            }
+        }
+        return result;
+    },
     /**
      * Initialize the control points that are used to resize this element
      */

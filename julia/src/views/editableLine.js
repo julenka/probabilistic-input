@@ -183,8 +183,15 @@ var EditableLine = DraggableShape.subClass({
         if(this.current_state === "move_p1") {
             this.properties.p1 = {x: x, y: y};
         } else {
+            console.log(this.properties.p2, x, y);
             this.properties.p2 = {x: x, y: y};
         }
+    },
+    equals: function(other) {
+        if(!this._super(other)) {
+            return false;
+        }
+        return shallowEquals(this.properties.p1, other.properties.p1) && shallowEquals(this.properties.p2, other.properties.p2);
     },
     drawControlPoints: function($el){
         var s = Snap($el[0]);
@@ -199,6 +206,46 @@ var EditableLine = DraggableShape.subClass({
             });
         }
     },
+    snapToPoint: function(pt) {
+        if(this.current_state === "move_p1") {
+            this.properties.p1 = shallowCopy(pt);
+        } else {
+            this.properties.p2 = shallowCopy(pt);
+            console.log("snap2",this.properties.p2);
+        }
+
+    },
+    dispatchEvent: function(e) {
+        var result = this._super(e);
+        // If we are currently moving points, check if we shoudl snap to the points
+        if(this.current_state === "move_p1" || this.current_state === "move_p2") {
+            var pt = this.current_state === "move_p1" ? this.properties.p1 : this.properties.p2;
+            var children = this.getRootView().children;
+            for(var i = 0; i < children.length; i++) {
+                var child = children[i];
+                if(child.__julia_id === this.__julia_id) {
+                    continue;
+                }
+
+                if(child.snapPointsNear) {
+                    var nearby = child.snapPointsNear(pt, 20);
+                    for(var j = 0; j < nearby.length; j++) {
+                        var snapPoint = shallowCopy(nearby[j]);
+                        result.push(
+                            new ActionRequest(
+                              this.snapToPoint.curry(snapPoint),
+                                this,
+                                true,
+                                true,
+                                e
+                            )
+                        );
+                    }
+                }
+            }
+        }
+        return result;
+    },
     draw: function($el) {
         var p1 = this.properties.p1;
         var p2 = this.properties.p2;
@@ -211,7 +258,6 @@ var EditableLine = DraggableShape.subClass({
         if(this.current_state !== "start") {
             this.drawControlPoints($el);
         }
-        s.text(50,50, this.current_state);
     }
 
 });

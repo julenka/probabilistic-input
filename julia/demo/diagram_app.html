@@ -200,16 +200,12 @@
             var r2 = this.getBoundingBox();
             return rectanglesIntersect(r1, r2);
         },
-        log: function(e) {
-            return true;
-        },
         onDragEnd: function(e, rootView) {
             console.log("onDragEnd");
             rootView.removeChildView(e.view);
         },
         draw: function($el) {
             var s = Snap($el[0]);
-            s.text(50, 100, this.current_state);
             if(this.current_state === "start") {
                 return;
             }
