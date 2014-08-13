@@ -39,11 +39,31 @@
         className: "Window",
         hit_test: function(e, transition) {
             var coords = this.get_relative(e);
-            if(transition.to === "dragging") {
-                return (coords.rx > 0 && coords.ry > 0 && coords.rx < this.properties.w && coords.ry < 2 * this.properties.resize_padding);
+            switch(transition.to) {
+                case "dragging":
+                    return (coords.rx > 0 && coords.ry > 0 && coords.rx < this.properties.w && coords.ry < 2 * this.properties.resize_padding);
+                case "resize_left":
+                    return (coords.rx > -this.properties.resize_padding && coords.rx < this.properties.resize_padding && coords.ry > 0 && coords.ry < this.properties.h);
+                case "resize_right":
+                    return (coords.rx > this.properties.w - this.properties.resize_padding && coords.rx < this.properties.w + this.properties.resize_padding && coords.ry > 0 && coords.ry < this.properties.h);
+                case "resize_top":
+                    return (coords.ry > - this.properties.resize_padding && coords.ry < this.properties.resize_padding && coords.rx > 0 && coords.rx < this.properties.w);
+                case "resize_bottom":
+                    return (coords.ry > this.properties.h - this.properties.resize_padding && coords.ry < this.properties.h + this.properties.resize_padding && coords.rx > 0 && coords.rx < this.properties.w);
             }
-            return this._super(e, transition);
         },
+        drag_predicate: function(e) {
+            var dx = Math.abs(this.drag_start_info.mouse_x - e.element_x);
+            var dy = Math.abs(this.drag_start_info.mouse_y - e.element_y);
+            // TODO: this should be resolution independent, and should have to do with probabilities...
+            if(this.resizingHorizontally() && dy > 30) {
+                return 0.9;
+            } else if (this.resizingVertically() && dx > 30) {
+                return 0.9;
+            }
+            return 1;
+        },
+
         draw: function ($el) {
             // in this case $el will be an SVG element
             var s = Snap($el[0]);
@@ -113,7 +133,6 @@
         rootView.addChildView(new Icon(julia, {x: 404, y: 428, w: 110, h: 90, text: "thesis"}));
         rootView.addChildView(new Window(julia, {x: 25, y: 20, w: 268, h: 228, resize_padding: 10}));
         rootView.addChildView(new Window(julia, {x: 333, y: 19, w: 268, h:228, resize_padding: 10}));
-        rootView.addChildView(new Window(julia, {x: 31, y: 333, w: 268, h: 228, resize_paddding: 10}));
     }
 
 
@@ -124,7 +143,7 @@
      * Executed when the document loads. Intended to be boilerplate, shouldn't have to replace much here (for now).
      */
     $(document).ready(function(){
-        var julia = new Julia();
+        var julia = new Julia({nSamplesPerEvent: 5});
         var rootView = new ContainerView(julia, {background_color: "#333333"});
         julia.setRootView(rootView);
 
