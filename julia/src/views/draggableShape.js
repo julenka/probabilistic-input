@@ -101,7 +101,7 @@ var DraggableShape = FSMView.subClass({
         this.julia.addToDispatchQueue({view: this.getRootView(), probability: 1},new DragProgressEvent(this));
     },
     /**
-     * Called when a gesture (e.g. the drag, in this case) starts.
+     * Called when a gesture (e.g. the drag, in this case) starts .
      * Store information about the start of the gesture here.
      * @param e
      */

@@ -239,7 +239,7 @@ var DraggableResizeableShape = DraggableShape.subClass({
             new_y = this.drag_start_info.my_y + motion.dy;
         }
         if(this.current_state === "resize_left" || this.current_state === "resize_nw" || this.current_state === "resize_sw") {
-            new_w = this.properties.w = this.drag_start_info.my_w - motion.dx;
+            new_w = this.drag_start_info.my_w - motion.dx;
             new_x = this.drag_start_info.my_x + motion.dx;
         }
         if(this.current_state === "resize_right" || this.current_state === "resize_ne" || this.current_state === "resize_se") {
@@ -253,12 +253,15 @@ var DraggableResizeableShape = DraggableShape.subClass({
         if(this.current_state === "resize_bottom" || this.current_state === "resize_se" || this.current_state === "resize_sw") {
             new_h = this.drag_start_info.my_h + motion.dy;
         }
-        if(new_h < this.properties.min_h) { return; }
-        if(new_w < this.properties.min_w) { return; }
-        this.properties.x = new_x;
-        this.properties.y = new_y;
-        this.properties.w = new_w;
-        this.properties.h = new_h;
+        if(new_h > this.properties.min_h) {
+            this.properties.y = new_y;
+            this.properties.h = new_h;
+        }
+        if(new_w > this.properties.min_w) {
+            this.properties.x = new_x;
+            this.properties.w = new_w;
+        }
+
         this.updateControlPoints();
         this.send_drag_progress();
     },
