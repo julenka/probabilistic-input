@@ -29,106 +29,6 @@
 </script>
 <script>
     // Views
-    /**
-     * Drag out a bounding box containing one of two shapes: circles or rectangles
-     */
-    var DragShapeView = FSMView.subClass({
-        className: "DragShapeView",
-        init: function(julia, props) {
-            var defaults = {
-                default_predicate_probability: 0.6,
-                default_predicate_probability_with_prior: 1.0,
-                use_priors: false,
-                onShapeCompleted: function(shape, view) { console.log("shape", shape, "completed"); }
-            };
-            this._super(julia, props, defaults);
-            this.initFSM();
-        },
-        initFSM: function() {
-            this.fsm_description = { start: []};
-            var shapes = ["circle", "rectangle"];
-            var me = this;
-            shapes.forEach(function(shape) {
-                me.fsm_description.start.push(
-                        new MouseDownTransitionWithProbability(
-                                shape,
-                                function() {
-                                    if(this.properties.use_priors && window.__julia_last_action === ("drag " + shape)) {
-                                        return this.properties.default_predicate_probability_with_prior;
-                                    }
-                                    return this.properties.default_predicate_probability;
-                                },
-                                me.updateStart,
-                                undefined,
-                                true
-                        )
-                );
-                me.fsm_description[shape] = [];
-                me.fsm_description[shape].push(
-                    new MouseMoveTransition(
-                            shape,
-                            RETURN_TRUE,
-                            me.updateBounds,
-                            undefined,
-                            true
-                    )
-                );
-                me.fsm_description[shape].push(
-                    new MouseUpTransition(
-                            "start",
-                            function() { return this.properties.p1 && this.properties.p2; },
-                            undefined,
-                            me.shapeDone.curry(shape),
-                            true
-                    )
-                )
-            });
-
-        },
-        updateStart: function(e) {
-            this.properties.p1 = {x: e.base_event.element_x, y: e.base_event.element_y};
-        },
-        updateBounds: function(e) {
-            this.properties.p2 = {x: e.base_event.element_x, y: e.base_event.element_y};
-        },
-        draw: function($el) {
-            var s = Snap($el[0]);
-            var attrs = {
-                fill: FILL_COLOR,
-                opacity: 0.5,
-                stroke: LINE_COLOR
-            }
-            var p1 = this.properties.p1;
-            var p2 = this.properties.p2;
-            if(!p1 || !p2) {
-                return;
-            }
-            // top left
-            var tl = {x: Math.min(p1.x, p2.x), y: Math.min(p1.y, p2.y)};
-            // bottom right
-            var br = {x: Math.max(p1.x, p2.x), y: Math.max(p1.y, p2.y)};
-            var w = br.x - tl.x;
-            var h = br.y - tl.y;
-            if(this.current_state === "circle") {
-                s.ellipse(tl.x + w/2, tl.y + h/2, w/2, h/2).attr(attrs);
-            } else {
-                // current_state === "rect"
-                s.rect(tl.x, tl.y, w, h).attr(attrs);
-            }
-        },
-        shapeDone: function(shape, e, rootView) {
-            var p1 = this.properties.p1;
-            var p2 = this.properties.p2;
-            // top left
-            var tl = {x: Math.min(p1.x, p2.x), y: Math.min(p1.y, p2.y)};
-            // bottom right
-            var br = {x: Math.max(p1.x, p2.x), y: Math.max(p1.y, p2.y)};
-            this.properties.onShapeCompleted(shape, rootView, tl, br);
-            delete this.properties.p1;
-            delete this.properties.p2;
-        }
-    });
-
     var TrashView = FSMView.subClass({
         className: "TrashView",
         init: function(julia, props) {
@@ -253,13 +153,14 @@
      */
     function setup(rootView) {
         var julia = rootView.julia;
+        var everyChildView = new EveryChildContainerView(julia, {background_color: "#eee"});
 
         // The path brush draws lines (horizontal and vertical)
         var path_brush = new PathBrush(julia, {color: LINE_COLOR,
             width: 1,
             use_priors: true,
             onLineCompleted: onLineCompleted.curry(julia, LINE_COLOR)});
-
+        everyChildView.addChildView(path_brush);
 
         // Use the gesture recognizer to add ellipses and rectangles
 
@@ -268,18 +169,21 @@
             gestures: ["circle", "rectangle"],
             use_priors: true
         });
-
+//        everyChildView.addChildView(gesture_recognizer);
 
         var drag_shape = new DragShapeView(julia, {
             onShapeCompleted: onDragShapeCompleted.curry(julia),
+            fill: FILL_COLOR,
+            stroke: LINE_COLOR,
             use_priors: true
         });
-        var everyChildView = new EveryChildContainerView(julia, {background_color: "#eee"});
         everyChildView.addChildView(drag_shape);
-//        everyChildView.addChildView(gesture_recognizer);
-        everyChildView.addChildView(path_brush);
+
+
         rootView.addChildView(everyChildView);
+
         var trashView = new TrashView(julia);
+        // Make the trashView draw in front by setting its z order to be high.
         trashView.properties.drawZ = 1000;
         rootView.addChildView(trashView);
     }
@@ -358,6 +262,9 @@
 
     }
 
+    /**
+     * When the user presses the 'd' key, delete the last created item.
+     * */
     function onKeyPress(julia, e) {
         var c = String.fromCharCode(e.keyCode);
         if(c === 'd') {
@@ -369,27 +276,31 @@
                 }
             });
         }
-
     }
-    /**
-     * Executed when the document loads. Intended to be boilerplate, shouldn't have to replace much here (for now).
-     */
+
     $(document).ready(function(){
 
-        var julia = new Julia({nSamplesPerEvent: 10, minProbability: 0.01, nAlternativesToKeep: 10});
+        var julia = new Julia({
+            nSamplesPerEvent: 10,
+            minProbability: 0.01,
+            mediator: new Mediator({mediationThreshold: 0.0}),
+            nAlternativesToKeep: 10});
+
         var rootView = new ContainerView(julia, {background_color: "#eee"});
         julia.setRootView(rootView);
+
         setup(rootView);
 
         var $alternatives = $("#demo_alternatives");
         var $mainInterface = $("#demo_interface");
 
-
         // Add an event source
         var mouseHook = new PMouseEventHook($mainInterface[0]);
         julia.addEventSource(mouseHook);
-        julia.feedback = new NBestUIFeedback(julia, {
+
+        julia.feedback = new NBestHighlightFeedback(julia, {
             n: 6,
+            highlight_color: "#ffcc33",
             probability_mode: "text",
             dp: 1,
             feedback_type: NBestGateLeftAligned,
@@ -397,6 +308,7 @@
             n_best_location: function(){return {x: 0, y:0}}});
         julia.dwellForFeedback = true;
 
+        // Adjust mediation
 
         // draw every 30 ms
         var update = function() {
@@ -410,9 +322,8 @@
         }
         window.setInterval(update, 30);
 
-        julia.mediator.mediationThreshold = 0.0;
-
         julia.dispatchCompleted = function() {};
+
         julia.ambiguousRequests = function(deferred, pEvent) {
             $mainInterface.empty();
             julia.feedback.draw($mainInterface, julia.rootView, deferred);
@@ -420,6 +331,7 @@
 
         addTouchOverlay();
         addKeyOverlay();
+
         $(document).keypress(onKeyPress.curry(julia));
     });
 </script>

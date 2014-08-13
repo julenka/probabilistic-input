@@ -96,7 +96,6 @@ var View = Object.subClass({
         return {x: this.properties.x, y: this.properties.y, w: this.properties.width || this.properties.w, h: this.properties.height || this.properties.h};
     },
     /**
-     * TODO: do we also want to make this a getter? Probably.
      * Updates properties of the object (in .properties) using the given map
      * When an object is modified in this way, the dirty bit of the object is also set, meanint
      * this object will be considered 'different' than other objects for feedback purposes
@@ -104,6 +103,10 @@ var View = Object.subClass({
      * @return the object, in case we want to chain things
      */
     attr: function(map) {
+        if(typeof(map) === 'string') {
+            // If map is a string, we are trying to get the attribute of this property, not set it
+            return this.properties[map];
+        }
         for(var prop in map) {
             this.properties[prop] = map[prop];
         }

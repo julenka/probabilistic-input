@@ -129,18 +129,30 @@ var NBestHighlightFeedback = NBestListBase.subClass({
         this._super(julia, props);
         this.highlight_color = valueOrDefault(props.highlight_color, "#ea4c88");
     },
+
     addItemToNBestContainer: function(nbestcontainer, originalRoot, alternativeRoot, probability) {
-        var new_container = new ContainerView(this.julia);
-        for(var j = 0; j < alternativeRoot.children.length; j++) {
-            // Let's just get the case working where we have different children, then worry about 'dirty' children
-            var child = alternativeRoot.children[j];
-            if( child._dirty || typeof(originalRoot.findViewById(child.__julia_id)) === 'undefined') {
-                var highlight_container = new HighlightView(this.julia, child, this.highlight_color);
-                new_container.addChildView(highlight_container);
-            } else {
-                new_container.addChildView(child);
+        var me = this;
+        function addItemHelper(original, alternative) {
+            var result = new alternative.constructor(this.julia);
+            var i;
+            for(i = 0; i < alternative.children.length; i++) {
+                var child = alternative.children[i];
+                var original_child = original.findViewById(child.__julia_id);
+                var highlight_container;
+                // check if child is in alternative list
+                if(typeof(original_child) === 'undefined' ||
+                    !(child instanceof ContainerView) && child._dirty) {
+                    highlight_container = new HighlightView(this.julia, child, me.highlight_color);
+                    result.addChildView(highlight_container);
+                } else if (child instanceof ContainerView) {
+                    result.addChildView(addItemHelper(original_child, child));
+                } else {
+                    result.addChildView(child);
+                }
             }
+            return result;
         }
+        var new_container = addItemHelper(originalRoot, alternativeRoot);
         nbestcontainer.addAlternative(alternativeRoot, new_container, probability);
     }
 });

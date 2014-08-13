@@ -22,7 +22,8 @@ var PathBrush = FSMView.subClass({
                 default_predicate_probability: 0.6,
                 default_predicate_probability_with_prior: 1.0,
                 pathProbability: function(e) {
-                    return 1.0; }
+                    return 1.0;
+                }
             });
         this.path = [];
         this.gesture_detector = new SimpleGestureDetector();
@@ -147,6 +148,7 @@ var PathBrush = FSMView.subClass({
         return result;
     },
     add_to_path: function(e) {
+        this._dirty = true;
         var x = e.base_event.element_x;
         var y = e.base_event.element_y;
         this.path.push({x: x, y: y});
