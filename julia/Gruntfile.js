@@ -17,6 +17,7 @@ module.exports = function(grunt) {
         'src/view.js',
         'src/fsm.js',
         'src/pEventSource.js',
+        'src/pevents/pEvent.js',
         'src/pevents/*.js',
         'src/prediction.js',
         'src/feedback/*.js',
