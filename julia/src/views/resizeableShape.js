@@ -23,7 +23,7 @@ var DraggableResizeableShape = DraggableShape.subClass({
      * @param properties
      */
     init: function (julia, properties) {
-        this._super(julia, properties, {"resize_padding": 15, "min_w": 10, "min_h": 10});
+        this._super(julia, properties, {"resize_padding": 20, "min_w": 10, "min_h": 10});
 
         var new_states = ["resize_left", 'resize_top', "resize_right", "resize_bottom",
         "resize_nw", "resize_ne", "resize_sw", "resize_se"];
@@ -281,9 +281,9 @@ var DraggableResizeableShape = DraggableShape.subClass({
     },
     hit_test: function(e, transition) {
         if(transition.to === "dragging") {
-            return this.boundingBoxHitTest(e);
+            return this.dragHitTest(e);
         } else {
-            return this.hitTestControlPoint(transition.to, e.element_x, e.element_y);
+            return this.hitTestControlPoint(transition.to, e.base_event.element_x, e.base_event.element_y);
         }
     },
     draw: function ($el) {
