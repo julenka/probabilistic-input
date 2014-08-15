@@ -11,6 +11,7 @@ module.exports = function(grunt) {
         'src/simpleGestureDetector.js',
         'src/logging.js',
         'src/julia.js',
+        'src/actionRequest.js',
         'src/mediator.js',
         'src/touchOverlay.js',
         'src/keyOverlay.js',

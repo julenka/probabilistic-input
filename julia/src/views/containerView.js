@@ -207,10 +207,10 @@ var ContainerView = View.subClass({
                     var actionSequence2 = actionSequence.clone();
                     if(response instanceof ActionRequest) {
                         isEventHandled = response.handlesEvent;
-                        actionSequence2.requests.push(response);
+                        actionSequence2.addActionRequest(response);
                     } else if (response instanceof ActionRequestSequence) {
-                        actionSequence2.requests.extend(response.requests);
-                        isEventHandled = response.requests[response.requests.length - 1].handlesEvent;
+                        actionSequence2.addActionRequestSequence(response);
+                        isEventHandled = response.handlesEvent();
                     } else {
                         throw "response not the right type!";
                     }
@@ -297,9 +297,9 @@ var EveryChildContainerView = ContainerView.subClass({
                 // to clone the original action sequence and append the response to the existing sequence.
                 var actionSequence2 = actionSequence.clone();
                 if(response instanceof ActionRequest) {
-                    actionSequence2.requests.push(response);
+                    actionSequence2.addActionRequest(response);
                 } else if (response instanceof ActionRequestSequence) {
-                    actionSequence2.requests.extend(response.requests);
+                    actionSequence2.addActionRequestSequence(response);
                 } else {
                     throw "response not the right type!";
                 }
