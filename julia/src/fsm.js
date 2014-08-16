@@ -56,6 +56,7 @@ var FSMView = View.subClass({
      * may want to take.
      */
     dispatchEvent: function(e) {
+
         var me = this;
         var response = [], i, j;
         // response: [ {control: control, handled: false, action: fn, feedback: fn}]
@@ -63,8 +64,8 @@ var FSMView = View.subClass({
         var transitions = this.fsm_description[this.current_state], transition;
         for(i = 0; i < transitions.length; i++) {
             transition = transitions[i];
-
-            if(transition.take(e, this)) {
+            var transition_probability = transition.take(e, this);
+            if(transition_probability > 0) {
                 var options = [{action: transition.final_action, is_reversible: false},
                     {action: transition.feedback_action, is_reversible: true}];
                 options.forEach(function(option) {
@@ -78,12 +79,14 @@ var FSMView = View.subClass({
                                 e,
                                 transition.to,
                                 transition.from,
-                                i
+                                i,
+                                transition_probability
                             ));
                     }
                 });
             }
         }
+        log(LOG_LEVEL_VERBOSE, this.className + "[" + this.current_state + "] returned " + response);
         return response;
     },
     equals: function(other) {
@@ -126,8 +129,14 @@ var Transition = Object.subClass({
         this.final_action = final_action;
         this.handles_event = handles_event;
     },
+    /**
+     * Backwards compatible transition. If we take the transition return 1, otherwise return 0
+     * @param e
+     * @param view
+     * @returns {number}
+     */
     take: function(e, view) {
-        return this.source === e.source && this.type === e.type && this.predicate.call(view, e, this);
+        return this.source === e.source && this.type === e.type && this.predicate.call(view, e, this) ? 1 : 0;
     }
 });
 
@@ -206,12 +215,7 @@ var MouseTransition = Transition.subClass({
 var TransitionWithProbability = Transition.subClass({
     className: "TransitionWithProbability",
     init: function(to,source,type,probability_function,feedback_action,final_action,handles_event) {
-        var probability_wrapper = function(e, rootView) {
-            // Set the context of the predicate to be 'this', which will be set as the interactor bound to the FSM
-            var probability = probability_function.call(this, e, rootView);
-            return Math.dieRoll(probability);
-        };
-        this._super(to,source,type,probability_wrapper,feedback_action,final_action,handles_event);
+        this._super(to,source,type,probability_function,feedback_action,final_action,handles_event);
     }
 });
 

@@ -161,7 +161,7 @@ var Julia = Object.subClass({
             var viewAndEvent = this.dispatchQueue.shift();
             var requestsFromView = viewAndEvent.viewAndProbability.view.dispatchEvent(viewAndEvent.eventSample);
             requestsFromView.forEach(function(seq) {
-                seq.weight *= viewAndEvent.viewAndProbability.probability * viewAndEvent.eventSample.identity_p;
+                seq.weight *= viewAndEvent.viewAndProbability.probability * viewAndEvent.eventSample.identity_p ;
             });
             actionRequests.extend(requestsFromView);
 
@@ -221,7 +221,7 @@ var Julia = Object.subClass({
 
         var uiUpdated = false;
         while(this.dispatchQueue.length > 0) {
-            uiUpdated = uiUpdated || this.dispatchEventsInQueue();
+            uiUpdated = this.dispatchEventsInQueue() || uiUpdated;
         }
 
         // The mediator automatically resamples the views

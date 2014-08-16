@@ -3,7 +3,7 @@
  */
 
 var HighlightTextView  = FSMView.subClass({
-    className: "FSMTextView",
+    className: "HighlightTextView",
     char_width: 8,
     char_height: 20,
     /**

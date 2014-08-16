@@ -104,11 +104,11 @@ var FSMActionRequest = ActionRequest.subClass({
  */
 var ActionRequestSequence = Object.subClass({
     className: "ActionRequestSequence",
-    init: function(rootView, requests) {
+    init: function(rootView, requests, weight) {
         this.requests = requests;
         this.className = "ActionRequestSequence";
         this.rootView = rootView;
-        this.weight = 1;
+        this.weight = weight || 1;
     },
     clone: function() {
         var requests = [];

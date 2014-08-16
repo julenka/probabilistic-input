@@ -9,14 +9,17 @@
 var ScrollView = ContainerView.subClass({
     className: "ScrollContainer",
     init: function(julia) {
-        this._super(julia);
-        this.properties.scroll_y = 0;
-        this.properties.scroll_down_y = 0;
-        this.properties.down_y = 0;
-        this.properties.down_x = 0;
-        this.properties.is_scrolling = false;
-        this.properties.scroll_frames = 0;
-
+        var defaults = {
+            scroll_y: 0,
+            scroll_down_y: 0,
+            down_y: 0,
+            down_x: 0,
+            is_scrolling: false,
+            scroll_frames: 0,
+            scroll_down_likelihood: 0.55
+        };
+        // super call format is julia, props
+        this._super(julia, defaults);
     },
     startScroll: function(e) {
         this.properties.down_y = e.element_y;
@@ -42,48 +45,64 @@ var ScrollView = ContainerView.subClass({
         this.properties.is_scrolling = false;
         this.properties.scroll_down_y = this.properties.scroll_y;
     },
-    killAlternative: function(e, rootView) {
-        rootView.kill = true;
-    },
     dispatchEvent: function(e) {
-
+        var result = [];
+        var i;
+        var me = this;
+        function getChildActionRequests (ev, weight) {
+            var e_copy = shallowCopy(ev);
+            e_copy.element_y -= me.properties.scroll_y;
+            var sequences = me._super(e_copy);
+            for(i = 0; i < sequences.length; i++) {
+                sequences[i].weight *= weight;
+            }
+            return sequences;
+        }
+        var likelihood = this.properties.scroll_down_likelihood;
         if(e.type === "mousedown") {
-            if(Math.dieRoll(0.7)) {
-                return this.makeRequest(this.startScroll, e, true);
+            // Initially it is equally likeliy that we will scroll or dispatch to children
+            result.push(this.makeRequest(this.startScroll, e, true, 0.5));
+            result.extend(getChildActionRequests(e, 0.5));
+        } else if (e.type === "mousemove") {
+            if(this.properties.is_scrolling) {
+                if(this.scrollCondition()) {
+                    // If we are scrolling we know this so return likelihood 1
+                    result.push(this.makeRequest(this.updateScroll, e, true, 1));
+                } else {
+                    // We are probably doing somethign else like selecting text
+                    // More likly child requests
+                    // otherwise, weight likelihood of text selection more
+                    //
+                    result.push(this.makeRequest(this.updateScroll, e, true, 1 - likelihood));
+                }
             } else {
-                var e_copy = shallowCopy(e);
-                e_copy.element_y -= this.properties.scroll_y;
-                return this._super(e_copy);
+                result.extend(getChildActionRequests(e, likelihood));
             }
-        } else if (this.properties.is_scrolling && e.type === "mousemove") {
 
-            if(this.properties.scroll_frames > 1 && Math.abs(this.properties.distance_x) > Math.abs(this.properties.distance_y)
-                && Math.dieRoll(0.3)) {
-                // If it looks like we're selecting text, then
-                // TODO: remove this duplicate code
-                var e_copy = shallowCopy(e);
-                e_copy.element_y -= this.properties.scroll_y;
-                return this._super(e_copy);
+        } else if (e.type === "mouseup") {
+            if(this.properties.is_scrolling) {
+                result.push(this.makeRequest(this.endScroll, e, false,likelihood));
+            } else {
+                result.extend(getChildActionRequests(e, likelihood));
             }
-            return this.makeRequest(this.updateScroll, e, true);
-        }
-
-        else if (this.properties.is_scrolling && e.type === "mouseup") {
-            return this.makeRequest(this.endScroll, e, false);
         } else {
-            var e_copy = shallowCopy(e);
-            e_copy.element_y -= this.properties.scroll_y;
-            return this._super(e_copy);
+            throw "invalid input sent to to scrollView: " + e.type;
         }
+        return result;
     },
-    makeRequest: function(fn, e, is_reversible) {
-        return [new ActionRequestSequence(this, [new ActionRequest(fn, this, is_reversible, true, e)])];
+    /**
+     * Returns true if it looks like we are scrolling. If so, return action request for scroll of 1
+     */
+    scrollCondition: function() {
+        return this.properties.scroll_frames > 1 && Math.abs(this.properties.distance_y) > Math.abs(this.properties.distance_x);
+    },
+    makeRequest: function(fn, e, is_reversible, weight) {
+        return new ActionRequestSequence(this, [new ActionRequest(fn, this, is_reversible, true, e, weight)], weight);
     },
     draw: function($el) {
         var s = Snap($el[0]);
         var g = s.group();
         var m = new Snap.Matrix();
-//        s.text(0,20, "" + this.properties.distance_x + ", " + this.properties.distance_y + ", " + this.properties.scroll_frames);
         m.translate(0, this.properties.scroll_y);
         g.attr({transform: m.toString()});
         var i = 0;
