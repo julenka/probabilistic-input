@@ -41,8 +41,19 @@
             this._super(julia, properties, defaults);
             this.updateBackground();
         },
-        on_over: function(e) {
+
+        on_over: function() {
+            var container = this.container;
+            var i;
+            for(i = 0; i < container.children.length; i++) {
+                var child = container.children[i];
+                if (child.properties.is_over) {
+                    child.properties.is_over = false;
+                    child.current_state = "start";
+                }
+            }
             this.properties.is_over = true;
+
             this.updateBackground();
 
         },
@@ -63,7 +74,7 @@
             var rx = e.element_x - this.properties.x;
             var ry = e.element_y - this.properties.y;
             if(!(rx > 0 && ry > 0 && rx < this.properties.w && ry < this.properties.h)) {
-                return false;
+                return 0;
             }
             var r = this.properties.w;
             if(this.properties.h < r){
@@ -73,7 +84,8 @@
             var rx2 = rx - this.properties.w /2;
             var ry2 = ry - this.properties.h/2;
             var d = Math.sqrt(rx2 * rx2 + ry2 * ry2) / r;
-            return 1 - d;
+            console.log(d);
+            return Math.max(1, 1 - d + 0.5);
         },
         updateBackground: function() {
             if(this.properties.is_over) {
@@ -180,7 +192,6 @@
         var targets = [];
         for(var i = 0; i < nButtons; i++) {
             var randomPosition = getRandomPosition(targets, uiWidth - buttonWidth, uiHeight - buttonHeight);
-//            var randomPosition = [Math.random() * uiWidth, Math.random() * uiHeight];
             var newButton = new ToggleButton(julia, {
                 x: randomPosition[0],
                 y: randomPosition[1],
@@ -253,13 +264,16 @@
         var mouseHook = new PNinjaCursorEventHook($mainInterface[0]);
         julia.addEventSource(mouseHook);
 
+//        julia.nSamplesPerEvent = 25;
         julia.nSamplesPerEvent = 25;
+//        julia.nSamplesPerEvent = 1;
+
 
         // Initialize feedback
         julia.feedback = new OverlayFeedback(julia,
                 {feedbackType:  OverlayOpacity,
                     showOriginal: false,
-                    renderThreshold: 0.01});
+                    renderThreshold: 0.00});
 
         julia.mediator.mediationThreshold = 0.2;
         julia.drawFeedback($mainInterface, julia.feedback);

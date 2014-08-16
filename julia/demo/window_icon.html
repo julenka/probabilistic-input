@@ -135,56 +135,7 @@
         rootView.addChildView(new Window(julia, {x: 333, y: 19, w: 268, h:228, resize_padding: 10}));
     }
 
-
-    var mouseX = 0;
-    var mouseY = 0;
-    var variance = 0;
-    /**
-     * Executed when the document loads. Intended to be boilerplate, shouldn't have to replace much here (for now).
-     */
-    $(document).ready(function(){
-        var julia = new Julia({nSamplesPerEvent: 5});
-        var rootView = new ContainerView(julia, {background_color: "#333333"});
-        julia.setRootView(rootView);
-
-        // Initialize feedback
-        julia.feedback = new OverlayFeedback(julia,
-                {feedbackType:  OverlayOpacitySaturation,
-                    renderThreshold: 0.01});
-//        julia.feedback = new NBestFeedback(julia, {n: 4, dp: 0.9, feedback_type: NBestGate});
-        setup(julia, rootView);
-
-        var $alternatives = $("#alternatives");
-        var $demoInterface = $("#demo_interface");
-        // Add an event source
-        var mouseHook = new PMouseEventHook($demoInterface[0], 20, 20);
-        var touchHook = new PTouchEventHook($demoInterface[0], 20, 20);
-
-        mouseHook.addListener(function(e) {
-            mouseX = e.element_x;
-            mouseY = e.element_y;
-            variance = e.sigma_x;
-        });
-        touchHook.addListener(function(e) {
-            mouseX = e.element_x;
-            mouseY = e.element_y;
-            variance = e.sigma_x;
-        });
-
-        julia.addEventSource(mouseHook);
-        julia.addEventSource(touchHook);
-
-        julia.drawFeedback($demoInterface, julia.feedback);
-
-        julia.dispatchCompleted = function(new_alternatives, uiUpdated) {
-            var s = Snap($demoInterface[0]);
-            $demoInterface.empty();
-            julia.drawFeedback($demoInterface, julia.feedback);
-
-            julia.dumpAlternativesAsSnap($alternatives, $demoInterface.width(), $demoInterface.height(), 0.5);
-
-        };
-
+    function setupOptions(julia) {
         var onOptionClicked = function(feedbackFn) {
             return function(e) {
                 julia.feedback = feedbackFn();
@@ -223,6 +174,42 @@
         juliaDemoAddRadioOption($options, {name: "feedback_options", id:"n_best_5", checked: false},
                 "n best list, show only changed views",
                 onOptionClicked(function() { return new NBestFeedback(julia, {n: 4, show_root_instead_of_most_likely: false})}) );
+    }
+
+    /**
+     * Executed when the document loads. Intended to be boilerplate, shouldn't have to replace much here (for now).
+     */
+    $(document).ready(function(){
+        var julia = new Julia({nSamplesPerEvent: 5});
+        var rootView = new ContainerView(julia, {background_color: "#333333"});
+        julia.setRootView(rootView);
+
+        // Initialize feedback
+        julia.feedback = new OverlayFeedback(julia,
+                {feedbackType:  OverlayOpacitySaturation,
+                    renderThreshold: 0.01});
+        setup(julia, rootView);
+
+        var $alternatives = $("#alternatives");
+        var $demoInterface = $("#demo_interface");
+        // Add an event source
+        var mouseHook = new PMouseEventHook($demoInterface[0], 20, 20);
+        var touchHook = new PTouchEventHook($demoInterface[0], 20, 20);
+
+        julia.addEventSource(mouseHook);
+        julia.addEventSource(touchHook);
+
+        julia.drawFeedback($demoInterface, julia.feedback);
+
+        julia.dispatchCompleted = function(new_alternatives, uiUpdated) {
+            var s = Snap($demoInterface[0]);
+            $demoInterface.empty();
+            julia.drawFeedback($demoInterface, julia.feedback);
+
+            julia.dumpAlternativesAsSnap($alternatives, $demoInterface.width(), $demoInterface.height(), 0.5);
+
+        };
+        setupOptions(julia);
     });
 </script>
 </body>

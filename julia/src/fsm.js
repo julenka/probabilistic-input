@@ -86,7 +86,10 @@ var FSMView = View.subClass({
                 });
             }
         }
-        log(LOG_LEVEL_VERBOSE, this.className + "[" + this.current_state + "] returned " + response);
+        if(e.type === "mousedown" && response.length > 0) {
+            log(LOG_LEVEL_VERBOSE, this.className + "[" + this.current_state + "] returned ", response);
+        }
+
         return response;
     },
     equals: function(other) {
@@ -216,6 +219,15 @@ var TransitionWithProbability = Transition.subClass({
     className: "TransitionWithProbability",
     init: function(to,source,type,probability_function,feedback_action,final_action,handles_event) {
         this._super(to,source,type,probability_function,feedback_action,final_action,handles_event);
+    },
+    /**
+     * Backwards compatible transition. If we take the transition return 1, otherwise return 0
+     * @param e
+     * @param view
+     * @returns {number}
+     */
+    take: function(e, view) {
+        return this.predicate.call(view, e, this);
     }
 });
 

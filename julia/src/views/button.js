@@ -36,7 +36,7 @@ var Button = FSMView.subClass({
                     this.hit_test,
                     this.on_over,
                     undefined,
-                    false
+                    true
                 )
             ],
             over: [
@@ -49,7 +49,9 @@ var Button = FSMView.subClass({
 
                 new MouseMoveTransitionWithProbability(
                     "start",
-                    function(e) { return 1 - this.hit_test(e);},
+                    function(e) {
+                        return 1 - Math.ceil(this.hit_test(e));
+                    },
                     this.on_over_out,
                     undefined,
                     false
@@ -57,15 +59,17 @@ var Button = FSMView.subClass({
                 new MouseMoveTransitionWithProbability(
                     "over",
                     this.hit_test,
-                    function(){},
+                    DO_NOTHING,
                     undefined,
-                    false
+                    true
                 )
             ],
             down: [
                 new MouseMoveTransitionWithProbability(
                     "start",
-                    function(e) { return 1 - this.hit_test(e);},
+                    function(e) {
+                        return 1 - Math.ceil(this.hit_test(e));
+                    },
                     this.on_out,
                     undefined,
                     false
@@ -75,7 +79,7 @@ var Button = FSMView.subClass({
                     this.hit_test,
                     this.on_move_in,
                     undefined,
-                    false
+                    true
                 ),
                 new MouseUpTransition(
                     "start",
@@ -98,7 +102,7 @@ var Button = FSMView.subClass({
         }
         return 1;
     },
-    on_over_out: function(e) {
+    on_over_out: function() {
         // nop 2
     },
     on_out: function(e) {

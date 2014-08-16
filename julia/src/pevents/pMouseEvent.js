@@ -129,7 +129,7 @@ var PNinjaCursorEvent = PEvent.subClass({
                 var y2 = row * cellHeight + y1;
 
                 for(var i = 0; i < 5; i++) {
-                    result.push(new PMouseEventSample(1/(n * 5), this,
+                    result.push(new PMouseEventSample(1/n, this,
                         0,0, x2, y2
                     ));
                 }
