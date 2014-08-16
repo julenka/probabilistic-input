@@ -84,7 +84,6 @@
             var rx2 = rx - this.properties.w /2;
             var ry2 = ry - this.properties.h/2;
             var d = Math.sqrt(rx2 * rx2 + ry2 * ry2) / r;
-            console.log(d);
             return Math.max(1, 1 - d + 0.5);
         },
         updateBackground: function() {
@@ -264,10 +263,7 @@
         var mouseHook = new PNinjaCursorEventHook($mainInterface[0]);
         julia.addEventSource(mouseHook);
 
-//        julia.nSamplesPerEvent = 25;
         julia.nSamplesPerEvent = 25;
-//        julia.nSamplesPerEvent = 1;
-
 
         // Initialize feedback
         julia.feedback = new OverlayFeedback(julia,
