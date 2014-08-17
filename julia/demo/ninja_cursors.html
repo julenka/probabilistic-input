@@ -270,6 +270,7 @@
                 {feedbackType:  OverlayOpacity,
                     showOriginal: false,
                     renderThreshold: 0.00});
+        julia.feedback = new MostLikelyFeedback(julia);
 
         julia.mediator.mediationThreshold = 0.2;
         julia.drawFeedback($mainInterface, julia.feedback);
@@ -283,13 +284,13 @@
         julia.dispatchCompleted = function(new_alternatives, uiUpdated, pEvent) {
             $mainInterface.empty();
             julia.drawFeedback($mainInterface, julia.feedback);
-//            julia.dumpAlternativesAsSnap($alternatives, $mainInterface.width(), $mainInterface.height(), 0.25,
-//                    function() {
-//                        $mainInterface.empty();
-//                        julia.rootView.draw($mainInterface);
-//                        julia.dumpAlternativesAsSnap($alternatives, $mainInterface.width(), $mainInterface.height(), 0.25);
-//                    }
-//            );
+            julia.dumpAlternativesAsSnap($alternatives, $mainInterface.width(), $mainInterface.height(), 0.25,
+                    function() {
+                        $mainInterface.empty();
+                        julia.rootView.draw($mainInterface);
+                        julia.dumpAlternativesAsSnap($alternatives, $mainInterface.width(), $mainInterface.height(), 0.25);
+                    }
+            );
             var snap = Snap($mainInterface[0]);
             if(pEvent) {
                 pEvent.getSamples(julia.nSamplesPerEvent).forEach(function(sample){
