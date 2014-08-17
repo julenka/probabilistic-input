@@ -115,9 +115,9 @@
             var y = this.properties.y;
             var w = this.properties.w;
             var h = this.properties.h;
-            if(this.properties.is_over) {
-                s.rect(x - w/2, y-h/2, w*2, h*2).attr({fill: this.properties.background_color});
-            }
+//            if(this.properties.is_over) {
+//                s.rect(x - w/2, y-h/2, w*2, h*2).attr({fill: this.properties.background_color});
+//            }
             var rect = s.rect(x, y, w, h).attr({fill: this.properties.foreground_color});
             if(this.properties.isTarget) {
                 rect.attr({stroke: '#5fd400', 'stroke-width':'10px'});
