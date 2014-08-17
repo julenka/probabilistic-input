@@ -180,12 +180,12 @@
         everyChildView.addChildView(drag_shape);
 
 
-        rootView.addChildView(everyChildView);
-
         var trashView = new TrashView(julia);
         // Make the trashView draw in front by setting its z order to be high.
         trashView.properties.drawZ = 1000;
-        rootView.addChildView(trashView);
+        everyChildView.addChildView(trashView);
+
+        rootView.addChildView(everyChildView);
     }
 
     function updateLastAction(action) {
@@ -281,7 +281,7 @@
     $(document).ready(function(){
 
         var julia = new Julia({
-            nSamplesPerEvent: 10,
+            nSamplesPerEvent: 1,
             minProbability: 0.01,
             mediator: new Mediator({mediationThreshold: 0.0}),
             nAlternativesToKeep: 10});
@@ -305,7 +305,7 @@
             dp: 1,
             feedback_type: NBestGateLeftAligned,
             show_root_instead_of_most_likely: false,
-            n_best_location: function(){return {x: 0, y:0}}});
+            n_best_location: function(){return {x: 0, y:25}}});
         julia.dwellForFeedback = true;
 
         // Adjust mediation

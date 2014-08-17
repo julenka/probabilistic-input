@@ -61,7 +61,7 @@ var Button = FSMView.subClass({
                     this.hit_test,
                     DO_NOTHING,
                     undefined,
-                    true
+                    false
                 )
             ],
             down: [
@@ -131,7 +131,6 @@ var Button = FSMView.subClass({
     draw: function ($el) {
         var c = this.current_state === "start" ? this.properties.background_color : this.properties.over_background_color;
         var c2 = this.current_state === "start" ? "black" : "white";
-
 
         // in this case $el will be an SVG element
         var s = Snap($el[0]);
