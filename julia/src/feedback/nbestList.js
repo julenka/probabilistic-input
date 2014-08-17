@@ -21,26 +21,32 @@ NBestListBase = Object.subClass({
      */
     init: function(julia, props) {
         this.julia = julia;
-        this.nAlternatives = valueOrDefault(props.n, 3);
-        this.dp = valueOrDefault(props.dp, 0.5);
-        this.feedback_type = valueOrDefault(props.feedback_type, NBestContainer);
-        this.probability_mode = valueOrDefault(props.probability_mode, "none");
-        this.draw_ambiguous = valueOrDefault(props.draw_ambiguous, false);
-        this.dont_dispatch_when_visible = valueOrDefault(props.dont_dispatch_when_visible, true);
-        this.show_root_instead_of_most_likely = valueOrDefault(props.show_root_instead_of_most_likely, true);
-
-        this.n_best_size = valueOrDefault(props.n_best_size, 80);
-        this.n_best_location = valueOrDefault(props.n_best_location, function(){
-            return {x: this.julia.mouseXSmooth - this.n_best_size, y: this.julia.mouseYSmooth - this.n_best_size * 1.25};
-        });
+        var defaults = {
+            n_alternatives: 3,
+            dp: 0.5,
+            feedback_type: NBestContainer,
+            probability_mode: "none",
+            draw_ambiguous: false,
+            dont_dispatch_when_visible: true,
+            show_root_instead_of_most_likely: true,
+            n_best_size: 80,
+            n_best_location: function(){
+                return {x: this.julia.mouseXSmooth - this.n_best_size, y: this.julia.mouseYSmooth - this.n_best_size * 1.25};
+            }
+        };
+        $.extend(this, defaults);
+        $.extend(this, props);
     },
     addItemToNBestContainer: function(nbestcontainer, originalRoot, alternativeRoot, probability) {
         throw "addItemToNBestContainer is not implemented in NBestListBase. Needs to be filled in by extending class.";
     },
-    draw: function ($el, rootView, alternatives) {
-        // TODO: I think we can refactor this
+    turnOffHandlers: function($el){
         $el.off("mousedown touchstart");
         $(window).off("keypress");
+    },
+    draw: function ($el, rootView, alternatives) {
+        // TODO: I think we can refactor this
+        this.turnOffHandlers($el);
         delete this.julia.__julia_dont_dispatch;
         if(alternatives.length === 0) {
             rootView.draw($el);
@@ -64,7 +70,7 @@ NBestListBase = Object.subClass({
             })
         );
         for(var i = this.show_root_instead_of_most_likely ? 0 : 1;
-            i < Math.min(this.nAlternatives + 1,
+            i < Math.min(this.n_alternatives + 1,
                 alternatives.length); i++) {
             if(i == 0 && alternatives.length === 1) {
                 continue;
@@ -266,8 +272,6 @@ var NBestContainer = View.subClass({
         this._super(julia, props, defaults);
         // [ {root: xxx, view: xxx, probability}]
         this.alternatives = [];
-
-
     },
     /**
      * Draws one alternative in a smaller region

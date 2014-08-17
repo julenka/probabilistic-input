@@ -16,7 +16,7 @@
 <table>
     <tr>
         <td>
-            <h3 class="centered"> Without Priors</h3>
+            <h3 class="centered"> With Priors</h3>
             <div id="ipad_container1" class="ipad_container">
                 <div id="ipad_screen1" class="ipad_screen">
                     <svg id="demo_interface" width="546" height="407"></svg>
@@ -26,8 +26,8 @@
 
         </td>
         <td>
-            <h3 class="centered"> With Priors</h3>
 
+            <h3 class="centered"> Without Priors</h3>
             <div id="ipad_container2" class="ipad_container">
                 <div id="ipad_screen2" class="ipad_screen">
                     <svg id="demo_interface2" width="546" height="407"></svg>
@@ -105,6 +105,14 @@
             });
         },
     });
+
+    var NBestFeedbackForPriors = NBestFeedback.subClass({
+        className: "NBestFeedbackForPriors",
+        turnOffHandlers: function($el){
+            $el.off("mousedown touchstart");
+        }
+    });
+
 </script>
 <script>
 
@@ -208,8 +216,8 @@
         julia.setRootView(rootView);
         julia2.setRootView(rootView2);
 
-        setup1(rootView);
-        setup2(rootView2);
+        setup1(rootView2);
+        setup2(rootView);
 
         var $mainInterface = $("#demo_interface");
         var $mainInterface2 = $("#demo_interface2");
@@ -220,17 +228,17 @@
         julia.addEventSource(mouseHook);
         julia2.addEventSource(mouseHook);
 
-        julia.nSamplesPerEvent = 10;
-        julia2.nSamplesPerEvent = 10;
+        julia.nSamplesPerEvent = 1;
+        julia2.nSamplesPerEvent = 1;
 
         // Initialize feedback
-        julia.feedback = new NBestFeedback(julia, {n: 4,
+        julia.feedback = new NBestFeedbackForPriors(julia, {n: 4,
             feedback_type: NBestGateForPriors,
             dont_dispatch_when_visible: false,
             n_best_location: nBestLocation,
             show_root_instead_of_most_likely: false
         });
-        julia2.feedback = new NBestFeedback(julia2, {n: 4,
+        julia2.feedback = new NBestFeedbackForPriors(julia2, {n: 4,
             feedback_type: NBestGateForPriors,
             dont_dispatch_when_visible: false,
             n_best_location: nBestLocation,
@@ -240,8 +248,8 @@
         julia.__test_julia_id = "julia1";
         julia2.__test_julia_id = "julia2";
 
-        julia.dispatchCompleted = getDispatchCompleted($mainInterface, julia);
-        julia2.dispatchCompleted = getDispatchCompleted($mainInterface2, julia2);
+        julia.dispatchCompleted = getDispatchCompleted($mainInterface2, julia2);
+        julia2.dispatchCompleted = getDispatchCompleted($mainInterface, julia);
 
         addTouchOverlay();
         addKeyOverlay();
