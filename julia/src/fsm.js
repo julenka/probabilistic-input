@@ -227,6 +227,9 @@ var TransitionWithProbability = Transition.subClass({
      * @returns {number}
      */
     take: function(e, view) {
+        if(!(this.source === e.source && this.type === e.type)) {
+            return 0;
+        }
         return this.predicate.call(view, e, this);
     }
 });
