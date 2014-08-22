@@ -374,12 +374,6 @@ var NBestContainer = View.subClass({
         var s = Snap($el[0]);
         var w = this.getWidth();
         var h = this.getHeight();
-        s.rect(this.properties.x, this.properties.y, w, h).attr({
-            "stroke": "black",
-            "stroke-width": "1px",
-            fill: "#313131",
-            opacity: 0.5,
-        });
         // HACK: this will remove all handlers attached with on and needs to be improved
         $(window).off("keypress");
         var julia = this.julia;
