@@ -36,7 +36,7 @@ var Button = FSMView.subClass({
                     this.hit_test,
                     this.on_over,
                     undefined,
-                    true
+                    false
                 )
             ],
             over: [
@@ -61,7 +61,7 @@ var Button = FSMView.subClass({
                     this.hit_test,
                     DO_NOTHING,
                     undefined,
-                    false
+                    true
                 )
             ],
             down: [

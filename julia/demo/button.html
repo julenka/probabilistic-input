@@ -48,17 +48,15 @@
     var feedback = new OverlayFeedback(julia);
 
     julia.dispatchCompleted = function(new_alternatives, uiUpdated) {
-        if(!uiUpdated) {
-            return;
-        }
         julia.dumpAlternativesAsSnap($sketches, $sketch.width(), $sketch.height(), 0.5);
         $sketch.empty();
-        var merged = julia.drawFeedback($sketch, feedback);
-        merged.domDump($("#interactor_tree_div"));
+        julia.drawFeedback($sketch, feedback);
+        julia.drawEventSamples($sketch);
     };
 
     var mouseHook = new PMouseEventHook($sketch[0]);
     julia.addEventSource(mouseHook);
+
 </script>
 </body>
 </html>

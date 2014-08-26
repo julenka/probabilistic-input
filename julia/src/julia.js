@@ -72,12 +72,14 @@ var Julia = Object.subClass({
      */
     initDispatchQueue: function(pEvent) {
         var i,j;
-        var samples = pEvent.getSamples(this.nSamplesPerEvent);
+        this.currentEventSamples= pEvent.getSamples(this.nSamplesPerEvent);
+        var samples = this.currentEventSamples;
         if(this.dispatchQueue.length !== 0) {
             throw({name: "FatalError", message: "initDispatchQueue dispatchQueue not empty!"});
         }
         for(i = 0; i < samples.length; i++) {
             samples[i].sample_index = i;
+
             for (j = 0; j < this.alternatives.length; j++) {
                 this.addToDispatchQueue(this.alternatives[j], samples[i]);
             }
@@ -229,8 +231,20 @@ var Julia = Object.subClass({
         }
     },
     /**
+     * For debugging purposes, draw the event samples used when dispatching this event
+     * @param $el
+     */
+    drawEventSamples: function($el) {
+        var i, sample;
+        for(i = 0; i < this.currentEventSamples.length; i++) {
+            sample = this.currentEventSamples[i];
+            if(sample.draw) {
+                sample.draw($el[0]);
+            }
+        }
+    },
+    /**
      * For now, at the end of the dispatch loop, we will draw feedback to the given elements
-     * TODO: when constructed, we shoudl probably specify the element to draw to
      * @param $el
      */
     drawFeedback: function($el, feedback) {
@@ -316,8 +330,13 @@ var Julia = Object.subClass({
             var downsampledAlternatives = this.downSampleInterfaceAlternatives(
                 combinedAlternatives,
                 this.nAlternativesToKeep);
-            this.__julia_ambiguous = true;
-            this.ambiguousRequests(downsampledAlternatives, pEvent);
+            this.__julia_ambiguous = true
+            if(this.ambiguousRequests) {
+                this.ambiguousRequests(downsampledAlternatives, pEvent);
+            } else {
+                log(LOG_LEVEL_DEBUG, "requests ambiguous but no ambiguousRequests handler", this.ambiguousRequests);
+            }
+
             return false;
         }
 
