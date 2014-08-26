@@ -1,7 +1,7 @@
     <!DOCTYPE html>
 <html>
     <head>
-        <title>Probabilistic Buttons</title>
+        <title>Button Demo</title>
 
         <script type="text/javascript" src="../dist/julia.js"></script>
 
@@ -10,50 +10,6 @@
         </style>
     </head>
 <body>
-<h3> Probabilistic Buttons </h3>
-<div id="top_bar"></div>
-<div id="demo_description">
-    Demonstrates probabilistic tracking of button state, as well as selection of different feedback mechanisms.
-</div>
-
-
-<div id="demo_settings">
-    <div>
-        <label for="numSamples">number of event samples:</label>
-        <input type="text" id="numSamples" value="1000"/>
-    </div>
-    <div>
-        <label for="numAlternatives">number of alternatives to keep:</label>
-        <input type="text" id="numAlternatives" value ="10"/>
-    </div>
-    <div>
-        <label for="sampleVarianceX">sample x variance:</label>
-        <input type="text" id="sampleVarianceX" value="10"/>
-    </div>
-    <div>
-        <label for="sampleVarianceY">sample y variance:</label>
-        <input type="text" id="sampleVarianceY" value="10"/>
-    </div>
-     <button onclick="update()">Update Settings</button>
-
-    <div>
-        feedback type:
-    </div>
-    <div>
-        <input name="fb" type="radio" id="radio_none"/>
-        <label for="radio_none">none</label>
-    </div>
-    <div>
-        <input name="fb" type="radio" id="radio_opacity" checked="True"/>
-        <label for="radio_opacity">opacity</label>
-    </div>
-    <div>
-        <input name="fb" type="radio" id="radio_most_likely"/>
-        <label for="radio_most_likely">most_likely</label>
-    </div>
-
-</div>
-
 
 <table >
     <tr>
@@ -66,15 +22,6 @@
 
     </tr>
 
-</table>
-
-<table id="interactor_tree_table">
-    <tr>
-        <td>Interactor tree of main interface:</td>
-    </tr>
-    <tr>
-        <td><div id="interactor_tree_div"/></td>
-    </tr>
 </table>
 
 
@@ -100,15 +47,6 @@
 
     var feedback = new OverlayFeedback(julia);
 
-    $("#radio_opacity").click(function(){
-        feedback = new OverlayFeedback(julia);
-    });
-    $("#radio_none").click(function() {
-        feedback = new RootViewFeedback(julia);
-    });
-    $("#radio_most_likely").click(function() {
-        feedback = new MostLikelyFeedback(julia);
-    });
     julia.dispatchCompleted = function(new_alternatives, uiUpdated) {
         if(!uiUpdated) {
             return;
@@ -121,18 +59,6 @@
 
     var mouseHook = new PMouseEventHook($sketch[0]);
     julia.addEventSource(mouseHook);
-
-    function update() {
-        julia.nSamplesPerEvent = parseInt($("#numSamples").val());
-        julia.nAlternativesToKeep = parseInt($("#numAlternatives").val());
-        mouseHook.variance_x_px = parseInt($("#sampleVarianceX").val());
-        mouseHook.variance_y_px = parseInt($("#sampleVarianceY").val());
-        julia.setRootView(rootView);
-        var merged = julia.drawFeedback($sketch, feedback);
-        merged.domDump($("#interactor_tree_div"));
-    }
-    update();
-
 </script>
 </body>
 </html>
