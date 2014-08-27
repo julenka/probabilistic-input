@@ -3,18 +3,7 @@
 <head>
     <title>OverlayFeedback Test</title>
 
-
-
-
-    <!-- Snap SVG library -->
-
-
-    <!-- Julia library -->
     <script type="text/javascript" src="../dist/julia.js"></script>
-
-    <!-- Draggable/Resizeable -->
-    <script type="text/javascript" src="../views/draggable_resizeable_box.js"></script>
-
     <style>
         svg.demo {
             background-color: #C2CCD1;
@@ -69,7 +58,7 @@
         init: function(julia, properties) {
             this._super(julia, properties, {"goal_x": 0, "goal_y": 0, "goal_radius": 100});
         },
-        drag_predicate: function(e) {
+        predicateDragProgress: function(e) {
             var dx = this.properties.x - this.properties.goal_x;
             var dy = this.properties.y - this.properties.goal_y;
             var d = Math.sqrt(dx * dx + dy * dy);
@@ -95,7 +84,7 @@
         var goalSize = 50;
 
         // set up Julia
-        julia.nSamplesPerEvent = 100;
+        julia.nSamplesPerEvent = 30;
         var mouseHook = new PMouseEventHook($sketch[0], 40, 40);
         julia.addEventSource(mouseHook);
 
