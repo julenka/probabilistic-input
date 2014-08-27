@@ -23,31 +23,29 @@ var DraggableResizeableShape = DraggableShape.subClass({
      * @param properties
      */
     init: function (julia, properties) {
-        this._super(julia, properties, {"resize_padding": 20, "min_w": 10, "min_h": 10});
-
+        this._super(julia, properties, {over_state: false, "resize_padding": 20, "min_w": 10, "min_h": 10});
         var new_states = ["resize_left", 'resize_top', "resize_right", "resize_bottom",
-        "resize_nw", "resize_ne", "resize_sw", "resize_se"];
+            "resize_nw", "resize_ne", "resize_sw", "resize_se"];
+        this.initFSM(new_states);
+        this.initControlPoints(new_states);
+        this.updateControlPoints();
+    },
+    initFSM: function(new_states) {
         this.fsm_description = {
             start: [
-                //   init: function(to, drag_predicate, feedback_action, final_action, handles_event) {
-                new MouseMoveTransition(
-                    "over",
-                    this.boundingBoxHitTest,
-                    function(){},
-                    undefined,
-                    true),
+
                 new MouseDownTransition(
                     "dragging",
-                    this.predicate_drag_start,
-                    this.drag_start,
+                    this.predicateStartDrag,
+                    this.updateStartDrag,
                     undefined,
                     true),
             ],
             over : [
                 new MouseDownTransition(
                     "dragging",
-                    this.predicate_drag_start,
-                    this.drag_start,
+                    this.predicateStartDrag,
+                    this.updateStartDrag,
                     undefined,
                     true),
                 new MouseMoveTransition(
@@ -60,72 +58,98 @@ var DraggableResizeableShape = DraggableShape.subClass({
             dragging: [
                 new MouseMoveTransitionWithProbability(
                     "dragging",
-                    this.drag_predicate,
-                    this.drag_progress,
+                    this.predicateDragProgress,
+                    this.updateDragProgress,
                     undefined,
                     true
                 ),
                 new MouseUpTransitionWithProbability(
                     "start",
-                    this.drag_predicate,
+                    this.predicateDragProgress,
                     undefined,
-                    this.drag_end,
+                    this.onDragEnd,
                     true
                 )
             ]
         };
+        // over state specifies whether we want to have a 'mouse over' state
+        if(this.properties.over_state) {
+            this.fsm_description[start].push(
+                new MouseMoveTransition(
+                    "over",
+                    this.boundingBoxHitTest,
+                    function(){},
+                    undefined,
+                    true)
+            );
+        }
+
 
         for(var i = 0; i < new_states.length; i++) {
             var name = new_states[i];
             this.fsm_description.over.push(
                 new MouseDownTransitionWithProbability(
                     name,
-                    this.resize_predicate,
-                    this.resize_start,
+                    this.predicateResizeStart,
+                    this.updateResizeStart,
                     undefined,
                     true
-                    )
+                )
             );
             this.fsm_description.start.push(
                 new MouseDownTransitionWithProbability(
                     name,
-                    function(e, transition) {
-                        if(this.hit_test(e, transition)) {
-                            return this.properties.default_predicate_probability;
-                        }
-                        return 0;
-                    },
-                    this.resize_start,
+                    this.predicateResizeStart,
+                    this.updateResizeStart,
                     undefined,
                     true)
             );
             this.fsm_description[name] = [
                 new MouseMoveTransitionWithProbability(
                     name,
-                    this.drag_predicate,
-                    this.drag_progress,
+                    this.predicateDragProgress,
+                    this.updateDragProgress,
                     undefined,
                     true
                 ), new MouseUpTransitionWithProbability(
                     "start",
-                    this.drag_predicate,
+                    this.predicateDragProgress,
                     undefined,
-                    this.drag_end,
+                    this.onDragEnd,
                     true
                 )
             ];
         }
-        this.initControlPoints(new_states);
-        this.updateControlPoints();
     },
-    resize_start: function(e) {
+    /**
+     * Update function for going from start->resize and over->resize
+     * @param e
+     */
+    updateResizeStart: function(e) {
         this.gesture_start(e);
     },
-    resize_predicate: function(e, transition) {
-        if(this.hit_test(e, transition)) {
+    /**
+     * Predicate for start->resize and over->resize
+     * @param e
+     * @param transition
+     * @returns {*}
+     */
+    predicateResizeStart: function(e, transition) {
+        if(this.hitTest(e, transition)) {
             return this.properties.default_predicate_probability;
         }
         return 0;
+    },
+    predicateDragProgress: function(e) {
+        var dx = Math.abs(this.drag_start_info.mouse_x - e.element_x);
+        var dy = Math.abs(this.drag_start_info.mouse_y - e.element_y);
+        // TODO: this should be resolution independent, and should have to do with probabilities...
+        if(this.resizingHorizontally() && dy > 30) {
+            return 0.9;
+        } else if (this.resizingVertically() && dx > 30) {
+            return 0.9;
+        }
+        return 1;
     },
     /**
      * Looks for snap points within radius of the given point.
@@ -215,21 +239,11 @@ var DraggableResizeableShape = DraggableShape.subClass({
             });
         }
     },
-    drag_predicate: function(e) {
-        var dx = Math.abs(this.drag_start_info.mouse_x - e.element_x);
-        var dy = Math.abs(this.drag_start_info.mouse_y - e.element_y);
-        // TODO: this should be resolution independent, and should have to do with probabilities...
-        if(this.resizingHorizontally() && dy > 30) {
-            return 0.9;
-        } else if (this.resizingVertically() && dx > 30) {
-            return 0.9;
-        }
-        return 1;
-    },
+
     resizingVertically: function() { return this.current_state === "resize_top" || this.current_state === "resize_bottom";},
     resizingHorizontally: function() { return this.current_state === "resize_left" || this.current_state === "resize_right";},
-    drag_progress: function(e) {
-        var motion = this.get_relative_motion(e);
+    updateDragProgress: function(e) {
+        var motion = this.getRelativeMotion(e);
         var new_w = this.properties.w;
         var new_h = this.properties.h;
         var new_x = this.properties.x;
@@ -263,25 +277,18 @@ var DraggableResizeableShape = DraggableShape.subClass({
         }
 
         this.updateControlPoints();
-        this.send_drag_progress();
+        this.sendUpdateDragProgress();
     },
     boundingBoxHitTest: function(e) {
-        var coords = this.get_relative(e);
+        var coords = this.getRelative(e);
         return (coords.rx > -this.properties.resize_padding
             && coords.ry > -this.properties.resize_padding
             && coords.rx < this.properties.w + this.properties.resize_padding
             && coords.ry < this.properties.h + this.properties.resize_padding);
     },
-    dragHitTest: function(e) {
-        var coords = this.get_relative(e);
-        return (coords.rx > this.properties.resize_padding
-            && coords.ry > this.properties.resize_padding
-            && coords.rx < this.properties.w - this.properties.resize_padding
-            && coords.ry < this.properties.h - this.properties.resize_padding);
-    },
-    hit_test: function(e, transition) {
+    hitTest: function(e, transition) {
         if(transition.to === "dragging") {
-            return this.dragHitTest(e);
+            return this.boundingBoxHitTest(e);
         } else {
             return this.hitTestControlPoint(transition.to, e.base_event.element_x, e.base_event.element_y);
         }
@@ -367,7 +374,7 @@ var DraggableResizeableEllipse = DraggableResizeableShape.subClass({
                 stroke: this.properties.stroke, opacity: 0.7});
     },
     dragHitTest: function(e) {
-        var coords = this.get_relative(e);
+        var coords = this.getRelative(e);
         var rx = this.properties.w / 2;
         var ry = this.properties.h / 2;
         var cx = coords.rx - rx;

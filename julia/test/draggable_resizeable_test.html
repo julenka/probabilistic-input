@@ -59,12 +59,10 @@
         julia.drawFeedback($sketch, feedback);
 
         julia.dispatchCompleted = function(new_alternatives, uiUpdated) {
-            if(!uiUpdated) {
-                return;
-            }
             $sketch.empty();
             julia.drawFeedback($sketch, feedback);
             julia.dumpAlternativesAsSnap($alternatives, $sketch.width(), $sketch.height(), 0.25)
+            julia.drawEventSamples($sketch);
         };
     }
 

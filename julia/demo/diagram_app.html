@@ -281,7 +281,7 @@
     $(document).ready(function(){
 
         var julia = new Julia({
-            nSamplesPerEvent: 1,
+            nSamplesPerEvent: 5,
             minProbability: 0.01,
             mediator: new Mediator({mediationThreshold: 0.0}),
             nAlternativesToKeep: 10});
@@ -295,7 +295,7 @@
         var $mainInterface = $("#demo_interface");
 
         // Add an event source
-        var mouseHook = new PMouseEventHook($mainInterface[0]);
+        var mouseHook = new PMouseEventHook($mainInterface[0], 15, 15);
         julia.addEventSource(mouseHook);
 
         julia.feedback = new NBestHighlightFeedback(julia, {
@@ -318,6 +318,7 @@
             }
             $mainInterface.empty();
             julia.drawFeedback($mainInterface, julia.feedback);
+            julia.drawEventSamples($mainInterface);
             //julia.dumpAlternativesAsSnap($alternatives, $mainInterface.width(), $mainInterface.height(), 0.5);
         }
         window.setInterval(update, 30);

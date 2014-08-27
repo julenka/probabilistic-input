@@ -34,70 +34,70 @@ var DraggableShape = FSMView.subClass({
 
         this.fsm_description = {
             start: [
-                //   init: function(to, drag_predicate, feedback_action, final_action, handles_event) {
+                //   init: function(to, predicateDragProgress, feedback_action, final_action, handles_event) {
                 new MouseDownTransitionWithProbability(
                     "dragging",
-                    this.predicate_drag_start,
-                    this.drag_start,
+                    this.predicateStartDrag,
+                    this.updateStartDrag,
                     undefined,
                     true)
             ],
             dragging: [
                 new MouseMoveTransitionWithProbability(
                     "dragging",
-                    this.drag_predicate,
-                    this.drag_progress,
+                    this.predicateDragProgress,
+                    this.updateDragProgress,
                     undefined,
                     true
                 ),
                 new MouseUpTransitionWithProbability(
                     "start",
-                    this.drag_end_predicate,
+                    this.onDragEnd_predicate,
                     undefined,
-                    this.drag_end,
+                    this.onDragEnd,
                     true
                 )
             ]
         };
     },
-    get_relative: function(e) {
+    getRelative: function(e) {
         var rx = e.element_x - this.properties.x;
         var ry = e.element_y - this.properties.y;
         return {rx: rx, ry: ry};
     },
-    get_relative_motion: function(e) {
+    getRelativeMotion: function(e) {
         return {
             dx:e.base_event.element_x - this.drag_start_info.mouse_x,
             dy:e.base_event.element_y - this.drag_start_info.mouse_y
         };
     },
-    predicate_drag_start: function(e, transition) {
-        if(this.hit_test(e, transition)) {
+    predicateStartDrag: function(e, transition) {
+        if(this.hitTest(e, transition)) {
             return this.properties.default_predicate_probability;
         }
         return 0;
     },
-    hit_test: function(e) {
-        var coords = this.get_relative(e);
+    hitTest: function(e) {
+        var coords = this.getRelative(e);
         return (coords.rx > 0 && coords.ry > 0 && coords.rx < this.properties.w && coords.ry < this.properties.h);
     },
-    send_drag_start: function() {
+    sendUpdateStartDrag: function() {
         this.julia.addToDispatchQueue({view: this.getRootView(), probability: 1},new DragStartEvent(this));
     },
     /**
      * When the drag is starting, we need to also add a drag event to the current dispatch queue
      * @param e
      */
-    drag_end_predicate: function(e) {
+    onDragEnd_predicate: function(e) {
         return 1;
     },
-    drag_predicate: function(e) {
+    predicateDragProgress: function(e) {
         return 1;
     },
-    send_drag_end: function() {
+    sendOnDragEnd: function() {
         this.julia.addToDispatchQueue({view: this.getRootView(), probability: 1},new DragEndEvent(this));
     },
-    send_drag_progress: function() {
+    sendUpdateDragProgress: function() {
         this.julia.addToDispatchQueue({view: this.getRootView(), probability: 1},new DragProgressEvent(this));
     },
     /**
@@ -105,7 +105,7 @@ var DraggableShape = FSMView.subClass({
      * Store information about the start of the gesture here.
      * @param e
      */
-    gesture_start: function(e) {
+    gestureStart: function(e) {
         this.drag_start_info.mouse_x = e.base_event.element_x;
         this.drag_start_info.mouse_y = e.base_event.element_y;
         this.drag_start_info.my_x = this.properties.x;
@@ -113,19 +113,19 @@ var DraggableShape = FSMView.subClass({
         this.drag_start_info.my_w = this.properties.w;
         this.drag_start_info.my_h = this.properties.h;
     },
-    drag_start: function(e, rootView) {
+    updateStartDrag: function(e, rootView) {
         // the index of the event sample that we received when a drag was initiated
-        this.gesture_start(e);
-        this.send_drag_start(e);
+        this.gestureStart(e);
+        this.sendUpdateStartDrag(e);
     },
-    drag_progress: function(e, rootView) {
-        var motion = this.get_relative_motion(e);
+    updateDragProgress: function(e, rootView) {
+        var motion = this.getRelativeMotion(e);
         this.properties.x = this.drag_start_info.my_x + motion.dx;
         this.properties.y = this.drag_start_info.my_y + motion.dy;
-        this.send_drag_progress();
+        this.sendUpdateDragProgress();
     },
-    drag_end: function() {
-        this.send_drag_end();
+    onDragEnd: function() {
+        this.sendOnDragEnd();
     },
     draw: function ($el) {
         // in this case $el will be an SVG element

@@ -37,8 +37,8 @@ var EditableLine = DraggableShape.subClass({
                 ),
             new MouseDownTransitionWithProbability(
                 "dragging",
-                this.predicate_drag_start,
-                this.drag_start,
+                this.predicateStartDrag,
+                this.updateStartDrag,
                 undefined,
                 true)
             ];
@@ -91,7 +91,7 @@ var EditableLine = DraggableShape.subClass({
      * need to record our own information
      * @param e
      */
-    gesture_start: function(e){
+    gestureStart: function(e){
 
         this.drag_start_info.mouse_x = e.base_event.element_x;
         this.drag_start_info.mouse_y = e.base_event.element_y;
@@ -103,14 +103,14 @@ var EditableLine = DraggableShape.subClass({
      * to update endpoints
      * @param e
      */
-    drag_progress: function(e) {
+    updateDragProgress: function(e) {
         var dx = e.base_event.element_x - this.drag_start_info.mouse_x;
         var dy = e.base_event.element_y - this.drag_start_info.mouse_y;
         this.properties.p1.x = this.drag_start_info.p1.x + dx;
         this.properties.p1.y = this.drag_start_info.p1.y + dy;
         this.properties.p2.x = this.drag_start_info.p2.x + dx;
         this.properties.p2.y = this.drag_start_info.p2.y + dy;
-        this.send_drag_progress();
+        this.sendUpdateDragProgress();
     },
     getBoundingBox: function() {
         var p1 = this.properties.p1;
@@ -123,7 +123,7 @@ var EditableLine = DraggableShape.subClass({
      * @param e
      * @returns {boolean}
      */
-    hit_test: function(e) {
+    hitTest: function(e) {
         return this.hitTestDrag(e);
     },
     overPredicate: function(e) {

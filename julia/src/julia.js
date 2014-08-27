@@ -236,6 +236,9 @@ var Julia = Object.subClass({
      */
     drawEventSamples: function($el) {
         var i, sample;
+        if(!this.currentEventSamples) {
+            return;
+        }
         for(i = 0; i < this.currentEventSamples.length; i++) {
             sample = this.currentEventSamples[i];
             if(sample.draw) {
