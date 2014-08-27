@@ -130,3 +130,14 @@ var ActionRequestSequence = Object.subClass({
         return this.requests[this.requests.length - 1].handlesEvent;
     }
 });
+
+/**
+ * Action request used for snapping lines, etc.
+ * @type {*}
+ */
+var SnapPointActionRequest = ActionRequest.subClass({
+    className: "SnapPointActionRequest",
+    equals: function(other) {
+        return false;
+    }
+});

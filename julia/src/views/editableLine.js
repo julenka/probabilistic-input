@@ -306,10 +306,3 @@ var EditableLine = DraggableShape.subClass({
     }
 
 });
-
-var SnapPointActionRequest = ActionRequest.subClass({
-    className: "SnapPointActionRequest",
-    equals: function(other) {
-        return false;
-    }
-});

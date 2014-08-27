@@ -156,7 +156,7 @@
         var everyChildView = new EveryChildContainerView(julia, {background_color: "#eee"});
 
         // The path brush draws lines (horizontal and vertical)
-        var path_brush = new PathBrush(julia, {color: LINE_COLOR,
+        var path_brush = new SnappingPathBrush(julia, {color: LINE_COLOR,
             width: 1,
             use_priors: true,
             onLineCompleted: onLineCompleted.curry(julia, LINE_COLOR)});
@@ -295,7 +295,7 @@
         var $mainInterface = $("#demo_interface");
 
         // Add an event source
-        var mouseHook = new PMouseEventHook($mainInterface[0], 15, 15);
+        var mouseHook = new PMouseEventHook($mainInterface[0], 5, 5);
         julia.addEventSource(mouseHook);
 
         julia.feedback = new NBestHighlightFeedback(julia, {
@@ -319,7 +319,7 @@
             $mainInterface.empty();
             julia.drawFeedback($mainInterface, julia.feedback);
             julia.drawEventSamples($mainInterface);
-            //julia.dumpAlternativesAsSnap($alternatives, $mainInterface.width(), $mainInterface.height(), 0.5);
+//            julia.dumpAlternativesAsSnap($alternatives, $mainInterface.width(), $mainInterface.height(), 0.5);
         }
         window.setInterval(update, 30);
 
