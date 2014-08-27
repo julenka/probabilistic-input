@@ -290,7 +290,7 @@ var DraggableResizeableShape = DraggableShape.subClass({
         if(transition.to === "dragging") {
             return this.boundingBoxHitTest(e);
         } else {
-            return this.hitTestControlPoint(transition.to, e.base_event.element_x, e.base_event.element_y);
+            return this.hitTestControlPoint(transition.to, e.element_x, e.element_y);
         }
     },
     draw: function ($el) {

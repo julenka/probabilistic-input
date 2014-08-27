@@ -19,13 +19,19 @@ var EditableLine = DraggableShape.subClass({
     initFSM: function() {
         // fsm already has start, dragging states
         this.fsm_description.start.push(
-            new MouseMoveTransition(
-                "over",
-                this.overPredicate,
-                this.removeSnapFeedback,
+//            new MouseMoveTransition(
+//                "over",
+//                this.overPredicate,
+//                this.removeSnapFeedback,
+//                undefined,
+//                false
+//            ),
+            new MouseDownTransitionWithProbability(
+                "dragging",
+                this.predicateStartDrag,
+                this.updateStartDrag,
                 undefined,
-                false
-            )
+                true)
         );
         this.fsm_description.over = [
                 new MouseMoveTransition(
@@ -144,7 +150,7 @@ var EditableLine = DraggableShape.subClass({
         // Vector from v1 to v2
         var v12 = v2.subtract(v1);
         // c is candidate point
-        var c = $V([e.base_event.element_x, e.base_event.element_y]);
+        var c = $V([e.element_x, e.element_y]);
         // v1 to c
         var v1c = c.subtract(v1);
         var v2c = c.subtract(v2);
@@ -162,8 +168,8 @@ var EditableLine = DraggableShape.subClass({
     },
     hitTestControlPoint: function(e, transition) {
         var pt = transition.to === "move_p1" ? this.properties.p1 : this.properties.p2;
-        var x = e.base_event.element_x;
-        var y = e.base_event.element_y;
+        var x = e.element_x;
+        var y = e.element_y;
         var r = Math.sqrt(Math.pow(pt.x - x, 2) + Math.pow(pt.y - y, 2));
         if( r < this.properties.ctrl_pt_radius) {
             return this.properties.default_predicate_probability;
