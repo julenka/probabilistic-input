@@ -136,6 +136,9 @@ var EditableLine = DraggableShape.subClass({
         return this.hitTestControlPoint(e, {to: "move_p1"}) > 0 || this.hitTestControlPoint(e, {to: "move_p2"}) > 0 || this.hitTestRegion(e);
     },
     hitTestDrag: function(e) {
+        if(this.hitTestControlPoint(e, {to: "move_p1"}) || this.hitTestControlPoint(e, {to:"move_p2"})) {
+            return false;
+        }
         return this.hitTestRegion(e);
     },
     /**
@@ -156,7 +159,7 @@ var EditableLine = DraggableShape.subClass({
         var v2c = c.subtract(v2);
         // The dot is not between p1 and p2
         if(v1c.dot(v2c) > 0) {
-            return false;
+            return 0;
         }
 
         // projection of v1c onto v12
