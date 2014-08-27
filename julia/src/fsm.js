@@ -22,21 +22,7 @@ var FSMView = View.subClass({
      */
     copyFsm: function(view_clone) {
         view_clone.current_state = this.current_state;
-        var i;
-        for (var state in this.fsm_description) {
-            var new_state = [];
-
-            for(i = 0; i < this.fsm_description[state].length; i++) {
-                var transition = this.fsm_description[state][i];
-                var new_transition = {};
-                for(var prop in transition) {
-                    new_transition[prop] = transition[prop];
-                }
-                new_state.push(new_transition);
-            }
-            view_clone.fsm_description[state] = new_state;
-        }
-
+        view_clone.fsm_description = deepCopy(this.fsm_description);
     },
     clone: function() {
         var result = this._super();
@@ -120,6 +106,7 @@ var Transition = Object.subClass({
         } else {
             throw "Transition init() called with wrong number of parameters";
         }
+        this.__julia_transition_id = guid();
     },
     initLegacy: function(to,source,type,predicate,feedback_action,final_action,handles_event) {
         this.to = to;
