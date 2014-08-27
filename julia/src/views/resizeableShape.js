@@ -165,7 +165,7 @@ var DraggableResizeableShape = DraggableShape.subClass({
             // control point Vector
             var cV = $V([pt.x, pt.y]);
             if(cV.distanceFrom(ptV) < radius) {
-                result.push({x: pt.x, y: pt.y});
+                result.push({x: pt.x, y: pt.y, d: cV.distanceFrom(ptV)});
             }
         }
         return result;

@@ -232,7 +232,7 @@ var EditableLine = DraggableShape.subClass({
             // control point Vector
             var cV = $V([pt.x, pt.y]);
             if(cV.distanceFrom(ptV) < radius) {
-                result.push({x: pt.x, y: pt.y});
+                result.push({x: pt.x, y: pt.y, d: cV.distanceFrom(ptV)});
             }
         }
         return result;
@@ -273,13 +273,16 @@ var EditableLine = DraggableShape.subClass({
                     var nearby = child.snapPointsNear(pt, snap_radius);
                     for(var j = 0; j < nearby.length; j++) {
                         var snapPoint = shallowCopy(nearby[j]);
+                        // weight the likelihood of the request based on the distance to the snap point.
+                        var weight = (snap_radius - snapPoint.d) / snap_radius;
                         result.push(
                             new SnapPointActionRequest(
                               this.snapToPoint.curry(snapPoint),
                                 this,
                                 true,
                                 true,
-                                shallowCopy(e)
+                                shallowCopy(e),
+                                weight
                             )
                         );
                     }
