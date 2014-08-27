@@ -59,7 +59,7 @@ var View = Object.subClass({
         // TODO make the clone method more generic: 1. Create a new object 2. copy action requests 3. copy all properties
         var result = new this.constructor(this.julia, this.properties);
         this.cloneActionRequests(result);
-        result.properties = shallowCopy(this.properties);
+        result.properties = deepCopy(this.properties);
         result.__julia_id = this.__julia_id;
         result._dirty = this._dirty;
         return result;

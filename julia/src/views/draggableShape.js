@@ -150,7 +150,7 @@ var DraggableShape = FSMView.subClass({
     },
     clone: function() {
         var result = this._super();
-        result.drag_start_info = shallowCopy(this.drag_start_info);
+        result.drag_start_info = deepCopy(this.drag_start_info);
         return result;
     },
 

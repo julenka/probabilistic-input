@@ -130,12 +130,6 @@ var EditableLine = DraggableShape.subClass({
         return this.hitTestControlPoint(e, {to: "move_p1"}) > 0 || this.hitTestControlPoint(e, {to: "move_p2"}) > 0 || this.hitTestRegion(e);
     },
     hitTestDrag: function(e) {
-        if(this.hitTestControlPoint(e, {to: "move_p1"}) > 0) {
-            return false;
-        }
-        if(this.hitTestControlPoint(e, {to: "move_p2"}) > 0) {
-            return false;
-        }
         return this.hitTestRegion(e);
     },
     /**
