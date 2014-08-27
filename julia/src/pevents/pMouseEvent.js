@@ -85,7 +85,7 @@ var PMouseEventSample = PEvent.subClass({
     },
     draw: function($el) {
         var s = Snap($el);
-        s.circle(this.element_x, this.element_y, 2).attr({fill: 'pink'});
+        s.circle(this.element_x, this.element_y, 2).attr({fill: 'pink', opacity: 0.5});
     }
 });
 

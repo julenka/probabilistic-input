@@ -580,7 +580,7 @@ var NBestGate = NBestContainer.subClass({
                     if(julia.dispatchCompleted) {
                         julia.dispatchCompleted(julia.alternatives, true);
                     }
-
+                    $el.off("mousemove touchmove mouseup touchup");
                     e.stopPropagation();
                     return true;
                 };
@@ -601,6 +601,7 @@ var NBestGate = NBestContainer.subClass({
         $el.on("mousemove touchmove mouseup touchup", function(e) {
             delete julia.__julia_dont_dispatch;
             julia.dispatchPEvent(new PMouseEvent(1, e, 0, 0, e.type, e.currentTarget));
+            $el.off("mousemove touchmove mouseup touchup");
         });
 
 

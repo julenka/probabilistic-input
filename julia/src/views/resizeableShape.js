@@ -126,7 +126,7 @@ var DraggableResizeableShape = DraggableShape.subClass({
      * @param e
      */
     updateResizeStart: function(e) {
-        this.gesture_start(e);
+        this.gestureStart(e);
     },
     /**
      * Predicate for start->resize and over->resize
