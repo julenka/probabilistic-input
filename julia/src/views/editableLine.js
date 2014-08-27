@@ -103,6 +103,8 @@ var EditableLine = DraggableShape.subClass({
         this.drag_start_info.mouse_y = e.base_event.element_y;
         this.drag_start_info.p1 = shallowCopy(this.properties.p1);
         this.drag_start_info.p2 = shallowCopy(this.properties.p2);
+        this.properties.p1.snapped = false;
+        this.properties.p2.snapped = false;
     },
     /**
      * Need to override the Draggable gesture progress function
@@ -141,6 +143,7 @@ var EditableLine = DraggableShape.subClass({
         }
         return this.hitTestRegion(e);
     },
+
     /**
      * Check if mouse event is within ctrl_pt_radius of the line
      * @param e
