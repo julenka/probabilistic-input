@@ -246,11 +246,21 @@ var EditableLine = DraggableShape.subClass({
             this.properties.p2.snapped = true;
         }
     },
+    isSnapped: function() {
+        return   this.properties.p1.snapped || this.properties.p2.snapped;
+    },
+    isMovingEndPoints: function() {
+        return this.current_state === "move_p1" || this.current_state === "move_p2";
+    },
     dispatchEvent: function(e) {
         var snap_radius = 40;
+
         var result = this._super(e);
+        if(this.isSnapped()) {
+            return result;
+        }
         // If we are currently moving points, check if we shoudl snap to the points
-        if(this.current_state === "move_p1" || this.current_state === "move_p2") {
+        if(this.isMovingEndPoints()) {
             var pt = this.current_state === "move_p1" ? this.properties.p1 : this.properties.p2;
             var children = this.getRootView().children;
             for(var i = 0; i < children.length; i++) {
@@ -264,12 +274,12 @@ var EditableLine = DraggableShape.subClass({
                     for(var j = 0; j < nearby.length; j++) {
                         var snapPoint = shallowCopy(nearby[j]);
                         result.push(
-                            new ActionRequest(
+                            new SnapPointActionRequest(
                               this.snapToPoint.curry(snapPoint),
                                 this,
                                 true,
                                 true,
-                                e
+                                shallowCopy(e)
                             )
                         );
                     }
@@ -292,4 +302,11 @@ var EditableLine = DraggableShape.subClass({
         }
     }
 
+});
+
+var SnapPointActionRequest = ActionRequest.subClass({
+    className: "SnapPointActionRequest",
+    equals: function(other) {
+        return false;
+    }
 });
