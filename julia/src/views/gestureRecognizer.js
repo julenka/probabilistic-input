@@ -20,14 +20,9 @@ var GestureRecognizer = FSMView.subClass({
         this.path = [];
         this.fsm_description = {
             start: [
-                new MouseDownTransitionWithProbability(
+                new MouseDownTransition(
                     "down",
-                    function() {
-                        if(this.properties.use_priors && window.__julia_last_action === "gesture") {
-                            return 1;
-                        }
-                        return 0.9;
-                    },
+                    RETURN_TRUE,
                     this.gesture_start,
                     undefined,
                     true

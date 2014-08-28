@@ -116,7 +116,7 @@
 </script>
 <script>
 
-    function nBestLocation() { return {x: 10, y: 10}; }
+    function nBestLocation() { return {x: 10, y: 20}; }
     /**
      * Set up the interface here
      * @param rootView
@@ -150,7 +150,6 @@
     }
 
     function updateLastAction(action) {
-        window.__julia_last_action = action;
         $("#last_path").html("last action: " + action);
     }
 
@@ -209,7 +208,10 @@
     $(document).ready(function(){
         var mouse_variance = 10;
         var julia = new Julia();
-        var julia2 = new Julia();
+        var julia2 = new Julia(
+                {model: new TransitionLikelihoodModel()}
+
+        );
         var rootView = new ContainerView(julia);
         var rootView2 = new ContainerView(julia2);
 

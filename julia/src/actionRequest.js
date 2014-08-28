@@ -46,7 +46,7 @@ var ActionRequest = Object.subClass({
 var FSMActionRequest = ActionRequest.subClass({
     className: "FSMActionRequest",
     init: function(action_fn, viewContext, reversible, handlesEvent, event, destination_state, source_state,
-                   transition_index, weight) {
+                   transition_index, weight, transition_id, julia) {
         var fn2 = function(event, rootView) {
             this.current_state = destination_state;
             action_fn.call(this, event, rootView);
@@ -57,6 +57,7 @@ var FSMActionRequest = ActionRequest.subClass({
         this.source_state = source_state;
         this.transition_index = transition_index;
         this.weight = weight || 1;
+        this.transition_id = transition_id;
     },
     // This is for debugging
     // TODO remove (once done with debugging)

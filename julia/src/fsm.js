@@ -51,7 +51,9 @@ var FSMView = View.subClass({
         for(i = 0; i < transitions.length; i++) {
             transition = transitions[i];
             var transition_probability = transition.take(e, this);
+
             if(transition_probability > 0) {
+                var transition_model_probability = this.julia.model.likelihoodForTransition(this.__julia_id, transition.__julia_transition_id);
                 var options = [{action: transition.final_action, is_reversible: false},
                     {action: transition.feedback_action, is_reversible: true}];
                 options.forEach(function(option) {
@@ -66,7 +68,9 @@ var FSMView = View.subClass({
                                 transition.to,
                                 transition.from,
                                 i,
-                                transition_probability
+                                transition_probability * transition_model_probability,
+                                transition.__julia_transition_id,
+                                me.julia
                             ));
                     }
                 });

@@ -11,9 +11,6 @@ var DragShapeView = FSMView.subClass({
         var defaults = {
             fill: "white",
             stroke: "black",
-            default_predicate_probability: 0.6,
-            default_predicate_probability_with_prior: 1.0,
-            use_priors: false,
             onShapeCompleted: function(shape, view) { log(LOG_LEVEL_DEBUG, "shape", shape, "completed"); }
         };
         this._super(julia, props, defaults);
@@ -24,41 +21,38 @@ var DragShapeView = FSMView.subClass({
         var shapes = ["circle", "rectangle"];
         var me = this;
         shapes.forEach(function(shape) {
-            me.fsm_description.start.push(
-                new MouseDownTransitionWithProbability(
-                    shape,
-                    function() {
-                        if(this.properties.use_priors && window.__julia_last_action === ("drag " + shape)) {
-                            return this.attr("default_predicate_probability_with_prior");
-                        }
-                        return this.attr("default_predicate_probability");
-                    },
-                    me.updateStart,
-                    undefined,
-                    true
-                )
+            var start_shape = new MouseDownTransition(
+                shape,
+                RETURN_TRUE,
+                me.updateStart,
+                undefined,
+                true
+            );
+            me.fsm_description.start.push(start_shape);
+            var shape_shape = new MouseMoveTransition(
+                shape,
+                RETURN_TRUE,
+                me.updateBounds,
+                undefined,
+                true
             );
             me.fsm_description[shape] = [];
-            me.fsm_description[shape].push(
-                new MouseMoveTransition(
-                    shape,
-                    RETURN_TRUE,
-                    me.updateBounds,
-                    undefined,
-                    true
-                )
+            me.fsm_description[shape].push(shape_shape);
+            var shape_start = new MouseUpTransition(
+                "start",
+                function() { return this.properties.p1 && this.properties.p2; },
+                undefined,
+                me.shapeDone.curry(shape),
+                true
             );
-            me.fsm_description[shape].push(
-                new MouseUpTransition(
-                    "start",
-                    function() { return this.properties.p1 && this.properties.p2; },
-                    undefined,
-                    me.shapeDone.curry(shape),
-                    true
-                )
-            )
-        });
+            me.fsm_description[shape].push(shape_start);
+            if(!me.properties.initialized) {
+                me.julia.model.addEquivalentTransitions(shape_start.__julia_transition_id, start_shape.__julia_transition_id);
+//                me.julia.model.addEquivalentTransitions(shape_start.__julia_transition_id, shape_shape.__julia_transition_id);
+            }
 
+        });
+        me.properties.initialized = true;
     },
     updateStart: function(e) {
         this.attr({p1: {x: e.base_event.element_x, y: e.base_event.element_y}});

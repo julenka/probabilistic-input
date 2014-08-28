@@ -31,7 +31,7 @@
 <table>
     <tr>
         <td>
-            <h3 class="centered"> Without Priors</h3>
+            <h3 class="centered"> With Priors</h3>
             <div id="ipad_container1" class="ipad_container">
                 <div id="ipad_screen1" class="ipad_screen">
                     <svg id="demo_interface" width="546" height="407"></svg>
@@ -41,7 +41,7 @@
 
         </td>
         <td>
-            <h3 class="centered"> With Priors</h3>
+            <h3 class="centered"> Without Priors</h3>
 
             <div id="ipad_container2" class="ipad_container">
                 <div id="ipad_screen2" class="ipad_screen">
@@ -69,13 +69,12 @@
     function setup1(rootView) {
         rootView.addChildView(new Octopocus(rootView.julia, {}, function(gestureName) {
             fadeGesture($("#gesture1"), gestureName);
-            window.__julia_last_gesture = gestureName;
             $("#last_gesture").html("last gesture: " + gestureName);
         }));
     }
 
     function setup2(rootView) {
-        rootView.addChildView(new Octopocus(rootView.julia, {use_priors: true}, function(gestureName) {
+        rootView.addChildView(new Octopocus(rootView.julia, {}, function(gestureName) {
             fadeGesture($("#gesture2"), gestureName);
 
         }));
@@ -86,8 +85,12 @@
      */
     $(document).ready(function(){
         var mouse_variance = 10;
-        var julia = new Julia();
-        var julia2 = new Julia();
+        var julia = new Julia({
+            model: new MostRecentMoreLikely(5)
+        });
+        var julia2 = new Julia({
+            model: new TransitionLikelihoodModel()
+        });
         var rootView = new ContainerView(julia);
         var rootView2 = new ContainerView(julia2);
 

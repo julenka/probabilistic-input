@@ -11,6 +11,8 @@ module.exports = function(grunt) {
         'src/simpleGestureDetector.js',
         'src/logging.js',
         'src/julia.js',
+        'src/model/transitionLikelihoodModel.js',
+        'src/model/mostRecentMoreLikely.js',
         'src/actionRequest.js',
         'src/mediator.js',
         'src/touchOverlay.js',
@@ -22,7 +24,7 @@ module.exports = function(grunt) {
         'src/pevents/*.js',
         'src/prediction.js',
         'src/feedback/*.js',
-        'src/views/*.js'];
+        'src/views/*.js',];
     // All upfront config goes in a massive nested object.
     grunt.initConfig({
         // read package configuration

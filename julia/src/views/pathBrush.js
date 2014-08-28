@@ -17,16 +17,15 @@ var PathBrush = FSMView.subClass({
      */
     init: function(julia, properties) {
         this._super(julia, properties,
-            {color: "black", opacity: 1, use_priors: false,
+            {color: "black", opacity: 1,
                 width: 1,
-                default_predicate_probability: 0.6,
-                default_predicate_probability_with_prior: 1.0,
                 pathProbability: function(e) {
                     return 1.0;
                 }
             });
         this.path = [];
         this.gesture_detector = new SimpleGestureDetector();
+
         this.fsm_description = {
             start: [
                 new MouseDownTransitionWithProbability("down_path",
@@ -110,8 +109,18 @@ var PathBrush = FSMView.subClass({
                     true
                 )
             ]
-
         };
+        if(!this.properties.initialized) {
+            var me = this;
+            var states_to_augment = ["down_horiz", "down_path", "down_line", "down_vert"];
+            states_to_augment.forEach(function(state) {
+                var to_start = me.fsm_description[state][1];
+                var move_transition = me.fsm_description[state][0];
+                me.julia.model.addEquivalentTransitions(to_start.__julia_transition_id, move_transition.__julia_transition_id);
+            });
+
+        }
+        this.properties.initialized = true;
 
     },
     /**
@@ -130,14 +139,6 @@ var PathBrush = FSMView.subClass({
         // If there is no handler for this state, then don't go to that state
         if(!handlers[to_state]) {
             return 0;
-        }
-        if(this.properties.use_priors && window.__julia_last_action) {
-            // For path_priors demo. Maintaint prior action in a global state for now
-            // TODO: if you release this code this needs to be cleaned up
-            if(to_state === this.action_to_state[window.__julia_last_action]) {
-                return this.properties.default_predicate_probability_with_prior;
-            }
-            return this.properties.default_predicate_probability;
         }
         return 1;
     },

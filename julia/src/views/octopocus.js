@@ -16,7 +16,6 @@ var Octopocus = FSMView.subClass({
      */
     init: function(julia, properties, onGestureCompleted) {
         var defaults = {
-            use_priors: false
         };
 
         this._super(julia, properties, defaults);
@@ -35,16 +34,16 @@ var Octopocus = FSMView.subClass({
         gestures.forEach(function(gesture, idx) {
             var state = "down_" + gesture;
             // for now, let's just assume that we are returning true with probably 0.33
-            me.fsm_description.start.push(
-                new MouseDownTransition(state,
-                    RETURN_TRUE,
+            var new_down = new MouseDownTransition(state,
+                RETURN_TRUE,
                 function(e, rootView) {
                     this.gesture_start(e, rootView);
                     this.properties.color = colors[idx];
                 },
                 undefined,
                 true
-            ));
+            );
+            me.fsm_description.start.push(new_down);
             var new_state = [
                 new MouseMoveTransitionWithProbability(state,
                     me.recognizeGesture.curry(gesture),
@@ -65,19 +64,15 @@ var Octopocus = FSMView.subClass({
                     true
                 )
             ];
+            if(!me.properties.initialized) {
+                me.julia.model.addEquivalentTransitions(new_state[1].__julia_transition_id, new_down.__julia_transition_id);
+            }
             me.fsm_description[state] = new_state;
         });
+        this.properties.initialized = true;
     },
     recognizeGesture: function(gestureName) {
         var recognizer = this.recognizer;
-        var prior = 1;
-        if(this.properties.use_priors && window.__julia_last_gesture ) {
-            if(window.__julia_last_gesture === gestureName) {
-                prior = 0.9;
-            } else {
-                prior = 0.8;
-            }
-        }
         for(var i = 0; i < recognizer.Unistrokes.length; i++) {
             if(recognizer.Unistrokes[i].Name === gestureName) {
                 var unistroke = recognizer.Unistrokes[i].Points;
@@ -107,7 +102,7 @@ var Octopocus = FSMView.subClass({
                         return {X: p.X + dp.x, Y: p.Y + dp.y};
                     }
                 );
-                return gesture_probability * prior;
+                return gesture_probability;
             }
         }
 

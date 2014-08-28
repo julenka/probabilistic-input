@@ -27,7 +27,8 @@ var Julia = Object.subClass({
             // minimum probably to keep interface samples around for
             minProbability: 0.01,
             mediator: new Mediator(),
-            combiner: new ActionRequestCombiner()
+            combiner: new ActionRequestCombiner(),
+            model: new MostRecentMoreLikely(3)
         };
         var key;
         for(key in properties) {
@@ -96,6 +97,12 @@ var Julia = Object.subClass({
             throw "root view not instance of ContainerView!";
         }
         this.rootView = view;
+        // If this request came from a state machine, then we need to update the transition model
+        // to know that the last action for this alternative was selected as the truth.
+        if(view.__julia_last_action instanceof FSMActionRequest) {
+            var last_action = view.__julia_last_action;
+            this.model.newAction(last_action.viewContext.__julia_id, last_action.transition_id);
+        }
         this.rootView.resetDirtyBit();
         this.alternatives = [{view: view, probability: 1}];
         this.__julia_ambiguous = false;
@@ -288,6 +295,7 @@ var Julia = Object.subClass({
 
             viewClone = mediationReply.actionRequestSequence.rootView.clone();
             viewClone.kill = undefined;
+
             mediationReply.actionRequestSequence.requests.forEach(function(request){
                 if(!request.reversible) {
                     hasFinalAction = true;
@@ -301,6 +309,11 @@ var Julia = Object.subClass({
                     viewClone._dirty = true;
                 }
             });
+
+            // for updating the transition model, store the last action of this action request sequence.
+            // If a user later selects this action as the correct action, this will be stored as the most recent action
+            var requests = mediationReply.actionRequestSequence.requests;
+            viewClone.__julia_last_action = requests[requests.length - 1];
 
             if((typeof viewClone.kill) === 'undefined') {
                 if(mediationReply.accept) {
