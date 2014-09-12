@@ -22,7 +22,20 @@ var FSMView = View.subClass({
      */
     copyFsm: function(view_clone) {
         view_clone.current_state = this.current_state;
-        view_clone.fsm_description = deepCopy(this.fsm_description);
+//        view_clone.fsm_description = deepCopy(this.fsm_description);
+        for (var state in this.fsm_description) {
+            var new_state = [];
+
+            for(i = 0; i < this.fsm_description[state].length; i++) {
+                var transition = this.fsm_description[state][i];
+                var new_transition = {};
+                for(var prop in transition) {
+                    new_transition[prop] = transition[prop];
+                }
+                new_state.push(new_transition);
+            }
+            view_clone.fsm_description[state] = new_state;
+        }
     },
     clone: function() {
         var result = this._super();

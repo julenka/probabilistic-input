@@ -28,7 +28,7 @@ var Julia = Object.subClass({
             minProbability: 0.01,
             mediator: new Mediator(),
             combiner: new ActionRequestCombiner(),
-            model: new MostRecentMoreLikely(3)
+            model: new TransitionLikelihoodModel()
         };
         var key;
         for(key in properties) {
