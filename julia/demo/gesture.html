@@ -3,13 +3,6 @@
 <html>
 <head>
     <title>N-Best Gesture</title>
-
-
-
-
-    <!-- Snap SVG library -->
-
-
     <!-- Julia library -->
     <script type="text/javascript" src="../dist/julia.js"></script>
 
@@ -19,22 +12,14 @@
     <link type="text/css" rel="stylesheet" href="../julia.css"/>
 </head>
 <body>
-<h3>N-Best List with Gestures</h3>
-<div id="top_bar"></div>
+<h3 style="height: 30px"> </h3>
 
-<div id="demo_description">
-    circle, triangle, rectangle
+<div id="ipad_container" class="ipad_container">
+    <div id="ipad_screen" class="ipad_screen">
+        <svg id="demo_interface" width="546" height="407"></svg>
+        <div id="gesture"></div>
+    </div>
 </div>
-<h5>feedback type</h5>
-<div id="demo_settings"></div>
-<table>
-    <tr>
-        <td><svg id="demo_interface" width="640" height="480"></svg></td>
-        <td><div id="demo_alternatives"></div></td>
-    </tr>
-</table>
-
-<div id="debug"></div>
 
 <script>
     // Your custom views here
@@ -92,8 +77,11 @@
             },
             onGestureNotRecognized: function(root) {
                 var gesture_recognizer_copy = root.findViewById(gesture_recognizer.__julia_id);
-                var new_path = new Path(julia, {radius: 1, path: deepCopy(gesture_recognizer_copy.path)
-                        .map(function(el){ return el.x + "," + el.y; })});
+                var new_path = new Path(julia, {radius: 3, path: deepCopy(gesture_recognizer_copy.path)
+                        .map(function(el){ return el.x + "," + el.y; }),
+                    color: 'black'
+
+                });
                 root.addChildView(new_path);
 //                var label_clone = root.findViewById(label.__julia_id)
 //                label_clone.attr({text: "gesture not recognized"});
@@ -119,11 +107,12 @@
         $("#demo_settings").append(option, label);
     }
 
+    var julia;
     /**
      * Executed when the document loads. Intended to be boilerplate, shouldn't have to replace much here (for now).
      */
     $(document).ready(function(){
-        var julia = new Julia();
+        julia = new Julia();
         var rootView = new ContainerView(julia);
         julia.setRootView(rootView);
 
@@ -146,22 +135,22 @@
                 julia.feedback = feedbackFn();
             }
         };
-        addOption({name: "feedback_options", id:"n_best_1", checked: true},
-                "n best list",
-                onOptionClicked(function() { return new NBestUIFeedback(julia, {n: 4,
-                    show_root_instead_of_most_likely: false,
-                n_best_size: 100
-                })}) );
-        addOption({name: "feedback_options", id:"n_best_2", checked: false},
-                "n best list, highlight changes",
-                onOptionClicked(function() { return new NBestHighlightFeedback (julia, {n: 4,
-                    show_root_instead_of_most_likely: false,
-                    n_best_size: 100})}) );
-        addOption({name: "feedback_options", id:"n_best_3", checked: false},
-                "n best list, show only changed views",
-                onOptionClicked(function() { return new NBestFeedback(julia, {n: 4,
-                    show_root_instead_of_most_likely: false
-                })}) );
+//        addOption({name: "feedback_options", id:"n_best_1", checked: true},
+//                "n best list",
+//                onOptionClicked(function() { return new NBestUIFeedback(julia, {n: 4,
+//                    show_root_instead_of_most_likely: false,
+//                n_best_size: 100
+//                })}) );
+//        addOption({name: "feedback_options", id:"n_best_2", checked: false},
+//                "n best list, highlight changes",
+//                onOptionClicked(function() { return new NBestHighlightFeedback (julia, {n: 4,
+//                    show_root_instead_of_most_likely: false,
+//                    n_best_size: 100})}) );
+//        addOption({name: "feedback_options", id:"n_best_3", checked: false},
+//                "n best list, show only changed views",
+//                onOptionClicked(function() { return new NBestFeedback(julia, {n: 4,
+//                    show_root_instead_of_most_likely: false
+//                })}) );
 
         julia.dispatchCompleted = function(new_alternatives, uiUpdated) {
             if(!uiUpdated || julia.__julia_ambiguous) {
@@ -184,6 +173,8 @@
             $mainInterface.empty();
             julia.feedback.draw($mainInterface, julia.rootView, deferred);
         }
+
+        addTouchOverlay();
 
     });
 </script>
