@@ -2,7 +2,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Menu Prediction</title>
+    <title>Menu</title>
     <!-- Julia library -->
     <script type="text/javascript" src="../dist/julia.js"></script>
 
@@ -24,32 +24,28 @@
 
 </head>
 <body>
-<h3>Menu Prediction</h3>
-
-<div id="demo_description">Demonstrates how probabilistic events can be used to generate feedback about
-    future events. Uses a frequency table to generate probabilistic prediction events which are then
-    sent through the input system. Opacity or an N-best list may then be used to generate appropriate feedback.</div>
-
-<div id="demo_settings"></div>
-<div id="demo_settings2"></div>
-<div id="demo_settings3"></div>
-<table>
-    <tr>
-        <td>
-            <svg id="demo_interface" width="655" height="480"></svg>
-            <div id="menu_result"></div>
-        </td>
-        <td>
-            <div id="demo_alternatives"></div>
-            <table id="menu_prediction" style="padding-left: 10px">
-                <tr>
-                    <th>item</th>
-                    <th>p(item given state)</th>
-                </tr>
-            </table>
-        </td>
-    </tr>
-</table>
+<div id="macbook_container" class="macbook_container">
+    <div id="macbook_screen" class="macbook_screen">
+        <svg id="demo_interface" width="883" height="558"></svg>
+    </div>
+</div>
+<div id="menu_result"></div>
+<!--<table>-->
+    <!--<tr>-->
+        <!--<td>-->
+            <!---->
+        <!--</td>-->
+        <!--<td>-->
+            <!--<div id="demo_alternatives"></div>-->
+            <!--&lt;!&ndash;<table id="menu_prediction" style="padding-left: 10px">&ndash;&gt;-->
+                <!--&lt;!&ndash;<tr>&ndash;&gt;-->
+                    <!--&lt;!&ndash;<th>item</th>&ndash;&gt;-->
+                    <!--&lt;!&ndash;<th>p(item given state)</th>&ndash;&gt;-->
+                <!--&lt;!&ndash;</tr>&ndash;&gt;-->
+            <!--&lt;!&ndash;</table>&ndash;&gt;-->
+        <!--</td>-->
+    <!--</tr>-->
+<!--</table>-->
 
 
 <script>
@@ -123,96 +119,6 @@
             });
         }
         rootView.addChildView(menu);
-    }
-
-    function setupOptions(julia) {
-        var onOptionClicked = function(feedbackFn) {
-            return function(e) {
-                julia.feedback = feedbackFn();
-            }
-        };
-        juliaDemoAddRadioOption($("#demo_settings"), {name: "feedback_options", id:"fb_1", checked: true},
-                "no feedback",
-                onOptionClicked(function() { return new RootViewFeedback(julia)}));
-        juliaDemoAddRadioOption($("#demo_settings"), {name: "feedback_options", id:"fb_2", checked: false},
-                "opacity overlay",
-                onOptionClicked(function() { return new OverlayFeedback(julia,
-                        {feedbackType:  OverlayOpacity,
-                            renderThreshold: 0.1});
-                }));
-        juliaDemoAddRadioOption($("#demo_settings"), {name: "feedback_options", id:"fb_3", checked: false},
-                "n best list",
-                onOptionClicked(function() { return new
-                        NBestUIFeedback(julia, {
-                    feedback_type: NBestContainerZoomedIn,
-                    dp: 1,
-                    n: 5,
-                    dont_dispatch_when_visible: false,
-                    n_best_size: 100,
-                    show_root_instead_of_most_likely: true,
-                    n_best_location: function(){
-                        return {x: 0, y: 365};
-                    }
-                    })
-                }));
-        juliaDemoAddRadioOption($("#demo_settings"), {name: "feedback_options", id:"fb_4", checked: false},
-                "n best menu items only",
-                onOptionClicked(function() { return new
-                        NBestUIFeedback(julia, {
-                    feedback_type: NBestContainerVertical,
-                    draw_ambiguous: true,
-                    dp: 1,
-                    n: 5,
-                    dont_dispatch_when_visible: false,
-                    n_best_size: 200,
-                    show_root_instead_of_most_likely: true,
-                    n_best_location: function(){
-                        return {x: 440, y: 0};
-                    }
-                    })
-                }));
-
-        juliaDemoAddRadioOption($("#demo_settings2"),{name: "predict_options", id:"p_1", checked: true},
-                "predict future menu items",
-                function(e) {
-                    window.__predict = "menu";
-                    julia.removeEventSource(window.__mouseSource);
-                    julia.addEventSource(window.__menuSource);
-                }
-        );
-
-        juliaDemoAddRadioOption($("#demo_settings2"),{name: "predict_options", id:"p_2", checked: false},
-        "predict future mouse location",
-                function(e) {
-                    window.__predict = "mouse";
-                    julia.removeEventSource(window.__menuSource);
-                    julia.addEventSource(window.__mouseSource);
-                }
-        );
-
-        juliaDemoAddRadioOption($("#demo_settings2"),{name: "predict_options", id:"p_3", checked: false},
-        "no prediction",
-                function(e) {
-                    window.__predict = "none";
-                    julia.removeEventSource(window.__menuSource);
-                    julia.removeEventSource(window.__mouseSource);
-                }
-        );
-
-        juliaDemoAddRadioOption($("#demo_settings3"),{name: "priors", id:"pr_1", checked: true},
-                "priors off",
-                function(e) {
-                    delete window.__menu.predictor;
-                }
-        );
-        juliaDemoAddRadioOption($("#demo_settings3"),{name: "priors", id:"pr_2", checked: false},
-                "priors on",
-                function(e) {
-                    var menu = window.__julia.rootView.findViewById(window.__menu.__julia_id);
-                    menu.predictor = window.__predictor;
-                    window.__julia.setRootView(window.__julia.rootView);
-                }
-        );
     }
 
     var julia;
@@ -303,7 +209,6 @@
 //            );
         };
 
-        setupOptions(julia);
         window.__julia_snap = Snap();
         var blurFilterForValue = function(value) {
             var valueToTenth = Math.roundWithSignificance(value, 2);

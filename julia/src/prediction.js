@@ -82,9 +82,9 @@ var MenuEventPredictor = Object.subClass({
         }
         var descendants = menu.active_child.getDescendants();
         // If this item has no descendants, then predict siblings, not descendants
-        if(descendants.length == 0 && menu.active_child.getParent()) {
-            descendants = menu.active_child.getParent().getDescendants();
-        }
+//        if(descendants.length == 0 && menu.active_child.getParent()) {
+//            descendants = menu.active_child.getParent().getDescendants();
+//        }
         var sum = descendants.reduce(function(prev, cur) {
             if(!cur.frequency) {
                 return prev;
