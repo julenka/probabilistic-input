@@ -184,10 +184,10 @@
         var $mainInterface = $("#demo_interface");
         var uiWidth = $mainInterface.width();
         var uiHeight = $mainInterface.height();
-        var nButtons = 20;
+        var nButtons = 10;
         var julia = rootView.julia;
-        var buttonWidth = 50;
-        var buttonHeight = 50;
+        var buttonWidth = 100;
+        var buttonHeight = 100;
         var targets = [];
         for(var i = 0; i < nButtons; i++) {
             var randomPosition = getRandomPosition(targets, uiWidth - buttonWidth, uiHeight - buttonHeight);
@@ -284,13 +284,13 @@
         julia.dispatchCompleted = function(new_alternatives, uiUpdated, pEvent) {
             $mainInterface.empty();
             julia.drawFeedback($mainInterface, julia.feedback);
-            julia.dumpAlternativesAsSnap($alternatives, $mainInterface.width(), $mainInterface.height(), 0.25,
-                    function() {
-                        $mainInterface.empty();
-                        julia.rootView.draw($mainInterface);
-                        julia.dumpAlternativesAsSnap($alternatives, $mainInterface.width(), $mainInterface.height(), 0.25);
-                    }
-            );
+//            julia.dumpAlternativesAsSnap($alternatives, $mainInterface.width(), $mainInterface.height(), 0.25,
+//                    function() {
+//                        $mainInterface.empty();
+//                        julia.rootView.draw($mainInterface);
+//                        julia.dumpAlternativesAsSnap($alternatives, $mainInterface.width(), $mainInterface.height(), 0.25);
+//                    }
+//            );
             var snap = Snap($mainInterface[0]);
             if(pEvent) {
                 pEvent.getSamples(julia.nSamplesPerEvent).forEach(function(sample){
