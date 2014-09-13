@@ -230,8 +230,14 @@ var OverlayScale = OverlayFeedbackBase.subClass({
         var y = this.view.properties.y;
         this.view.properties.x = 0;
         this.view.properties.y = 0;
-        group.attr({ transform: "translate(" + x + " " + y + ") " + "scale(" + scale + " " + scale + ") "
-        });
+        var p = this.probability;
+        var p2 = (Math.log(p + 0.01) + 2) / 2;
+        group.attr(
+            { transform: "translate(" + (x + this.view.properties.w/2) + " " + (y + this.view.properties.h/2) + ") " + "scale(" + scale + " " + scale + ") " + "translate(" +  -this.view.properties.w / 2 + " " + -this.view.properties.h/2 + ") ",
+                opacity: p
+
+            }
+        );
         this.view.draw($(group.node));
         this.view.properties.x = x;
         this.view.properties.y = y;

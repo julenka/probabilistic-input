@@ -27,10 +27,10 @@
         <svg id="demo_interface" width="546" height="407"></svg>
 
     </div>
-
 </div>
-<div id="demo_result"></div>
 <div id="debug"></div>
+<div id="demo_result"></div>
+
 
 <script>
 // Add any controls here
@@ -45,8 +45,9 @@ var Target = FSMView.subClass({
             h: 50,
             x: 100,
             y: 100,
-            cap_p: 0.2,
-            cap_dist: 200
+            cap_p: 0.05,
+            cap_dist: 200,
+            message: "default message"
         };
         this._super(julia, props, defaults);
         this.fsm_description = {
@@ -80,11 +81,11 @@ var Target = FSMView.subClass({
                     feedback_action: DO_NOTHING,
                     handles_event: false
                 }),
-                new Transition({
+                new TransitionWithProbability({
                     to: "over",
                     source: "virtual",
                     type: "dragprogress",
-                    predicate: this.hitTest,
+                    predicate: this.overPredicate,
                     feedback_action: DO_NOTHING,
                     handles_event: false
                 }),
@@ -96,21 +97,15 @@ var Target = FSMView.subClass({
                         if(this.hitTest(e)) {
                             return false;
                         }
-                        var dist = $V([this.attr("x"), this.attr("y")]).distanceFrom($V([e.view.attr("x"), e.view.attr("y")]));
-//                        console.log(dist, this.attr("cap_dist"));
+                        var dist = this.getDistFrom(e.view);
                         if(dist > this.attr("cap_dist")) {
                             return this.attr("cap_p");
-//                            console.log(e.view.properties.type, "0.1");
-//                            return 0.1;
                         }
-//                        console.log(e.view.properties.type, "0.9");
-//                        return 0.9;
                         var result = this.attr("cap_p") + this.attr("cap_p") * Math.pow((1 - (dist / this.attr("cap_dist"))), 1);
-//                        console.log(result);
                         return result;
                     },
                     feedback_action: DO_NOTHING,
-                    handles_event: false
+                    handles_event: true
                 }),
             ],
             over: [
@@ -122,13 +117,13 @@ var Target = FSMView.subClass({
                     feedback_action: DO_NOTHING,
                     handles_event: false
                 }),
-                new Transition({
+                new TransitionWithProbability({
                     to: "over",
                     source: "virtual",
                     type: "dragprogress",
-                    predicate: this.hitTest,
-                    feedback_action: DO_NOTHING,
-                    handles_event: false
+                    feedback_action: this.hitTest,
+                    predicate: this.overPredicate,
+                    handles_event: true
                 }),
                 new Transition({
                     to: "start",
@@ -136,10 +131,23 @@ var Target = FSMView.subClass({
                     type: "dragend",
                     predicate: RETURN_TRUE,
                     feedback_action: this.onDragEnd,
-                    handles_event: false
+                    handles_event: true
                 })
             ]
         }
+    },
+    overPredicate: function(e) {
+        if(this.missTest(e)) {
+            return 0;
+        };
+        var dist = this.getDistFrom(e.view);
+        var max_dist = this.attr("w") * 2;
+        var result = 0.5 + 0.5 * (1 - (dist / max_dist));
+//                        console.log(result);
+        return result;
+    },
+    getDistFrom: function(other) {
+        return $V([this.attr("x"), this.attr("y")]).distanceFrom($V([other.attr("x"), other.attr("y")]));
     },
     missTest: function(e) {
         return !this.hitTest(e);
@@ -150,17 +158,17 @@ var Target = FSMView.subClass({
         return rectanglesIntersect(r1, r2);
     },
     onDragEnd: function(e, rootView) {
-        console.log("onDragEnd");
+//        console.log("onDragEnd");
         var child = rootView.findViewById(e.view.__julia_id);
         child.properties.x = e.view.drag_start_info.my_x;
         child.properties.y = e.view.drag_start_info.my_y;
         var $menuResultDiv = $("#demo_result");
-        $menuResultDiv.html(child.properties.type);
-        console.log(child.properties.type);
-        $menuResultDiv.fadeIn(function(){
+        $menuResultDiv.html(this.properties.message);
+        $menuResultDiv.fadeIn(1000,function(){
             $menuResultDiv.fadeOut();
         });
     },
+
     draw: function($el) {
 
         if(this.current_state === "start") {
@@ -175,7 +183,8 @@ var Target = FSMView.subClass({
         if(this.current_state === "active") {
             s.circle(cx, cy, w / 2).attr({
                 stroke: "gray",
-                "fill-opacity": 0,
+                fill: "white",
+                "fill-opacity": 0.9,
                 "stroke-width": "1px"
             });
             s.text(cx,cy + 5, this.attr("label")).attr({
@@ -185,7 +194,8 @@ var Target = FSMView.subClass({
         } else {
             s.circle(cx, cy, w / 2).attr({
                 stroke: "green",
-                "fill-opacity": 0,
+                fill: "white",
+                "fill-opacity": 0.9,
                 "stroke-width": "3px"
             });
             s.text(cx,cy + 5, this.attr("label")).attr({
@@ -215,7 +225,15 @@ var Target = FSMView.subClass({
                 fill: this.attr("color")
             });
             s.text(this.attr("x"), this.attr("y") + 30, this.attr("type")).attr({fill: "white"});
-        }
+        },
+        drawDragFeedback: function($el) {
+            var s = Snap($el[0]);
+            var padding = 5;
+            s.rect(this.attr("x") - padding, this.attr("y") - padding, this.attr("w") + 2 * padding, this.attr("h") + 2 * padding).attr({
+                stroke: "black",
+                fill: "white"
+            });
+        },
     });
 
 </script>
@@ -230,19 +248,25 @@ var Target = FSMView.subClass({
     var iconSize = 50;
     var mouseVariance = 10;
 
-    function targetPos(deg) {
+    function targetPos(deg, i) {
         var r = 150;
         var resultR = 30;
         var theta = deg / 180 * Math.PI;
         var resultX = Math.cos(theta) * r + centerX - resultR;
         var resultY = Math.sin(theta) * r + centerY - resultR;
+
+        resultX = i * resultR * 3;
+        resultY = 50;
         return {x: resultX, y: resultY, w: resultR * 2, h: resultR * 2};
+
+
     }
 
-    function iconAttrs(){
+    function iconAttrs(i){
+        var w = 60;
         return {
-            x: centerX + Math.randint(-iconJitter, iconJitter),
-            y: centerY + Math.randint(-iconJitter, iconJitter),
+            x: centerX + i * w - 1.5 * w,
+            y: centerY ,
             w: iconSize,
             h: iconSize
         };
@@ -253,42 +277,48 @@ var Target = FSMView.subClass({
         var rootView = new ContainerView(julia);
         julia.setRootView(rootView);
 
-        var imgIcon = new Icon(julia, $.extend({type: "image", color: "red"}, iconAttrs()));
-        var musicIcon = new Icon(julia, $.extend({type: "mp3", color: "green"}, iconAttrs()));
-        var wifiIcon = new Icon(julia, $.extend({type: "wifi", color: "blue"}, iconAttrs()));
+        var imgIcon = new Icon(julia, $.extend({type: "image", color: "red"}, iconAttrs(0)));
+        var musicIcon = new Icon(julia, $.extend({type: "mp3", color: "green"}, iconAttrs(1)));
+        var wifiIcon = new Icon(julia, $.extend({type: "wifi", color: "blue"}, iconAttrs(2)));
 
         rootView.addChildView(imgIcon);
         rootView.addChildView(musicIcon);
         rootView.addChildView(wifiIcon);
 
         var targets = [
-//            ["share", ["image", "mp3"]],
-            ["data", ["wifi"]],
-            ["playlist", ["mp3"]],
-            ["adjust", ["image"]]
+            ["data", ["wifi"], "checking data..."],
+            ["disable", ["wifi"], "turning off wifi..."],
+            ["playlist", ["mp3"], "adding song to playlist..."],
+            ["share", ["mp3","image"], "sharing..."],
+            ["adjust", ["image"], "adjusting image..."],
+            ["crop", ["image"], "cropping image..."],
+            ["share", ["image"], "sharing image..."]
         ];
+        var everyChildView = new EveryChildContainerView(julia);
         targets.forEach(function(t, i) {
             var deg = i * 90 ;
-            rootView.addChildView(
+            everyChildView.addChildView(
                     new Target(julia, $.extend(
                         {
                             label: t[0],
-                            droppable_icons: t[1]
+                            droppable_icons: t[1],
+                            message: t[2]
                         },
-                        targetPos(deg)))
+                        targetPos(deg,i)))
             );
         });
+        rootView.addChildView(everyChildView);
     }
 
     // Put your initialization code here
     $(document).ready(function(){
 
         julia = new Julia( {
-            nSamplesPerEvent: 20
+            nSamplesPerEvent: 5
         });
 
-        var feedback = new OverlayFeedback(julia, {feedbackType: OverlayOpacity, showOriginal: false});
-//        var feedback = new OverlayFeedback(julia, {feedbackType: OverlayScale, showOriginal: false});
+//        var feedback = new OverlayFeedback(julia, {feedbackType: OverlayOpacity, showOriginal: false});
+        var feedback = new OverlayFeedback(julia, {feedbackType: OverlayScale, showOriginal: false});
 //        var feedback = new OverlayFeedback(julia, {feedbackType: OverlayContrast, showOriginal: false});
 //        var feedback = new OverlayFeedback(julia, {feedbackType: OverlayProgressBar, showOriginal: false});
         julia.addEventSource(new PMouseEventHook($sketch[0], mouseVariance, mouseVariance));
