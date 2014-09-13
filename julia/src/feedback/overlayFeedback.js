@@ -161,7 +161,10 @@ var OverlayOpacity = OverlayFeedbackBase.subClass({
     draw: function($el) {
         var s = Snap($el[0]);
         var group = s.group();
-        group.attr({opacity: Math.roundWithSignificance(this.probability, 2)});
+        var p = this.probability;
+        var p2 = (Math.log(p + 0.01) + 2) / 2;
+        group.attr({opacity: Math.roundWithSignificance(p2, 3)});
+//        console.log(p, p2);
         this.view.draw($(group.node), this.probability);
     }
 });

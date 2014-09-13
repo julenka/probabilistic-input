@@ -8,6 +8,16 @@
 
     <!-- Julia CSS -->
     <link type="text/css" rel="stylesheet" href="../julia.css"/>
+    <style>
+        #demo_result {
+            margin-top: -350px;
+            font-family: Helvetica Neue, Helvetica, Arial;
+            font-size: xx-large;
+            width: 100%;
+            height: 100%;
+            text-align: center;
+        }
+    </style>
 </head>
 <body>
 
@@ -15,9 +25,11 @@
 <div id="ipad_container" class="ipad_container">
     <div id="ipad_screen" class="ipad_screen">
         <svg id="demo_interface" width="546" height="407"></svg>
-    </div>
-</div>
 
+    </div>
+
+</div>
+<div id="demo_result"></div>
 <div id="debug"></div>
 
 <script>
@@ -33,7 +45,7 @@ var Target = FSMView.subClass({
             h: 50,
             x: 100,
             y: 100,
-            cap_p: 0.1,
+            cap_p: 0.2,
             cap_dist: 200
         };
         this._super(julia, props, defaults);
@@ -85,7 +97,7 @@ var Target = FSMView.subClass({
                             return false;
                         }
                         var dist = $V([this.attr("x"), this.attr("y")]).distanceFrom($V([e.view.attr("x"), e.view.attr("y")]));
-                        console.log(dist, this.attr("cap_dist"));
+//                        console.log(dist, this.attr("cap_dist"));
                         if(dist > this.attr("cap_dist")) {
                             return this.attr("cap_p");
 //                            console.log(e.view.properties.type, "0.1");
@@ -142,6 +154,12 @@ var Target = FSMView.subClass({
         var child = rootView.findViewById(e.view.__julia_id);
         child.properties.x = e.view.drag_start_info.my_x;
         child.properties.y = e.view.drag_start_info.my_y;
+        var $menuResultDiv = $("#demo_result");
+        $menuResultDiv.html(child.properties.type);
+        console.log(child.properties.type);
+        $menuResultDiv.fadeIn(function(){
+            $menuResultDiv.fadeOut();
+        });
     },
     draw: function($el) {
 
@@ -250,7 +268,7 @@ var Target = FSMView.subClass({
             ["adjust", ["image"]]
         ];
         targets.forEach(function(t, i) {
-            var deg = i * 120 ;
+            var deg = i * 90 ;
             rootView.addChildView(
                     new Target(julia, $.extend(
                         {
@@ -270,6 +288,9 @@ var Target = FSMView.subClass({
         });
 
         var feedback = new OverlayFeedback(julia, {feedbackType: OverlayOpacity, showOriginal: false});
+//        var feedback = new OverlayFeedback(julia, {feedbackType: OverlayScale, showOriginal: false});
+//        var feedback = new OverlayFeedback(julia, {feedbackType: OverlayContrast, showOriginal: false});
+//        var feedback = new OverlayFeedback(julia, {feedbackType: OverlayProgressBar, showOriginal: false});
         julia.addEventSource(new PMouseEventHook($sketch[0], mouseVariance, mouseVariance));
 
         setup();
@@ -285,7 +306,7 @@ var Target = FSMView.subClass({
                 return;
             }
             updateUI();
-            julia.dumpAlternativesAsSnap($debug, $sketch.width(), $sketch.height(), 0.4);
+//            julia.dumpAlternativesAsSnap($debug, $sketch.width(), $sketch.height(), 0.4);
         };
 
         addTouchOverlay();
