@@ -254,8 +254,10 @@ var OverlayBlur = OverlayFeedbackBase.subClass({
     draw: function($el) {
         var s = Snap($el[0]);
         var group = s.group();
+        var p = this.probability;
+        var p2 = (Math.log(p + 0.01) + 2) / 2;
         group.attr({
-            filter: this.blurFilterForValue(1 - this.probability)
+            filter: this.blurFilterForValue((1 - p2) * 3)
         });
         this.view.draw($(group.node));
     }

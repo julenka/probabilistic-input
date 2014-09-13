@@ -46,7 +46,7 @@ var Target = FSMView.subClass({
             x: 100,
             y: 100,
             cap_p: 0.05,
-            cap_dist: 200,
+            cap_dist: 150,
             message: "default message"
         };
         this._super(julia, props, defaults);
@@ -95,13 +95,13 @@ var Target = FSMView.subClass({
                     type: "dragprogress",
                     predicate: function(e) {
                         if(this.hitTest(e)) {
-                            return false;
+                            return 0;
                         }
                         var dist = this.getDistFrom(e.view);
                         if(dist > this.attr("cap_dist")) {
                             return this.attr("cap_p");
                         }
-                        var result = this.attr("cap_p") + this.attr("cap_p") * Math.pow((1 - (dist / this.attr("cap_dist"))), 1);
+                        var result = this.attr("cap_p") + (1 - this.attr("cap_p")) * Math.pow((1 - (dist / this.attr("cap_dist"))), 1);
                         return result;
                     },
                     feedback_action: DO_NOTHING,
@@ -141,8 +141,8 @@ var Target = FSMView.subClass({
             return 0;
         };
         var dist = this.getDistFrom(e.view);
-        var max_dist = this.attr("w") * 2;
-        var result = 0.5 + 0.5 * (1 - (dist / max_dist));
+        var max_dist = this.attr("w");
+        var result =  0.9 + 0.1 * (1 - (dist / max_dist));
 //                        console.log(result);
         return result;
     },
@@ -292,7 +292,6 @@ var Target = FSMView.subClass({
             ["share", ["mp3","image"], "sharing..."],
             ["adjust", ["image"], "adjusting image..."],
             ["crop", ["image"], "cropping image..."],
-            ["share", ["image"], "sharing image..."]
         ];
         var everyChildView = new EveryChildContainerView(julia);
         targets.forEach(function(t, i) {
@@ -318,8 +317,8 @@ var Target = FSMView.subClass({
         });
 
 //        var feedback = new OverlayFeedback(julia, {feedbackType: OverlayOpacity, showOriginal: false});
-        var feedback = new OverlayFeedback(julia, {feedbackType: OverlayScale, showOriginal: false});
-//        var feedback = new OverlayFeedback(julia, {feedbackType: OverlayContrast, showOriginal: false});
+//        var feedback = new OverlayFeedback(julia, {feedbackType: OverlayScale, showOriginal: false});
+        var feedback = new OverlayFeedback(julia, {feedbackType: OverlayBlur, showOriginal: false});
 //        var feedback = new OverlayFeedback(julia, {feedbackType: OverlayProgressBar, showOriginal: false});
         julia.addEventSource(new PMouseEventHook($sketch[0], mouseVariance, mouseVariance));
 
@@ -336,7 +335,7 @@ var Target = FSMView.subClass({
                 return;
             }
             updateUI();
-//            julia.dumpAlternativesAsSnap($debug, $sketch.width(), $sketch.height(), 0.4);
+            julia.dumpAlternativesAsSnap($debug, $sketch.width(), $sketch.height(), 0.4);
         };
 
         addTouchOverlay();
