@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>OverlayFeedback Demo</title>
+
+    <!-- Julia library -->
+    <script type="text/javascript" src="../dist/julia.js"></script>
+
+    <!-- Julia CSS -->
+    <link type="text/css" rel="stylesheet" href="../julia.css"/>
+</head>
+<body>
+
+
+<div id="ipad_container" class="ipad_container">
+    <div id="ipad_screen" class="ipad_screen">
+        <svg id="demo_interface" width="546" height="407"></svg>
+    </div>
+</div>
+
+<div id="debug"></div>
+
+<script>
+// Add any controls here
+var Target = FSMView.subClass({
+    className: "Target",
+    init: function(julia, props) {
+        var defaults = {
+            label: "default",
+            // which icons can drop onto you
+            droppable_icons: [],
+            w: 50,
+            h: 50,
+            x: 100,
+            y: 100,
+            cap_p: 0.1,
+            cap_dist: 200
+        };
+        this._super(julia, props, defaults);
+        this.fsm_description = {
+            start: [
+            /**
+             * attrs: to (required), source (required), type (required), predicate (required), feedback_action (default: undefined)
+             * final_action (default: undefined), handles_event (default: false)
+             * @param attrs
+             */
+                new Transition({
+                    to: "active",
+                    source: "virtual",
+                    type: "dragstart",
+                    predicate: function(e) {
+                        if(this.attr("droppable_icons").indexOf(e.view.attr("type")) >= 0 ) {
+                            return true;
+                        } else {
+                            return false;
+                        }
+                    },
+                    feedback_action: DO_NOTHING,
+                    handles_event: false
+                })
+            ],
+            active: [
+                new Transition({
+                    to: "start",
+                    source: "virtual",
+                    type: "dragend",
+                    predicate: RETURN_TRUE,
+                    feedback_action: DO_NOTHING,
+                    handles_event: false
+                }),
+                new Transition({
+                    to: "over",
+                    source: "virtual",
+                    type: "dragprogress",
+                    predicate: this.hitTest,
+                    feedback_action: DO_NOTHING,
+                    handles_event: false
+                }),
+                new TransitionWithProbability({
+                    to: "active",
+                    source: "virtual",
+                    type: "dragprogress",
+                    predicate: function(e) {
+                        if(this.hitTest(e)) {
+                            return false;
+                        }
+                        var dist = $V([this.attr("x"), this.attr("y")]).distanceFrom($V([e.view.attr("x"), e.view.attr("y")]));
+                        console.log(dist, this.attr("cap_dist"));
+                        if(dist > this.attr("cap_dist")) {
+                            return this.attr("cap_p");
+//                            console.log(e.view.properties.type, "0.1");
+//                            return 0.1;
+                        }
+//                        console.log(e.view.properties.type, "0.9");
+//                        return 0.9;
+                        var result = this.attr("cap_p") + this.attr("cap_p") * Math.pow((1 - (dist / this.attr("cap_dist"))), 1);
+//                        console.log(result);
+                        return result;
+                    },
+                    feedback_action: DO_NOTHING,
+                    handles_event: false
+                }),
+            ],
+            over: [
+                new Transition({
+                    to: "active",
+                    source: "virtual",
+                    type: "dragprogress",
+                    predicate: this.missTest,
+                    feedback_action: DO_NOTHING,
+                    handles_event: false
+                }),
+                new Transition({
+                    to: "over",
+                    source: "virtual",
+                    type: "dragprogress",
+                    predicate: this.hitTest,
+                    feedback_action: DO_NOTHING,
+                    handles_event: false
+                }),
+                new Transition({
+                    to: "start",
+                    source: "virtual",
+                    type: "dragend",
+                    predicate: RETURN_TRUE,
+                    feedback_action: this.onDragEnd,
+                    handles_event: false
+                })
+            ]
+        }
+    },
+    missTest: function(e) {
+        return !this.hitTest(e);
+    },
+    hitTest: function(e){
+        var r1 = e.view.getBoundingBox();
+        var r2 = this.getBoundingBox();
+        return rectanglesIntersect(r1, r2);
+    },
+    onDragEnd: function(e, rootView) {
+        console.log("onDragEnd");
+        var child = rootView.findViewById(e.view.__julia_id);
+        child.properties.x = e.view.drag_start_info.my_x;
+        child.properties.y = e.view.drag_start_info.my_y;
+    },
+    draw: function($el) {
+
+        if(this.current_state === "start") {
+            return;
+        }
+        var s = Snap($el[0]);
+        var x = this.properties.x;
+        var y = this.properties.y;
+        var w = this.properties.w;
+        var cx = x + w / 2;
+        var cy = y + w / 2;
+        if(this.current_state === "active") {
+            s.circle(cx, cy, w / 2).attr({
+                stroke: "gray",
+                "fill-opacity": 0,
+                "stroke-width": "1px"
+            });
+            s.text(cx,cy + 5, this.attr("label")).attr({
+                fill:  "gray",
+                "text-anchor": "middle"
+            });
+        } else {
+            s.circle(cx, cy, w / 2).attr({
+                stroke: "green",
+                "fill-opacity": 0,
+                "stroke-width": "3px"
+            });
+            s.text(cx,cy + 5, this.attr("label")).attr({
+                fill:  "green",
+                "text-anchor": "middle"
+            });
+        }
+
+
+    }
+    });
+    var Icon = DraggableShape.subClass({
+        className: "Icon",
+        /**
+         * de
+         * @param julia
+         * @param properties
+         */
+        init: function(julia, properties) {
+            this._super(julia, properties);
+
+        },
+
+        drawShape: function($el) {
+            var s = Snap($el[0]);
+            s.rect(this.attr("x"), this.attr("y"), this.attr("w"), this.attr("h")).attr({
+                fill: this.attr("color")
+            });
+            s.text(this.attr("x"), this.attr("y") + 30, this.attr("type")).attr({fill: "white"});
+        }
+    });
+
+</script>
+
+<script>
+    var julia;
+    var $sketch = $("#demo_interface");
+    var $debug = $("#debug");
+    var centerX = $sketch.width() / 2;
+    var centerY = $sketch.height() / 2;
+    var iconJitter = 50;
+    var iconSize = 50;
+    var mouseVariance = 10;
+
+    function targetPos(deg) {
+        var r = 150;
+        var resultR = 30;
+        var theta = deg / 180 * Math.PI;
+        var resultX = Math.cos(theta) * r + centerX - resultR;
+        var resultY = Math.sin(theta) * r + centerY - resultR;
+        return {x: resultX, y: resultY, w: resultR * 2, h: resultR * 2};
+    }
+
+    function iconAttrs(){
+        return {
+            x: centerX + Math.randint(-iconJitter, iconJitter),
+            y: centerY + Math.randint(-iconJitter, iconJitter),
+            w: iconSize,
+            h: iconSize
+        };
+    }
+
+    function setup() {
+        // Set up views
+        var rootView = new ContainerView(julia);
+        julia.setRootView(rootView);
+
+        var imgIcon = new Icon(julia, $.extend({type: "image", color: "red"}, iconAttrs()));
+        var musicIcon = new Icon(julia, $.extend({type: "mp3", color: "green"}, iconAttrs()));
+        var wifiIcon = new Icon(julia, $.extend({type: "wifi", color: "blue"}, iconAttrs()));
+
+        rootView.addChildView(imgIcon);
+        rootView.addChildView(musicIcon);
+        rootView.addChildView(wifiIcon);
+
+        var targets = [
+//            ["share", ["image", "mp3"]],
+            ["data", ["wifi"]],
+            ["playlist", ["mp3"]],
+            ["adjust", ["image"]]
+        ];
+        targets.forEach(function(t, i) {
+            var deg = i * 120 ;
+            rootView.addChildView(
+                    new Target(julia, $.extend(
+                        {
+                            label: t[0],
+                            droppable_icons: t[1]
+                        },
+                        targetPos(deg)))
+            );
+        });
+    }
+
+    // Put your initialization code here
+    $(document).ready(function(){
+
+        julia = new Julia( {
+            nSamplesPerEvent: 20
+        });
+
+        var feedback = new OverlayFeedback(julia, {feedbackType: OverlayOpacity, showOriginal: false});
+        julia.addEventSource(new PMouseEventHook($sketch[0], mouseVariance, mouseVariance));
+
+        setup();
+
+        var updateUI = function() {
+            $sketch.empty();
+            julia.drawFeedback($sketch, feedback);
+        };
+        updateUI();
+        // Do stuff when an event has been dispatched
+        julia.dispatchCompleted = function(x, uiUpdated) {
+            if(!uiUpdated) {
+                return;
+            }
+            updateUI();
+            julia.dumpAlternativesAsSnap($debug, $sketch.width(), $sketch.height(), 0.4);
+        };
+
+        addTouchOverlay();
+    });
+
+</script>
+</body>
+</html>

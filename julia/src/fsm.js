@@ -221,9 +221,6 @@ var MouseTransition = Transition.subClass({
 
 var TransitionWithProbability = Transition.subClass({
     className: "TransitionWithProbability",
-    init: function(to,source,type,probability_function,feedback_action,final_action,handles_event) {
-        this._super(to,source,type,probability_function,feedback_action,final_action,handles_event);
-    },
     /**
      * Backwards compatible transition. If we take the transition return 1, otherwise return 0
      * @param e
