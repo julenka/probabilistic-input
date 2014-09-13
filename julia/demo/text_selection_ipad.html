@@ -15,15 +15,21 @@
     </style>
 </head>
 <body>
-<h3 class="centered">Text Selection</h3>
-<div id="ipad_container" class="ipad_container">
-    <div id="ipad_screen" class="ipad_screen">
-        <svg id="demo_interface" width="546" height="407"></svg>
-    </div>
-</div>
-<p style="height: 10px"></p>
+<table class="centered" style="margin-top: 70px">
+    <tr>
+        <td style="vertical-align: middle">
+            <div id="ipad_container" class="ipad_container">
+                <div id="ipad_screen" class="ipad_screen">
+                    <svg id="demo_interface" width="546" height="407"></svg>
+                </div>
+            </div>
+        </td>
+        <td style="width: 300px; height: 570px">
+            <div id="alternatives" style="display: clear "></div>
+        </td>
+    </tr>
+</table>
 
-<div id="alternatives" class="centered"></div>
 
 <script>
     // Global variables
@@ -72,7 +78,8 @@
         julia.drawFeedback($sketch, julia.feedback);
 
         addTouchOverlay();
-        addKeyOverlay();
+        addKeyFakeTouchOverlay($sketch);
+//        addKeyOverlay();
 
         var update = function() {
             $sketch.empty();
@@ -80,6 +87,7 @@
             julia.dumpAlternativesAsSnap($alternatives, $sketch.width(), $sketch.height(), 0.4);
         }
         window.setInterval(update, 30);
+
     });
 
 </script>

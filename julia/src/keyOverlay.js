@@ -43,8 +43,8 @@ function addKeyFakeTouchOverlay($el) {
     var cursorSize = 10;
     var snap = Snap();
     var box_size = 87;
-    var yOffset = 30;
-    var xOffset = 9;
+    var yOffset = -10;
+    var xOffset = 50;
     snap.attr({'id': 'key-overlay'});
 
     // we need to add these fake touches to be relative to the $el
@@ -64,7 +64,6 @@ function addKeyFakeTouchOverlay($el) {
 //        var y = yOffset;
 //        container.rect(x, y, box_size, box_size).attr({stroke: "red", "stroke-width": 2, "fill-opacity": 0});
 //        container.circle(x + box_size / 2, y + box_size / 2, cursorSize).attr({fill:"red"});
-//
 //    }
     $(document).keypress(function(e) {
         var key = e.keyCode || e.charCode;
