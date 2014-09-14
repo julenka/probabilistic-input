@@ -90,7 +90,7 @@ var Target = FSMView.subClass({
                     type: "dragprogress",
                     predicate: this.overPredicate,
                     feedback_action: DO_NOTHING,
-                    handles_event: false
+                    handles_event: true
                 }),
                 new TransitionWithProbability({
                     to: "active",
@@ -108,8 +108,26 @@ var Target = FSMView.subClass({
                         return result;
                     },
                     feedback_action: DO_NOTHING,
-                    handles_event: true
+                    handles_event: false
                 }),
+//                new TransitionWithProbability({
+//                    to: "active",
+//                    source: "virtual",
+//                    type: "dragprogress",
+//                    predicate: function(e) {
+//                        if(this.hitTest(e)) {
+//                            return 0;
+//                        }
+//                        var dist = this.getDistFrom(e.view);
+//                        if(dist > this.attr("cap_dist")) {
+//                            return this.attr("cap_p");
+//                        }
+//                        var result = this.attr("cap_p") + (1 - this.attr("cap_p")) * Math.pow((1 - (dist / this.attr("cap_dist"))), 1);
+//                        return result;
+//                    },
+//                    feedback_action: DO_NOTHING,
+//                    handles_event: false
+//                }),
             ],
             over: [
                 new Transition({
@@ -126,7 +144,7 @@ var Target = FSMView.subClass({
                     type: "dragprogress",
                     feedback_action: this.hitTest,
                     predicate: this.overPredicate,
-                    handles_event: true
+                    handles_event: false
                 }),
                 new Transition({
                     to: "start",
@@ -134,7 +152,7 @@ var Target = FSMView.subClass({
                     type: "dragend",
                     predicate: RETURN_TRUE,
                     feedback_action: this.onDragEnd,
-                    handles_event: true
+                    handles_event: false
                 })
             ]
         }
@@ -195,7 +213,7 @@ var Target = FSMView.subClass({
 //                "text-anchor": "middle",
 //                "stroke-opacity": 0.2
 //            });
-            return;
+//            return;
         } else if(this.current_state === "active") {
             s.circle(cx, cy, w / 2).attr({
                 stroke: "gray",
@@ -273,7 +291,7 @@ var Target = FSMView.subClass({
     var centerY = $sketch.height() / 2;
     var iconJitter = 50;
     var iconSize = 50;
-    var mouseVariance = 20;
+    var mouseVariance = 1;
 
     function targetPos(deg, i) {
         var r = 150;
@@ -299,7 +317,6 @@ var Target = FSMView.subClass({
         };
     }
 
-    var wifi_id, music_ic,img_id, everyChild_id;
     function setup() {
         // Set up views
         var rootView = new ContainerView(julia);
@@ -308,10 +325,6 @@ var Target = FSMView.subClass({
         var imgIcon = new Icon(julia, $.extend({label: "my.png", type: "image", color: "red", src:"../imgs/image.png"}, iconAttrs(0)));
         var musicIcon = new Icon(julia, $.extend({label: "my.mp3", type: "mp3", color: "green", src:"../imgs/musical-note.png"}, iconAttrs(1)));
         var wifiIcon = new Icon(julia, $.extend({label: "my_wifi", type: "wifi", color: "blue", src:"../imgs/wifi.png"}, iconAttrs(2)));
-
-        wifi_id = wifiIcon.__julia_id;
-        music_id = musicIcon.__julia_id;
-        img_id = imgIcon.__julia_id;
 
 
 
@@ -323,22 +336,20 @@ var Target = FSMView.subClass({
             ["adjust", ["image"], "adjusting image..."],
             ["crop", ["image"], "cropping image..."],
         ];
-
-        var everyChildView = new EveryChildContainerView(julia);
-        everyChild_id = everyChildView.__julia_id;
+//        var everyChildView = new EveryChildContainerView(julia);
         targets.forEach(function(t, i) {
-        var deg = i * 90 ;
-        everyChildView.addChildView(
-                new Target(julia, $.extend(
-                    {
-                        label: t[0],
-                        droppable_icons: t[1],
-                        message: t[2]
-                    },
-                    targetPos(deg,i)))
-        );
+            var deg = i * 90 ;
+            rootView.addChildView(
+                    new Target(julia, $.extend(
+                        {
+                            label: t[0],
+                            droppable_icons: t[1],
+                            message: t[2]
+                        },
+                        targetPos(deg,i)))
+            );
         });
-        rootView.addChildView(everyChildView);
+//        rootView.addChildView(everyChildView);
 
         rootView.addChildView(imgIcon);
         rootView.addChildView(musicIcon);
@@ -352,23 +363,14 @@ var Target = FSMView.subClass({
             nSamplesPerEvent: 5
         });
 
-        setup();
-
-
-        var opacity = new OverlayFeedback(julia, {feedbackType: OverlayOpacity, showOriginal: false});
-        var mostLikely = new MostLikelyFeedback(julia);
-        var scaleFeedback= new OverlayFeedback(julia, {feedbackType: OverlayScale, showOriginal: false});
-        var blur = new OverlayFeedback(julia, {feedbackType: OverlayBlur, showOriginal: false});
-        var progBar = new OverlayFeedback(julia, {feedbackType: OverlayProgressBar, showOriginal: false});
-        var feedback = new MetaFeedback(julia);
-        feedback.feedbackMap[everyChild_id] = progBar;
-        feedback.feedbackMap[music_id] = opacity;
-        feedback.feedbackMap[wifi_id] = opacity;
-        feedback.feedbackMap[img_id] = opacity;
-
-
-
+        var feedback = new MostLikelyFeedback(julia);
+//        var feedback = new OverlayFeedback(julia, {feedbackType: OverlayOpacity, showOriginal: false});
+//        var feedback = new OverlayFeedback(julia, {feedbackType: OverlayScale, showOriginal: false});
+//        var feedback = new OverlayFeedback(julia, {feedbackType: OverlayBlur, showOriginal: false});
+//        var feedback = new OverlayFeedback(julia, {feedbackType: OverlayProgressBar, showOriginal: false});
         julia.addEventSource(new PMouseEventHook($sketch[0], mouseVariance, mouseVariance));
+
+        setup();
 
         var updateUI = function() {
             $sketch.empty();

@@ -257,7 +257,7 @@ var OverlayBlur = OverlayFeedbackBase.subClass({
         var p = this.probability;
         var p2 = (Math.log(p + 0.01) + 2) / 2;
         group.attr({
-            filter: this.blurFilterForValue((1 - p2) * 3)
+            filter: this.blurFilterForValue((1 - p2) * 2)
         });
         this.view.draw($(group.node));
     }
@@ -294,8 +294,9 @@ var OverlayProgressBar = OverlayFeedbackBase.subClass({
         this.view.draw($(group.node));
         var height = 50;
         var width = 20;
-        s.rect(this.view.properties.x - width, this.view.properties.y, width, height).attr({fill: "gray"});
-        s.rect(this.view.properties.x - width,
+        s.rect(this.view.properties.x - width - 3, this.view.properties.y, width, height).attr({stroke: "gray"
+        , "stroke-width": "1px", fill: "white"});
+        s.rect(this.view.properties.x - width - 3,
             this.view.properties.y + height * (1 - this.probability), width, height * this.probability).attr({fill: "green"});
     }
 });
