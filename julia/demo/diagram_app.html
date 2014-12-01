@@ -280,6 +280,7 @@
             nSamplesPerEvent: 5,
             minProbability: 0.01,
             mediator: new Mediator({mediationThreshold: 0.0}),
+            model: new MostRecentMoreLikely(2),
             nAlternativesToKeep: 10});
 
         var rootView = new ContainerView(julia, {background_color: "#eee"});
@@ -314,7 +315,7 @@
             }
             $mainInterface.empty();
             julia.drawFeedback($mainInterface, julia.feedback);
-            julia.drawEventSamples($mainInterface);
+            // julia.drawEventSamples($mainInterface);
 //            julia.dumpAlternativesAsSnap($alternatives, $mainInterface.width(), $mainInterface.height(), 0.5);
         }
         window.setInterval(update, 30);
