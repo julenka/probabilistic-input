@@ -3,3 +3,4 @@ profiler/
 pi.sublime-project
 pi.sublime-workspace
 *.pyc
+*.DS_Store
